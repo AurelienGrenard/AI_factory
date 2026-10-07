@@ -17,7 +17,7 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/equity/"
         "black_scholes/parameters/black_scholes_01.json";
-    constexpr std::uint64_t seed = 710000101ULL;
+    constexpr std::uint64_t seed = 1610000101ULL;
 
     GeneratedRows core = uniform_rows(
         900U,
@@ -37,7 +37,7 @@ int main() {
             {"spot", 1.0f, 1.0f},
             {"risk_free_rate", -0.03f, 0.12f},
             {"dividend_yield", 0.0f, 0.10f},
-            {"volatility", 0.03f, 0.80f},
+            {"volatility", 0.04f, 0.65f},
         }
     );
     stress.construction["seed"] = seed + 1ULL;

@@ -26,7 +26,7 @@ int main() {
         linear_business_day_grid(21U, 756U, 45U),
         20U,
         log_moneyness_slope,
-        linear_business_day_grid(10U, 1764U, 10U),
+        linear_business_day_grid(10U, 1260U, 10U),
         10U,
         log_moneyness_slope
     );

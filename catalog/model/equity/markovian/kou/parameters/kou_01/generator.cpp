@@ -8,7 +8,7 @@
 
 int main() {
     using namespace ai_factory::workbench::datasets;
-    constexpr std::uint64_t seed = 710000701ULL;
+    constexpr std::uint64_t seed = 1610000701ULL;
     GeneratedRows rows = core_stress_rows(
         uniform_rows(900U, seed, {
             {"risk_free_rate", 0.001f, 0.08f},
@@ -22,11 +22,11 @@ int main() {
         uniform_rows(100U, seed + 1U, {
             {"risk_free_rate", -0.03f, 0.12f},
             {"dividend_yield", 0.0f, 0.10f},
-            {"volatility", 0.03f, 0.80f},
-            {"jump_intensity", 0.001f, 3.0f},
-            {"up_probability", 0.03f, 0.97f},
-            {"positive_jump_rate", 2.10f, 35.0f},
-            {"negative_jump_rate", 0.50f, 35.0f},
+            {"volatility", 0.04f, 0.60f},
+            {"jump_intensity", 0.01f, 1.8f},
+            {"up_probability", 0.1f, 0.8f},
+            {"positive_jump_rate", 3.5f, 25.0f},
+            {"negative_jump_rate", 1.5f, 25.0f},
         })
     );
     for (auto& row : rows.rows) {

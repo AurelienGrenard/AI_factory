@@ -1,5 +1,6 @@
 // CIR Jamshidian sensitivities: compact preparation, scalar/cooperative parity.
 #include "common/fixed_income/price_gradients/terminal_maturity.cuh"
+#include "product/european_swaption/schedule.cuh"
 #include "model/fixed_income/cir/product/european_swaption.cuh"
 #include "model/fixed_income/cir/product/european_swaption_price_gradients.cuh"
 #include "model/fixed_income/cir/product/rate_option_price_gradients.cuh"
@@ -348,234 +349,51 @@ void check_side() {
         "CIR zero initial state did not select a forward stencil."
     );
 
-    const auto diagonal_launcher = [](
-        closed_form::WorkDistribution distribution,
-        const auto& plan,
-        auto inputs,
-        auto stencils,
-        const auto& configuration,
-        auto outputs
-    ) {
-        cir::launch_cir_european_swaption_diagonal_sensitivities_cuda<
-            Side,
-            pg::SensitivityOrders::first_and_second
-        >(
-            plan,
-            inputs,
-            stencils,
-            configuration,
-            outputs,
-            distribution
-        );
+    // FP32 nodal prices do not support reliable second differences here.
+    const auto rejects_second_order = [](auto&& action, const char* label) {
+        bool rejected = false;
+        try {
+            action();
+        } catch (const std::invalid_argument&) {
+            rejected = true;
+        }
+        require(rejected, label);
     };
-    const auto scalar_diagonal_launcher = [&](const auto&... arguments) {
-        diagonal_launcher(
-            closed_form::WorkDistribution::scalar, arguments...
-        );
-    };
-    const auto cooperative_diagonal_launcher = [&](const auto&... arguments) {
-        diagonal_launcher(
-            closed_form::WorkDistribution::cooperative, arguments...
-        );
-    };
-    const auto diagonal_plan = prepare_diagonal<
-        pg::SensitivityOrders::first_and_second
-    >(full);
-    const auto scalar_diagonal = execute_diagonal<
-        pg::SensitivityOrders::first_and_second
-    >(diagonal_plan, launch, scalar_diagonal_launcher);
-    const auto cooperative_diagonal = execute_diagonal<
-        pg::SensitivityOrders::first_and_second
-    >(diagonal_plan, launch, cooperative_diagonal_launcher);
-
-    const auto mixed_plan =
-        cir::prepare_cir_european_swaption_sensitivities(
-            models,
-            products,
-            PriceConstruction::Aligned,
-            {1.0f / 504.0f, 2U},
-            full,
+    rejects_second_order([&] {
+        (void)prepare_diagonal<pg::SensitivityOrders::first_and_second>(full);
+    }, "CIR Jamshidian accepted a diagonal Hessian request.");
+    rejects_second_order([&] {
+        (void)prepare_diagonal<pg::SensitivityOrders::second>(full);
+    }, "CIR Jamshidian accepted a second-only request.");
+    rejects_second_order([&] {
+        (void)cir::prepare_cir_european_swaption_sensitivities(
+            models, products, PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U}, full,
             pg::SensitivityRequest::full_hessian()
         );
-    const auto mixed_workspace_size = [](
-        const auto& plan,
-        const auto& configuration
-    ) {
-        return cir::
-            cir_european_swaption_mixed_node_graph_workspace_bytes<Side>(
-                plan, configuration
-            );
-    };
-    const auto launch_mixed = [](
-        closed_form::WorkDistribution distribution,
-        const auto& plan,
-        auto inputs,
-        auto stencils,
-        auto mixed_stencils,
-        const auto& configuration,
-        auto outputs,
-        auto mixed_outputs,
-        void* workspace,
-        std::size_t workspace_bytes
-    ) {
-        cir::
-            launch_cir_european_swaption_mixed_node_graph_sensitivities_cuda<
-                Side
-            >(
-                plan,
-                inputs,
-                stencils,
-                mixed_stencils,
-                configuration,
-                outputs,
-                mixed_outputs,
-                workspace,
-                workspace_bytes,
-                distribution
-            );
-    };
-    const auto scalar_mixed = execute_closed_form_mixed(
-        mixed_plan,
-        launch,
-        mixed_workspace_size,
-        [&](const auto&... arguments) {
-            launch_mixed(
-                closed_form::WorkDistribution::scalar, arguments...
-            );
-        },
-        "CIR scalar full Hessian"
-    );
-    const auto cooperative_mixed = execute_closed_form_mixed(
-        mixed_plan,
-        launch,
-        mixed_workspace_size,
-        [&](const auto&... arguments) {
-            launch_mixed(
-                closed_form::WorkDistribution::cooperative, arguments...
-            );
-        },
-        "CIR cooperative full Hessian"
-    );
-    require_closed_form_diagonal_parity(
-        scalar_diagonal, scalar_mixed, "CIR scalar mixed/diagonal"
-    );
-    require_closed_form_diagonal_parity(
-        cooperative_diagonal,
-        cooperative_mixed,
-        "CIR cooperative mixed/diagonal"
-    );
-    require(
-        scalar_mixed.mixed_hessians.size()
-            == models.size() * 28U,
-        "CIR full Hessian mixed output cardinality is invalid."
-    );
-    for (std::size_t index = 0U;
-         index < scalar_mixed.mixed_hessians.size();
-         ++index) {
-        const float scale = std::max({
-            1.0f,
-            std::abs(scalar_mixed.mixed_hessians[index]),
-            std::abs(cooperative_mixed.mixed_hessians[index]),
-        });
-        const float difference = std::abs(
-            scalar_mixed.mixed_hessians[index]
-            - cooperative_mixed.mixed_hessians[index]
+    }, "CIR Jamshidian accepted a mixed Hessian request.");
+    rejects_second_order([&] {
+        cir::prepare_european_swaption_diagonal_sensitivity_stencils_cuda(
+            first_plan, {}, {}, 0U, 0U
         );
-        const auto& stencil = scalar_mixed.mixed_stencils[index];
-        float weight_norm = 0.0f;
-        for (std::uint8_t node = 0U; node < stencil.node_count; ++node) {
-            weight_norm += std::abs(stencil.weights[node]);
-        }
-        const std::size_t row = index
-            / mixed_plan.sensitivity_graph.mixed_second.size();
-        const float price_scale = std::max({
-            1.0f,
-            std::abs(scalar_mixed.prices[row]),
-            std::abs(cooperative_mixed.prices[row]),
-        });
-        const float reconstructed_roundoff = 4.0f
-            * std::numeric_limits<float>::epsilon()
-            * weight_norm
-            * price_scale;
-        const float tolerance = 1.5e-1f * scale
-            + reconstructed_roundoff;
-        if (difference > tolerance) {
-            std::cerr
-                << "CIR mixed mismatch index=" << index
-                << " scalar=" << scalar_mixed.mixed_hessians[index]
-                << " cooperative="
-                << cooperative_mixed.mixed_hessians[index]
-                << " difference=" << difference
-                << " tolerance=" << tolerance << std::endl;
-            throw std::runtime_error(
-                "CIR scalar/cooperative mixed Hessian gross mismatch."
-            );
-        }
-    }
-
-    const auto second_only_launcher = [](
-        const auto& plan,
-        auto inputs,
-        auto stencils,
-        const auto& configuration,
-        auto outputs
-    ) {
+    }, "CIR Jamshidian direct diagonal stencil preparation did not reject.");
+    rejects_second_order([&] {
         cir::launch_cir_european_swaption_diagonal_sensitivities_cuda<
-            Side,
-            pg::SensitivityOrders::second
-        >(
-            plan,
-            inputs,
-            stencils,
-            configuration,
-            outputs,
-            closed_form::WorkDistribution::cooperative
-        );
-    };
-    const auto second_only = execute_diagonal<
-        pg::SensitivityOrders::second
-    >(
-        prepare_diagonal<pg::SensitivityOrders::second>(full),
-        launch,
-        second_only_launcher
-    );
-
-    for (std::size_t row = 0U; row < models.size(); ++row) {
-        same(
-            cooperative.price[row],
-            cooperative_diagonal.price[row],
-            "CIR diagonal request changed the central price bits"
-        );
-        for (std::size_t sensitivity = 0U;
-             sensitivity < full.sensitivities.size();
-             ++sensitivity) {
-            const std::size_t index = row * full.sensitivities.size()
-                + sensitivity;
-            same(
-                cooperative.gradient[index],
-                cooperative_diagonal.gradient[index],
-                "CIR diagonal request changed a first derivative"
-            );
-            require(
-                std::isfinite(scalar_diagonal.diagonal_hessian[index])
-                    && std::isfinite(
-                        cooperative_diagonal.diagonal_hessian[index]
-                    ),
-                "CIR produced a non-finite diagonal Hessian."
-            );
-            same(
-                cooperative_diagonal.diagonal_hessian[index],
-                second_only.diagonal_hessian[index],
-                "CIR derivative request changed a diagonal Hessian"
-            );
-        }
-    }
-    require(
-        cooperative_diagonal.stencils[
-            2U * full.sensitivities.size() + 3U
-        ].node_count == 4U,
-        "CIR boundary diagonal did not retain four nodes."
-    );
+            Side, pg::SensitivityOrders::first_and_second
+        >(first_plan, {}, {}, launch, {},
+          closed_form::WorkDistribution::scalar);
+    }, "CIR Jamshidian direct diagonal launcher did not reject.");
+    rejects_second_order([&] {
+        (void)cir::cir_european_swaption_mixed_node_graph_workspace_bytes<
+            Side
+        >(first_plan, launch);
+    }, "CIR Jamshidian mixed workspace did not reject.");
+    rejects_second_order([&] {
+        cir::launch_cir_european_swaption_mixed_node_graph_sensitivities_cuda<
+            Side
+        >(first_plan, {}, {}, {}, launch, {}, {}, nullptr, 0U,
+          closed_form::WorkDistribution::scalar);
+    }, "CIR Jamshidian direct mixed launcher did not reject.");
 
     DeviceArray<cir::ModelParameters> device_models(models);
     DeviceArray<product::RegularEuropeanSwaptionParameters>
@@ -620,7 +438,7 @@ int main() {
         check_side<SwaptionSide::payer>();
         check_side<SwaptionSide::receiver>();
         std::cout
-            << "CIR Jamshidian compact full-Hessian sensitivities passed\n";
+            << "CIR Jamshidian first-order sensitivities and Hessian rejection passed\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n';

@@ -3,6 +3,8 @@
 
 #include <cuda_runtime.h>
 
+#include "common/longstaff_schwartz/host_progress.cuh"
+
 #include <algorithm>
 #include <atomic>
 #include <chrono>
@@ -263,25 +265,21 @@ private:
     std::thread worker_;
 };
 
-inline thread_local GenerationProgress* active_generation_progress = nullptr;
-
 class ScopedGenerationProgress {
 public:
     explicit ScopedGenerationProgress(GenerationProgress& progress) noexcept
-        : previous_(std::exchange(active_generation_progress, &progress)) {}
-
-    ~ScopedGenerationProgress() {
-        active_generation_progress = previous_;
-    }
+        : lsm_progress_(&record_lsm_progress, &progress) {}
 
 private:
-    GenerationProgress* previous_;
-};
-
-inline void record_active_host_progress(std::size_t completed_prices) noexcept {
-    if (active_generation_progress != nullptr) {
-        active_generation_progress->record_host_progress(completed_prices);
+    static void record_lsm_progress(
+        std::size_t completed_prices, void* context
+    ) noexcept {
+        static_cast<GenerationProgress*>(context)->record_host_progress(
+            completed_prices
+        );
     }
-}
+
+    longstaff_schwartz::ScopedHostProgress lsm_progress_;
+};
 
 }  // namespace ai_factory::workbench::offline::cuda

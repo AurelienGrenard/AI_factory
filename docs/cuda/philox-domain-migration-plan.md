@@ -1,7 +1,9 @@
 # Migration du compteur Philox commun et choix des flux par modèle
 
-**État :** mapping V2 commun intégré ; qualification en cours, décrite par
-[NUM-031](../audit/response.md#num-031--réserver-les-domaines-philox-aux-sources-qui-exigent-une-isolation).
+**État :** mapping V2 commun intégré ;
+[NUM-031](../audit/closed.md#num-031--adressage-des-sources-philox)
+a été fermé le 2026-10-02. Les vérifications supplémentaires ci-dessous
+restent des pistes de qualification pour de nouveaux usages.
 Le compteur `(path_bas, path_haut, groupe, domaine)` est commun à tous les
 modèles stochastiques dans `src/common/philox.cuh`. Le domaine zéro porte le
 flux unique ; `src/common/philox_domains.cuh` ajoute des sources séparées
@@ -34,8 +36,8 @@ modèles multi-flux encodent source et pas dans le domaine.
 
 Cette affectation décrit l’adressage des tirages actuels. Le couplage
 événementiel des marques Merton/Bates est intégré aux adapters
-`price_gradients` ; sa qualification multi-seeds et forte intensité reste
-suivie par NUM-032.
+`price_gradients` ; sa qualification multi-seeds et forte intensité reste une
+étude possible après la clôture de NUM-032 le 2026-10-02.
 
 ## Règle de choix du nombre de flux
 
@@ -141,7 +143,8 @@ unification.
    préalable d'utiliser plusieurs domaines. Comparer un contexte par domaine
    aux tirages à la demande ; mesurer la voie événementielle Merton selon son
    plan propriétaire. Garder les chemins actuels tant que les pilotes ne sont
-   pas qualifiés. Le couplage des comptes et marques est suivi par NUM-032.
+   pas qualifiés. Le couplage des comptes et marques relevait de NUM-032,
+   fermé le 2026-10-02.
 4. **Étendre sélectivement par familles après mesure.** Couvrir ensuite les autres moteurs
    markoviens, les produits à exercice gelé, les facteurs de taux, les sauts
    supplémentaires et enfin les moteurs rough/FFT, dont les paires complexes
@@ -156,8 +159,8 @@ unification.
    consommateur `price_delta` du catalogue actif ne réécrit pas cette preuve.
 6. **Actualiser les contrats actifs après qualification.** Mettre à jour
    `model-dynamics-contract.md`, les contrats prix/gradients et les règles de
-   provenance seulement quand la voie correspondante est intégrée. Fermer
-   NUM-031 avec les preuves et la portée réelle, sans annoncer une couverture
+   provenance seulement quand la voie correspondante est intégrée. Documenter
+   la portée réelle de NUM-031 fermé, sans annoncer une couverture
    rough ou multi-sous-jacent non testée.
 
 ## Preuves et critères de passage
@@ -176,11 +179,11 @@ unification.
   leurs tirages. Comparer les innovations effectivement utilisées par prix et
   gradients, y compris les scénarios où le central est réutilisé. Vérifier que
   chaque identifiant d'événement redonne la même innovation primitive ; les
-  comptes emboîtés, valeurs de marque et prix relèvent de NUM-032.
+  comptes emboîtés, valeurs de marque et prix relevaient de NUM-032.
 - **Lois et prix :** vérifier normales indépendantes et corrélées, moments
   et marges de tirage des pilotes, puis vérifier que leur loi de prix ne change
   pas avec le seul nouvel adressage. La qualification des sommes de sauts,
-  compensateurs et différences finies appartient à NUM-032. Ne pas exiger
+  compensateurs et différences finies appartenait à NUM-032. Ne pas exiger
   l'égalité bit à bit entre mappings.
 - **CUDA et performance :** exécuter les tests CUDA pertinents et Compute
   Sanitizer (`memcheck`, `racecheck`, `initcheck`, `synccheck`). Sur le même GPU

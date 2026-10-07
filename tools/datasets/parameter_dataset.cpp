@@ -49,6 +49,30 @@ void write_parameter_dataset(
     dataset[row_key] = database_rows(generated.rows);
     write_json_file(dataset_path, dataset);
 
+    nlohmann::ordered_json recipe = {
+        {"schema_version", 1},
+        {"kind", row_key == "models" ? "model_parameters"
+                : row_key == "curves" ? "curve_parameters"
+                : "product_parameters"},
+        {"dataset_id", database_id},
+        {"generator", "generator.cpp"},
+        {"output", {
+            {"path", dataset_path.generic_string()},
+            {"format", "json"},
+        }},
+        {"generation_output", catalog_path.generic_string()},
+        {"url", url},
+        {family_key, family},
+        {"row_count", generated.rows.size()},
+    };
+    if (metadata.contains("time_convention")) {
+        recipe["time_convention"] = metadata.at("time_convention");
+    }
+    recipe["parameters"] = parameter_descriptions;
+    recipe[definition_key] = definition;
+    recipe["construction"] = generated.construction;
+    write_yaml_document(catalog_path.parent_path() / "recipe.yaml", recipe);
+
     write_generation_receipt(
         catalog_path,
         generated.rows.size(),

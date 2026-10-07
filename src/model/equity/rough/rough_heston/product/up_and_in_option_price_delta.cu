@@ -1,20 +1,9 @@
-// Public Rough-Heston Up-and-in-option N-factor price/spot-delta launcher.
-
+// Rough-Heston up-and-in-option legacy delta API backed by the rough lift graph.
 #include "model/equity/rough/rough_heston/product/up_and_in_option_price_delta.cuh"
-#include "common/equity/price_delta/path_product_policy.cuh"
-#include "common/equity/price_delta/multiplicative_spot_path.cuh"
-#include "common/monte_carlo/monte_carlo_price_delta_kernel.cuh"
-#include "model/equity/rough/rough_heston/dynamics_impl.cuh"
-#include "product/up_and_in_option/pricing_policy.cuh"
-
-#include <cstddef>
-#include <cstdint>
+#include "model/equity/rough/rough_heston/product/up_and_in_option_price_gradients.cuh"
+#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_heston {
-namespace {
-template<std::size_t FactorCount>
-using Schedule = simulation::FixedStepDenseSchedule<DynamicsPolicy<FactorCount>>;
-}  // namespace
 
 template<OptionSide Side, std::size_t FactorCount>
 void launch_rough_heston_up_and_in_option_price_delta_cuda(
@@ -42,23 +31,19 @@ void launch_rough_heston_up_and_in_option_price_delta_cuda(
     float* device_deltas,
     float* device_delta_standard_errors
 ) {
-    namespace delta = ::ai_factory::workbench::equity::price_delta;
-    using Product = product::UpAndInOptionPathPolicy<Side>;
-    using Inputs = PreparedModelProductDeviceInputs<ModelParameters,
-        typename Product::ProductParameters, PreparedDynamics<FactorCount>>;
-    using Policy = delta::PathProductPriceDeltaPolicy<Schedule<FactorCount>,
-        Product, delta::MultiplicativeSpotPath<DynamicsPolicy<FactorCount>>, Inputs>;
-    const auto primary = make_prepared_model_product_device_inputs(
-        device_models, model_count, device_products, product_count, construction,
-        device_prepared_dynamics, prepared_dynamics_count);
-    monte_carlo::launch_monte_carlo_price_delta_cuda<Policy>(
-        {primary, bump},
-        {host_models, model_count, host_products, product_count, construction, bump},
-        result_count, result_offset, launch_result_count, monte_carlo_paths_per_price,
-        simulation::FixedStepTimeConfiguration{dt, simulation_steps_per_day},
-        threads_per_block, block_count, base_seed, device_prices, device_standard_errors,
-        device_deltas, device_delta_standard_errors,
-        "rough_heston.up_and_in_option_price_delta", option_side_name(Side));
+    (void)device_models;
+    (void)device_products;
+    using Graph = UpAndInOptionNodeGraph<Side, FactorCount, ::ai_factory::workbench::price_gradients::SensitivityOrders::first, 1U>;
+    volterra::price_gradients::launch_legacy_lift_spot_delta<Graph>(
+        host_models, model_count, device_prepared_dynamics,
+        prepared_dynamics_count, host_products, product_count,
+        construction, result_count, result_offset, launch_result_count,
+        monte_carlo_paths_per_price, dt, simulation_steps_per_day,
+        threads_per_block, block_count, base_seed, bump,
+        device_prices, device_standard_errors, device_deltas,
+        device_delta_standard_errors,
+        prepare_rough_heston_up_and_in_option_sensitivities
+    );
 }
 
 template void launch_rough_heston_up_and_in_option_price_delta_cuda<

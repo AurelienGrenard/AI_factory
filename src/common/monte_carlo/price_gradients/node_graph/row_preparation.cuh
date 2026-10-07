@@ -15,7 +15,7 @@ template<
     pg::SensitivityOrders Orders,
     typename Preparation,
     std::size_t MaximumSensitivities>
-__device__ __forceinline__ bool prepare_sensitivity_row_from_central(
+__host__ __device__ __forceinline__ bool prepare_sensitivity_row_from_central(
     const typename Preparation::Scenario& central,
     const pg::SensitivitySpec<typename Preparation::Parameter>* sensitivities,
     std::size_t sensitivity_count,
@@ -28,14 +28,17 @@ __device__ __forceinline__ bool prepare_sensitivity_row_from_central(
     int& error,
     std::size_t& error_sensitivity
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     scenarios[0U] = central;
     node_count = 1U;
     maximum_steps = central.step_count;
     for (std::size_t sensitivity = 0U;
          sensitivity < sensitivity_count;
          ++sensitivity) {
-        pg::SensitivityTask<typename Preparation::Scenario, 4U> task{};
+        pg::SensitivityTask<
+            typename Preparation::Scenario,
+            pg::SensitivityTraits<Orders>::node_capacity
+        > task{};
         if (!build_terminal_sensitivity_task_from_central<
                 Orders, Preparation
             >(
@@ -48,7 +51,12 @@ __device__ __forceinline__ bool prepare_sensitivity_row_from_central(
             error_sensitivity = sensitivity;
             return false;
         }
-        stencils[sensitivity] = task.stencil;
+        if constexpr (pg::requests_second_v<Orders>) {
+            stencils[sensitivity] = task.stencil;
+        } else {
+            stencils[sensitivity] =
+                pg::promote_first_sensitivity_stencil(task.stencil);
+        }
         auto& indices = node_indices[sensitivity];
         indices[0U] = 0U;
         const auto active = pg::active_node_count(task.stencil);
@@ -91,7 +99,7 @@ __device__ __forceinline__ bool prepare_sensitivity_row(
     int& error,
     std::size_t& error_sensitivity
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     typename Preparation::Scenario central{};
     if (!inputs.make_central(row, plan, central)) {
         error = preparation::invalid_central;

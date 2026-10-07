@@ -99,9 +99,9 @@ GeneratedRows generate_core_stress_rows(std::uint64_t seed) {
         {"initial_state", 0.001f, 0.08f},
     });
     GeneratedRows stress = uniform_rows(100U, seed + 2ULL, {
-        {"mean_reversion", 0.005f, 2.5f},
-        {"long_term_mean", 0.0001f, 0.20f},
-        {"initial_state", 0.0f, 0.20f},
+        {"mean_reversion", 0.02f, 1.5f},
+        {"long_term_mean", 0.0005f, 0.12f},
+        {"initial_state", 0.0f, 0.12f},
     });
     core.construction["seed"] = seed;
     stress.construction["seed"] = seed + 2ULL;
@@ -119,12 +119,12 @@ GeneratedRows generate_core_stress_rows(std::uint64_t seed) {
     assign_volatility(
         stress,
         seed + 3ULL,
-        8.0f,
-        20.0f,
-        0.001f,
-        0.80f,
-        "1 / 10",
-        16.0f
+        5.0f,
+        12.0f,
+        0.005f,
+        0.30f,
+        "1 / 6",
+        10.0f
     );
     return core_stress_rows(std::move(core), std::move(stress));
 }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 from pathlib import Path
 import unittest
 
@@ -80,10 +81,14 @@ class MetadataSchemaTest(unittest.TestCase):
                 schema_validator(kind)
                 validate_document(document, kind)
         counts = validate_repository(ROOT)
+        manifest = json.loads((ROOT / "catalog/manifest.json").read_text())
         other_recipes = len(list((ROOT / "work/catalog").rglob("recipe.yaml")))
         other_receipts = len(list((ROOT / "work/catalog").rglob("generation.yaml")))
-        self.assertEqual(counts["recipe"], 696 + other_recipes)
-        self.assertEqual(counts["generation"], 696 + other_receipts)
+        self.assertEqual(counts["recipe"], manifest["count"] + other_recipes)
+        self.assertEqual(
+            counts["generation"],
+            sum(row["ready"] for row in manifest["datasets"]) + other_receipts,
+        )
         self.assertEqual(counts["validation"], 0)
 
     def test_each_schema_rejects_a_broken_contract(self) -> None:

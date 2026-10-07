@@ -280,6 +280,33 @@ template<OptionSide Side> void heston() {
     for (unsigned int threads : {64U, 128U, 256U}) {
         pg::LaunchConfiguration launch{pg::PricingMethod::monte_carlo,0U,3U,heston_paths,threads,1U,713U};
         const auto solo = execute(prepare({{spot}}), launch, launcher, true);
+        // Independent AnalyticHestonEngine references on the exact 252-day
+        // maturity grid (QuantLib 1.43, Business252/NullCalendar). These check
+        // the price level; the legacy launcher below only checks code parity.
+        if (threads == 128U && heston_paths >= 4097U) {
+            constexpr double call_reference[2]{
+                0.0013678667281647415, 0.025358097171288174
+            };
+            constexpr double put_reference[2]{
+                0.050321546867132215, 0.025358097171288174
+            };
+            const auto* independent_reference = Side == OptionSide::call
+                ? call_reference : put_reference;
+            for (unsigned int row = 0U; row < 2U; ++row) {
+                const double tolerance = 8.0 * solo.price_error[row] + 0.0005;
+                if (std::abs(solo.price[row] - independent_reference[row])
+                    >= tolerance) {
+                    std::cerr << "Heston analytic price mismatch row=" << row
+                              << " observed=" << solo.price[row]
+                              << " reference=" << independent_reference[row]
+                              << " standard_error=" << solo.price_error[row]
+                              << '\n';
+                    throw std::runtime_error(
+                        "Heston Monte Carlo price misses analytic reference."
+                    );
+                }
+            }
+        }
         DeviceArray<float> old(12U);
         hs::launch_heston_european_option_price_delta_cuda<Side>(models.data(),device_models.data,3U,
             products.data(),device_products.data,3U,PriceConstruction::Aligned,3U,0U,3U,heston_paths,1.f/504.f,2U,

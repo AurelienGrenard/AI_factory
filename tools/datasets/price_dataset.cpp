@@ -363,6 +363,9 @@ void write_monte_carlo_price_dataset_impl(
     if (has_curve) {
         json_document["curve_dataset"] = dataset_reference(curve_document);
     }
+    if (!catalog_sections.empty()) {
+        json_document["methodology"] = catalog_sections;
+    }
     write_json_file(dataset_path, json_document);
 
     if (!cuda_execution.is_object() || cuda_execution.empty()) {

@@ -40,6 +40,39 @@ static_assert(lsm::SmallLinearRegressor<TwoFactorRegressor>);
 static_assert(lsm::SmallLinearRegressor<LaguerreRegressor>);
 static_assert(lsm::SmallLinearRegressor<HermiteRegressor>);
 static_assert(lsm::SmallLinearRegressor<HingeRegressor>);
+using RefinedRegressor = lsm::NormalEquationRegressor<
+    basis::OneFactorLaguerreBasis<3U>,
+    lsm::RegressionRefinement::normal_residual
+>;
+static_assert(lsm::SmallLinearRegressor<RefinedRegressor>);
+
+// A regressor without the residual API is valid only when refinement is off.
+struct NoResidualRegressor {
+    using Input = LaguerreRegressor::Input;
+    using Features = LaguerreRegressor::Features;
+    static constexpr std::size_t kBasisSize = LaguerreRegressor::kBasisSize;
+    static constexpr std::size_t kRegressionValueCount =
+        LaguerreRegressor::kRegressionValueCount;
+    static constexpr bool kRefineNormalResidual = false;
+    static Features evaluate(const Input&);
+    static void accumulate(const Features&, double,
+                           double (&)[kRegressionValueCount]);
+    static void reduce_and_store_partials(
+        const double (&)[kRegressionValueCount], std::size_t, std::size_t,
+        std::size_t, double*);
+    static void solve_for_row(std::uint32_t, std::uint32_t, std::size_t,
+                              std::size_t, const double*, double*,
+                              lsm::RegressionStatus*,
+                              lsm::RegressionDiagnostics*);
+    static double predict(const Features&, const double*);
+    static std::size_t shared_bytes(unsigned int);
+};
+struct MissingResidualRefinement : NoResidualRegressor {
+    static constexpr bool kRefineNormalResidual = true;
+};
+static_assert(lsm::SmallLinearRegressor<NoResidualRegressor>);
+static_assert(!lsm::ResidualRefinementRegressor<MissingResidualRefinement>);
+static_assert(!lsm::SmallLinearRegressor<MissingResidualRefinement>);
 
 void require(bool condition, const char* message) {
     if (!condition) throw std::runtime_error(message);

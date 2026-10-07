@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/variance_gamma/parameters/variance_gamma_01/recipe.yaml
-  sha256: 3f51bef0e69a4cfebdd029e46f5ef7b855c3700893e33c5604e5693d3b5b6f6e
 artifact:
   row_count: 1000
-  sha256: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
+  path: datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json
+  sha256: 3c1260ac67cd924460f612c14b6a6ecd7964ce02a00afd9b793f705414353cbc
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/model/equity/markovian/variance_gamma/parameters/variance_gamma_01/generator.cpp
+  source_sha256: c28a33455e64470aaba9fd1f9b76af1d5437ba19b9332aa39dbe79329dc731eb
+  binary_sha256: 832e2dfed9a2e5ef4e0e91ad4373dcdd33630d526a45b500cf9f4e259a3747a8
+  recipe_sha256: 13cfa1be99763ead71772be29234c95c90deaa876dbfa5b463b4435927be52a5
+  started_at_utc: '2026-10-07T13:47:27.910805+00:00'
+  seed: 1610000401
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.017568292998475954
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/model/equity/markovian/variance_gamma/parameters/variance_gamma_01/recipe.yaml
+  sha256: 13cfa1be99763ead71772be29234c95c90deaa876dbfa5b463b4435927be52a5
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: ed55f1f0fb65af6048575c04d9c35a7473fbac97a7537ae23f54dc1e6accaf06
+  generator: catalog/model/equity/markovian/variance_gamma/parameters/variance_gamma_01/generator.cpp
+  generator_sha256: c28a33455e64470aaba9fd1f9b76af1d5437ba19b9332aa39dbe79329dc731eb
+  binary_sha256: 832e2dfed9a2e5ef4e0e91ad4373dcdd33630d526a45b500cf9f4e259a3747a8
+  parameter_campaign: full model/product refresh
+record_sha256: 65f2b052377e52087100164b9fd55c3bccd289620ccf6391ad4017c7786dc427

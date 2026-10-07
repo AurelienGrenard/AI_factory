@@ -11,6 +11,7 @@
 #include "product/european_swaption/price_gradients/device_preparation.cuh"
 
 #include <span>
+#include <stdexcept>
 
 namespace ai_factory::workbench::model::fixed_income::cir {
 
@@ -51,6 +52,15 @@ prepare_cir_european_swaption_sensitivities(
     const pg::PriceGradientConfiguration& configuration,
     pg::SensitivityRequest request
 ) {
+    if (request.orders != pg::SensitivityOrders::first
+        || !request.diagonal_second.empty()
+        || !request.mixed_second.empty()
+        || request.all_mixed_second) {
+        throw std::invalid_argument(
+            "CIR Jamshidian second-order sensitivities are unsupported "
+            "in the FP32 pricing path."
+        );
+    }
     return fipg::prepare_device_sensitivities<EuropeanSwaptionPriceGradientPlan>(
         models,
         products,

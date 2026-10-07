@@ -16,7 +16,7 @@ int main() {
     using namespace ai_factory::workbench;
     using namespace ai_factory::workbench::datasets;
 
-    constexpr std::uint64_t seed = 710001101ULL;
+    constexpr std::uint64_t seed = 1610001101ULL;
     GeneratedRows core = uniform_rows(900U, seed, {
         {"spot", 1.0f, 1.0f},
         {"risk_free_rate", 0.001f, 0.08f},
@@ -31,11 +31,11 @@ int main() {
         {"spot", 1.0f, 1.0f},
         {"risk_free_rate", -0.03f, 0.12f},
         {"dividend_yield", 0.0f, 0.10f},
-        {"initial_variance", 0.003f, 0.30f},
-        {"mean_reversion", 0.10f, 8.0f},
-        {"long_run_variance", 0.003f, 0.35f},
-        {"hurst_exponent", 0.01f, 0.45f},
-        {"rho", -0.99f, 0.25f},
+        {"initial_variance", 0.0075f, 0.20f},
+        {"mean_reversion", 0.30f, 5.0f},
+        {"long_run_variance", 0.0075f, 0.22f},
+        {"hurst_exponent", 0.02f, 0.35f},
+        {"rho", -0.98f, -0.10f},
     });
 
     const auto reconstruct_coefficients = [](
@@ -101,7 +101,7 @@ int main() {
         core, seed + 1U, 5.0f, 12.0f, 0.08f, 0.8f
     );
     reconstruct_coefficients(
-        stress, seed + 3U, 8.0f, 20.0f, 0.03f, 1.8f
+        stress, seed + 3U, 5.0f, 12.0f, 0.08f, 0.8f
     );
     GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)

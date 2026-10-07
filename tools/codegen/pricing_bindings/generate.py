@@ -19,12 +19,12 @@ from manifest import (
     MARKOVIAN_MODELS,
     MODEL_RECIPE_SPECS,
     PRICE_VARIANTS,
-    ROUGH_PRODUCT_BINDINGS,
+    EQUITY_PRODUCT_BINDINGS,
     ROUGH_MODELS,
     ROUGH_N_FACTOR_MODELS,
     ROUGH_VOLTERRA_MODELS,
     Binding,
-    RoughProductBinding,
+    EquityProductBinding,
 )
 from capability_manifest import (
     AVAILABLE_DATASET_SPECS,
@@ -657,7 +657,7 @@ def generate_markovian(output_root: Path) -> list[Path]:
 
 def closed_form_delta_values(spec: PriceDeltaBindingSpec) -> dict[str, str]:
     """Reuse the exact price policy, including its contractual calendar guard."""
-    product = next(p for p in ROUGH_PRODUCT_BINDINGS if p.product == spec.pricing.product)
+    product = next(p for p in EQUITY_PRODUCT_BINDINGS if p.product == spec.pricing.product)
     european = product.product == "european_option"
     fixed = product.product == "geometric_asian_option"
     sided = product.sided
@@ -698,10 +698,11 @@ def generate_price_delta_bindings(output_root: Path) -> list[Path]:
             binding = spec.pricing.manifest_binding
             values = rough_values(binding, spec.pricing.model,
                                   MODEL_BY_NAME[spec.pricing.model].display, "volterra")
-            sample = SAMPLE_MODEL_BY_NAME[spec.pricing.model]
-            values.update(kernel=sample.kernel, kernel_header=_volterra_kernel_header(sample.kernel),
-                          path_strategy=("CoupledVolterraSpotPaths" if spec.path_strategy == "coupled"
-                                         else "MultiplicativeVolterraSpotPath"))
+            values["delta_graph_arguments"] = (
+                "Side, ::ai_factory::workbench::price_gradients::SensitivityOrders::first, 1U"
+                if binding.sided else
+                "::ai_factory::workbench::price_gradients::SensitivityOrders::first, 1U"
+            )
             values["explicit_instantiations"] = values["explicit_instantiations"].replace(
                 f"launch_{spec.pricing.model}_{binding.product}_cuda",
                 f"launch_{spec.pricing.model}_{binding.product}_price_delta_cuda"
@@ -723,6 +724,11 @@ def generate_price_delta_bindings(output_root: Path) -> list[Path]:
             binding = spec.pricing.manifest_binding
             values = rough_values(binding, spec.pricing.model,
                                   MODEL_BY_NAME[spec.pricing.model].display, "n_factor")
+            values["delta_graph_arguments"] = (
+                "Side, FactorCount, ::ai_factory::workbench::price_gradients::SensitivityOrders::first, 1U"
+                if binding.sided else
+                "FactorCount, ::ai_factory::workbench::price_gradients::SensitivityOrders::first, 1U"
+            )
             values["explicit_instantiations"] = values["explicit_instantiations"].replace(
                 f"launch_{spec.pricing.model}_{binding.product}_cuda",
                 f"launch_{spec.pricing.model}_{binding.product}_price_delta_cuda"
@@ -788,7 +794,7 @@ def generate_price_delta_bindings(output_root: Path) -> list[Path]:
         binding = spec.pricing.manifest_binding
         if not isinstance(binding, Binding):
             raise TypeError(f"missing price-delta Binding: {spec.unit_path}")
-        product = next(p for p in ROUGH_PRODUCT_BINDINGS if p.product == binding.product)
+        product = next(p for p in EQUITY_PRODUCT_BINDINGS if p.product == binding.product)
         path_policy = (
             f"equity::price_delta::MultiplicativeSpotPath<{binding.model}::DynamicsPolicy>"
             if spec.path_strategy == "multiplicative"
@@ -941,7 +947,7 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
     return generated
 
 
-def rough_schedules(binding: RoughProductBinding) -> tuple[str, str]:
+def rough_schedules(binding: EquityProductBinding) -> tuple[str, str]:
     schedules = {
         "terminal": (
             "volterra::TerminalHybridSchedule",
@@ -974,7 +980,7 @@ def rough_schedules(binding: RoughProductBinding) -> tuple[str, str]:
 
 def volterra_instantiation(
     model: str,
-    binding: RoughProductBinding,
+    binding: EquityProductBinding,
     side: str,
 ) -> str:
     return f"""template void launch_{model}_{binding.product}_cuda<
@@ -991,7 +997,7 @@ def volterra_instantiation(
 
 def n_factor_instantiation(
     model: str,
-    binding: RoughProductBinding,
+    binding: EquityProductBinding,
     factor_count: int,
     side: str | None,
 ) -> str:
@@ -1011,7 +1017,7 @@ def n_factor_instantiation(
 
 
 def rough_values(
-    binding: RoughProductBinding,
+    binding: EquityProductBinding,
     model: str,
     model_display: str,
     backend: str,
@@ -1092,7 +1098,7 @@ def generate_rough(output_root: Path) -> list[Path]:
         if spec.engine not in backends:
             continue
         binding = spec.manifest_binding
-        if not isinstance(binding, RoughProductBinding):
+        if not isinstance(binding, EquityProductBinding):
             raise TypeError(f"missing rough product binding: {spec.unit_path}")
         backend = backends[spec.engine]
         values = rough_values(
@@ -1125,6 +1131,13 @@ def _fixed_income_template_values(
         "curve_display": "",
         "curve_type": "",
         "forward_dynamics": capability.terminal_forward_dynamics or "",
+        "joint_dynamics_impl_header": (
+            "model/fixed_income/" + {
+                "cir_plus_plus": "cir",
+                "g2_plus_plus": "g2",
+                "hull_white": "ornstein_uhlenbeck",
+            }.get(capability.model, capability.model) + "/dynamics_impl.cuh"
+        ),
     }
     if capability.curve is not None:
         curve = curve_by_name[capability.curve]
@@ -1177,6 +1190,11 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
         "price_dataset_path": dataset.dataset_path,
         "catalog_path": dataset.generation_yaml_path,
         "url": dataset.url,
+        "model_transition_method": (
+            "exact noncentral chi-square factor transitions; trapezoidal stochastic rate integral"
+            if dataset.model in {"cir", "cir_plus_plus"}
+            else "exact joint Gaussian factor and stochastic rate-integral transitions"
+        ),
         "construction": (
             "CartesianProduct"
             if dataset.construction == "cartesian" else "Aligned"
@@ -1581,8 +1599,15 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         "outputs": (
             ["price", "standard_error"] if stochastic else ["price"]
         ),
-        "paths_per_price": 1_048_576 if stochastic else 0,
+        "paths_per_price": (65_536 if dataset.product == "zero_coupon_bond_up_and_out"
+                            else 1_048_576 if stochastic else 0),
     }
+    if dataset.engine.startswith("equity_lsm_") or dataset.engine == "fixed_income_lsm":
+        metadata["standard_error_scope"] = (
+            "in-sample discounted cashflow dispersion / sqrt(paths); "
+            "excludes variation across fitted policies and policy bias"
+        )
+        metadata["fit_and_valuation_paths"] = "same paths"
     domain = resolve_rng_domain(dataset) if stochastic else None
     if domain is not None:
         metadata["seeds"] = {
@@ -1593,6 +1618,13 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         int(value) for value in re.findall(r"1\.0f\s*/\s*(\d+)\.0f", source)
     ]
     fixed_steps = [value for value in denominators if value > 252]
+    if dataset.product == "zero_coupon_bond_up_and_out":
+        metadata["time_grid"] = {
+            "steps_per_year": 252,
+            "simulation_steps_per_day": 1,
+            "delta_t": "1 / 252",
+            "monitoring": "grid points including t=0 and T; continuous barrier approximate",
+        }
     if fixed_steps:
         steps_per_year = fixed_steps[0]
         metadata["time_grid"] = {
@@ -1867,12 +1899,27 @@ def _relative_files(root: Path, pattern: str) -> set[str]:
 
 def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
     diagnostics: list[str] = []
+    # Rough delta bindings include handwritten gradient graph adapters. Their
+    # direct includes own these headers even though codegen does not render them.
+    rough_gradient_helpers: set[str] = set()
+    for delta in GENERATED_PRICE_DELTA_BINDING_PATHS:
+        if not (delta.startswith("src/model/equity/rough/")
+                and delta.endswith("_price_delta.cu")):
+            continue
+        source = reference_root / delta
+        if not source.is_file():
+            continue
+        for include in re.findall(
+            r'^\s*#include "(model/equity/rough/[^"\n]+_price_gradients\.cuh)"',
+            source.read_text(), re.MULTILINE,
+        ):
+            rough_gradient_helpers.add(f"src/{include}")
     inventory = (
         (
             "product binding",
             set(DECLARED_PRODUCT_BINDING_PATHS) | set(GENERATED_PRICE_DELTA_BINDING_PATHS)
             | set(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
-            | set(GENERATED_CLOSED_FORM_POLICY_PATHS),
+            | set(GENERATED_CLOSED_FORM_POLICY_PATHS) | rough_gradient_helpers,
             _relative_files(reference_root, "src/model/**/product/**/*.cu")
             | _relative_files(reference_root, "src/model/**/product/**/*.cuh"),
         ),

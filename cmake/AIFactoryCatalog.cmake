@@ -57,6 +57,21 @@ function(ai_factory_collect_generation_dependencies output source)
             list(APPEND dependencies ${candidate})
         endif()
     endforeach()
+    string(REGEX MATCHALL
+        "product/[a-z0-9_]+/dataset\\.hpp"
+        product_dataset_headers
+        "${source_text}"
+    )
+    foreach(header IN LISTS product_dataset_headers)
+        string(REGEX REPLACE
+            "product/([^/]+)/dataset\\.hpp"
+            "ai_factory_product_\\1_dataset"
+            candidate "${header}"
+        )
+        if(TARGET ${candidate})
+            list(APPEND dependencies ${candidate})
+        endif()
+    endforeach()
     list(REMOVE_DUPLICATES dependencies)
     set(${output} ${dependencies} PARENT_SCOPE)
 endfunction()
@@ -70,7 +85,7 @@ function(add_parameter_generator target source)
         ai_factory_dataset_validation
         ${dependencies}
     )
-    target_compile_features(${target} PRIVATE cxx_std_23)
+    target_compile_features(${target} PRIVATE cxx_std_20)
     if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
         add_dependencies(parameter_generators ${target})
     endif()
@@ -95,9 +110,9 @@ function(add_price_generator target source)
     target_link_libraries(
         ${target} PRIVATE ${dependencies} ai_factory_price_dataset
     )
-    target_compile_features(${target} PRIVATE cxx_std_23)
+    target_compile_features(${target} PRIVATE cxx_std_20)
     set_target_properties(${target} PROPERTIES
-        CUDA_STANDARD 23
+        CUDA_STANDARD 20
         CUDA_STANDARD_REQUIRED YES
     )
     if(source MATCHES "/price_gradients/")
@@ -130,9 +145,9 @@ function(add_sample_generator target source)
     target_link_libraries(
         ${target} PRIVATE ${dependencies} ai_factory_sample_dataset
     )
-    target_compile_features(${target} PRIVATE cxx_std_23)
+    target_compile_features(${target} PRIVATE cxx_std_20)
     set_target_properties(${target} PROPERTIES
-        CUDA_STANDARD 23
+        CUDA_STANDARD 20
         CUDA_STANDARD_REQUIRED YES
     )
     if(NOT AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS)
@@ -178,6 +193,11 @@ function(ai_factory_register_catalog_generator source kind)
     if(NOT AI_FACTORY_MATHDX_ROOT
         AND source IN_LIST AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES)
         return()
+    endif()
+    # Optional work recipes can be built by name, but published aggregates
+    # must have the same members on a clean checkout and on a local workspace.
+    if(source MATCHES "^work/catalog/")
+        set(AI_FACTORY_REGISTERING_LOCAL_EXPERIMENTS ON)
     endif()
     ai_factory_catalog_generator_target(target "${source}")
     if(TARGET ${target})

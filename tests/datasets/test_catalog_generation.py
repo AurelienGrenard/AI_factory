@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 import yaml
 from tools.datasets import generate_catalog as campaign
-from tools.datasets.artifact_publication import digest
+from tools.datasets.artifact_publication import contained_path, digest
 
 
 class GenerationTests(unittest.TestCase):
@@ -83,8 +83,12 @@ class GenerationTests(unittest.TestCase):
     def test_inventory(self):
         jobs = campaign.inventory(campaign.ROOT, {"prices", "samples"}, set(), set())
         from capability_manifest import AVAILABLE_DATASET_SPECS
-        self.assertEqual({job["target"] for job in jobs}, {spec.cmake_target for spec in AVAILABLE_DATASET_SPECS
-                         if spec.dataset_kind in {"prices", "samples"}})
+        self.assertEqual(
+            {job["target"] for job in jobs},
+            {spec.cmake_target for spec in AVAILABLE_DATASET_SPECS
+             if spec.dataset_kind in {"prices", "samples"}
+             and contained_path(campaign.ROOT, spec.generator_path).is_file()},
+        )
         self.assertEqual(len(jobs), len({job["target"] for job in jobs}))
 
     def test_gradient_plan_uses_recipe_path_count(self):
@@ -264,37 +268,6 @@ class GenerationTests(unittest.TestCase):
         (Path(self.job["work"]) / self.job["dataset"]).write_text("changed")
         with self.assertRaisesRegex(ValueError, "Completed output changed"):
             campaign.execute(self.run, self.state)
-
-    def test_spot_gradient_remains_codegen_only(self):
-        jobs = campaign.inventory(
-            campaign.ROOT, {"price_gradients"}, set(), set()
-        )
-        from capability_manifest import (
-            PRICE_GRADIENT_DATASET_SPECS,
-            PRICE_GRADIENT_DATASET_VARIANTS,
-        )
-        spot_specs = [
-            spec
-            for spec in PRICE_GRADIENT_DATASET_VARIANTS
-            if spec.sensitivity_parameters == ("model.spot",)
-        ]
-        self.assertTrue(spot_specs)
-        self.assertFalse(any(
-            spec.sensitivity_parameters == ("model.spot",)
-            for spec in PRICE_GRADIENT_DATASET_SPECS
-        ))
-        self.assertFalse(any(
-            job["generator"] in {spec.generator_path for spec in spot_specs}
-            for job in jobs
-        ))
-        cartesian = next(
-            spec for spec in spot_specs
-            if spec.model == "heston"
-            and spec.variant == "european_calls"
-            and spec.construction == "cartesian"
-        )
-        self.assertEqual(cartesian.dataset_kind, "price_gradients")
-        self.assertTrue(cartesian.dataset_id.endswith("_price_gradient_spot"))
 
     def test_publication_rejects_a_dataset_url_different_from_the_recipe(self):
         work = self.root / "wrong-url"

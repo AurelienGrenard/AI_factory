@@ -132,11 +132,11 @@ this experiment's numerical and 5% within/between-run CV gates.
 
 Portable evidence:
 
-- [Summary and fingerprints](../../tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/summary.json)
-- [All geometry comparisons, CSV](../../tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/summary.csv)
-- [Raw timing and resource records](../../tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/measurements.ndjson)
-- [Plans, source hashes, reference tiles and telemetry](../../tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/provenance.ndjson)
-- [Seven numerical failures: original rows and both modes](../../tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/numerical-diagnostics.json)
+- [Summary and fingerprints](../../maintainer/tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/summary.json)
+- [All geometry comparisons, CSV](../../maintainer/tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/summary.csv)
+- [Raw timing and resource records](../../maintainer/tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/measurements.ndjson)
+- [Plans, source hashes, reference tiles and telemetry](../../maintainer/tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/provenance.ndjson)
+- [Seven numerical failures: original rows and both modes](../../maintainer/tests/performance/reports/jamshidian-strategy-sm89-2026-09-08/numerical-diagnostics.json)
 
 The measured executable is archived separately in
 `build-dev/jamshidian-strategy-snapshot-01`, SHA-256
@@ -152,11 +152,11 @@ Build with the desired native GPU architecture and no fast math:
 
 ```bash
 cmake --build build-dev --target ai_factory_jamshidian_strategy_benchmark -j1
-python tools/performance/run_jamshidian_strategy.py --stage pilot --output build-dev/jamshidian-pilot
-python tools/performance/run_jamshidian_strategy.py --stage screen --source build-dev/jamshidian-pilot --output build-dev/jamshidian-screen
-python tools/performance/run_jamshidian_strategy.py --stage profiles --source build-dev/jamshidian-screen --output build-dev/jamshidian-profiles
-python tools/performance/run_jamshidian_strategy.py --stage large --source build-dev/jamshidian-screen --output build-dev/jamshidian-large
-python tools/performance/run_jamshidian_strategy.py --stage confirm --source build-dev/jamshidian-screen --source build-dev/jamshidian-large --repeat 0 --output build-dev/jamshidian-confirm-0
+python maintainer/tools/performance/run_jamshidian_strategy.py --stage pilot --output build-dev/jamshidian-pilot
+python maintainer/tools/performance/run_jamshidian_strategy.py --stage screen --source build-dev/jamshidian-pilot --output build-dev/jamshidian-screen
+python maintainer/tools/performance/run_jamshidian_strategy.py --stage profiles --source build-dev/jamshidian-screen --output build-dev/jamshidian-profiles
+python maintainer/tools/performance/run_jamshidian_strategy.py --stage large --source build-dev/jamshidian-screen --output build-dev/jamshidian-large
+python maintainer/tools/performance/run_jamshidian_strategy.py --stage confirm --source build-dev/jamshidian-screen --source build-dev/jamshidian-large --repeat 0 --output build-dev/jamshidian-confirm-0
 ```
 
 Repeat the last command with independent IDs/output directories 1 and 2;

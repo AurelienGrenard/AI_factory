@@ -85,6 +85,8 @@ __device__ __forceinline__ void evaluate_nodes_body(
     const std::size_t local_row = blockIdx.x;
     if (local_row >= row_count) return;
     const auto& row = rows[local_row];
+    const std::size_t node_stride =
+        mcpg::terminal_node_graph_active_node_capacity(row.sensitivity_count);
 
     if (threadIdx.x == 0U) {
         int error = preparation::valid;
@@ -193,7 +195,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
         }
         if (blockIdx.y == 0U) {
             workspace.node_metadata[
-                local_row * node_capacity + node
+                local_row * node_stride + node
             ] = typename NodePolicy::Metadata{};
         }
     }
@@ -234,7 +236,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
                 const auto node = owned_nodes[slot];
                 workspace.node_values[
                     (local_row * path_capacity + path - first_path)
-                        * node_capacity + node
+                        * node_stride + node
                 ] = Policy::replay_node_value(
                     row, prepared_nodes[node], path
                 );
@@ -364,7 +366,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
             }
             workspace.node_values[
                 (local_row * path_capacity + path - first_path)
-                    * node_capacity
+                    * node_stride
                 + node
             ] = value;
         }

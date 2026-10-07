@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/product/range_accrual/range_accruals_01/recipe.yaml
-  sha256: ccd2ca2446b585a83bd3679d464ab7721b9215f92ab5cff1cabd72682871bc9d
 artifact:
   row_count: 1000
-  sha256: c1bcb72ef067cf934d59f5ee745dff4b6edd8533ce5e7c5d38ce7bcfcf7d4e40
+  path: datasets/product/range_accrual/range_accruals_01.json
+  sha256: 02da73cd4fb249f09d32ab091f883c6c514328b8bcffc7e7b7bbdd741fc99fb9
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/product/range_accrual/range_accruals_01/generator.cpp
+  source_sha256: 8efdca9e7109aa410aebab4b8ad47916176ff7ca60cf58636779d9b23c2097c8
+  binary_sha256: 06228057c31b2006c55d410533cc39f0c333dba0c985e83ca40b73886ae633f0
+  recipe_sha256: f92a884728d106d3cba5e6abec218ff37cf116103c62904460b7b46ba864861c
+  started_at_utc: '2026-10-07T13:47:29.423006+00:00'
+  seed: 1633000101
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.00837033100106055
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/product/range_accrual/range_accruals_01/recipe.yaml
+  sha256: f92a884728d106d3cba5e6abec218ff37cf116103c62904460b7b46ba864861c
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: c27fc682cb6429b4d5f8b47b7ade59512e65c3a3aa9e122c6a189621fa511241
+  generator: catalog/product/range_accrual/range_accruals_01/generator.cpp
+  generator_sha256: 8efdca9e7109aa410aebab4b8ad47916176ff7ca60cf58636779d9b23c2097c8
+  binary_sha256: 06228057c31b2006c55d410533cc39f0c333dba0c985e83ca40b73886ae633f0
+  parameter_campaign: full model/product refresh
+record_sha256: 0ab7546d148bb610799d59a805aee6856483f12b9e8a358b7dbd06ff54c3f8e4

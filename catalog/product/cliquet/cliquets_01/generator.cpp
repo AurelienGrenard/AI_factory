@@ -22,7 +22,7 @@ int main() {
 
     constexpr std::size_t core_row_count = 900U;
     constexpr std::size_t tail_row_count = 100U;
-    constexpr std::uint64_t seed = 732000101ULL;
+    constexpr std::uint64_t seed = 1632000101ULL;
     GeneratedRows rows = cliquet::generate_rows(
         core_row_count, tail_row_count, seed
     );

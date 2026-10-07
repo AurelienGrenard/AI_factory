@@ -7,94 +7,288 @@
   },
   "configurePresets": [
     {
-      "name": "dev",
-      "displayName": "CUDA 13.3 development",
-      "description": "Ninja, GCC 14, CUDA 13.3, RTX 4090 (SM 8.9)",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "name": "cuda-cxx20-base",
+      "hidden": true,
+      "generator": "Unix Makefiles",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_COMPILER": "/usr/bin/g++-14",
-        "CMAKE_CUDA_COMPILER": "/usr/local/cuda-13.3/bin/nvcc",
-        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/g++-14",
-        "CUDA_WORKBENCH_ARCHITECTURES": "89",
         "BUILD_TESTING": "ON",
-        "AI_FACTORY_USE_CCACHE": "OFF"
+        "AI_FACTORY_USE_CCACHE": "OFF",
+        "AI_FACTORY_CUDA_PRICE_GRADIENT_LAUNCH_BOUNDS": "OFF"
+      }
+    },
+    {
+      "name": "ppti",
+      "displayName": "PPTI GPU 4 / CUDA 12.9 / C++20 / SM70",
+      "description": "Tesla V100; use a CUDA 12.9 compatible host compiler on PATH or set it at configure time",
+      "binaryDir": "${sourceDir}/builds/ppti-gpu4",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_COMPILER": "/usr/local/cuda-12.9/bin/nvcc",
+        "nlohmann_json_DIR": "$env{HOME}/opt/nlohmann-json-3.10.5/lib/cmake/nlohmann_json",
+        "AI_FACTORY_MATHDX_ROOT": "$env{HOME}/opt/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12",
+        "CUDA_WORKBENCH_ARCHITECTURES": "70",
+        "AI_FACTORY_CUDA_TUNING_PROFILE_ID": "sm70_ppti_unqualified_v1"
+      },
+      "inherits": "cuda-cxx20-base"
+    },
+    {
+      "name": "ppti-sm120-base",
+      "hidden": true,
+      "inherits": "cuda-cxx20-base",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_COMPILER": "/usr/local/cuda-13.2/bin/nvcc",
+        "nlohmann_json_DIR": "$env{HOME}/opt/nlohmann-json-3.10.5/lib/cmake/nlohmann_json",
+        "AI_FACTORY_MATHDX_ROOT": "$env{HOME}/opt/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12",
+        "CUDA_WORKBENCH_ARCHITECTURES": "120",
+        "AI_FACTORY_CUDA_TUNING_PROFILE_ID": "sm120_ppti_unqualified_v1"
+      }
+    },
+    {
+      "name": "ppti-gpu1",
+      "inherits": "ppti-sm120-base",
+      "displayName": "PPTI GPU 1 / CUDA 13.2 / C++20 / SM120",
+      "binaryDir": "${sourceDir}/builds/ppti-gpu1"
+    },
+    {
+      "name": "ppti-gpu3",
+      "inherits": "ppti-sm120-base",
+      "displayName": "PPTI GPU 3 / CUDA 13.2 / C++20 / SM120",
+      "binaryDir": "${sourceDir}/builds/ppti-gpu3"
+    },
+    {
+      "name": "local-sm89",
+      "inherits": "cuda-cxx20-base",
+      "displayName": "Local CUDA 12.9 / C++20 / SM89",
+      "description": "RTX 4090 with workspace-local CUDA 12.9 and mathDx CUDA 12",
+      "binaryDir": "${sourceDir}/builds/local-cuda12-9-0-sm89",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_COMPILER": "${sourceDir}/../.toolchains/cuda-12.9.0/bin/nvcc",
+        "AI_FACTORY_MATHDX_ROOT": "${sourceDir}/../.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12",
+        "CUDA_WORKBENCH_ARCHITECTURES": "89",
+        "AI_FACTORY_CUDA_TUNING_PROFILE_ID": "sm89_cuda12_unqualified_v1"
       }
     }
   ],
   "buildPresets": [
     {
       "name": "core",
-      "configurePreset": "dev",
-      "targets": ["ai_factory_dataset_core"],
+      "configurePreset": "ppti",
+      "targets": [
+        "ai_factory_dataset_core"
+      ],
       "jobs": 2
     },
     {
       "name": "fixed-income",
-      "configurePreset": "dev",
-      "targets": ["fixed_income"],
+      "configurePreset": "ppti",
+      "targets": [
+        "fixed_income"
+      ],
       "jobs": 2
     },
     {
       "name": "equity",
-      "configurePreset": "dev",
-      "targets": ["equity"],
+      "configurePreset": "ppti",
+      "targets": [
+        "equity"
+      ],
       "jobs": 2
     },
     {
       "name": "all-models",
-      "configurePreset": "dev",
-      "targets": ["all_models"],
+      "configurePreset": "ppti",
+      "targets": [
+        "all_models"
+      ],
       "jobs": 2
     },
     {
       "name": "host-tests",
-      "configurePreset": "dev",
-      "targets": ["ai_factory_host_tests"],
+      "configurePreset": "ppti",
+      "targets": [
+        "ai_factory_host_tests"
+      ],
       "jobs": 2
     },
     {
       "name": "cuda-tests",
-      "configurePreset": "dev",
-      "targets": ["ai_factory_cuda_tests"],
+      "configurePreset": "ppti",
+      "targets": [
+        "ai_factory_cuda_tests"
+      ],
       "jobs": 2
     },
     {
       "name": "fixed-income-tests",
-      "configurePreset": "dev",
-      "targets": ["fixed_income_tests"],
+      "configurePreset": "ppti",
+      "targets": [
+        "fixed_income_tests"
+      ],
       "jobs": 2
     },
     {
       "name": "equity-tests",
-      "configurePreset": "dev",
-      "targets": ["equity_tests"],
+      "configurePreset": "ppti",
+      "targets": [
+        "equity_tests"
+      ],
       "jobs": 2
     },
     {
       "name": "tests",
-      "configurePreset": "dev",
-      "targets": ["ai_factory_tests"],
+      "configurePreset": "ppti",
+      "targets": [
+        "ai_factory_tests"
+      ],
       "jobs": 2
     },
     {
       "name": "parameter-generators",
-      "configurePreset": "dev",
-      "targets": ["parameter_generators"],
+      "configurePreset": "ppti",
+      "targets": [
+        "parameter_generators"
+      ],
       "jobs": 2
     },
     {
       "name": "price-generators",
-      "configurePreset": "dev",
-      "targets": ["price_generators"],
+      "configurePreset": "ppti",
+      "targets": [
+        "price_generators"
+      ],
       "jobs": 2
+    },
+    {
+      "name": "local-core",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "ai_factory_dataset_core"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-fixed-income",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "fixed_income"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-equity",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "equity"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-all-models",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "all_models"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-host-tests",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "ai_factory_host_tests"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-cuda-tests",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "ai_factory_cuda_tests"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-fixed-income-tests",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "fixed_income_tests"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-equity-tests",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "equity_tests"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-tests",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "ai_factory_tests"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-parameter-generators",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "parameter_generators"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-price-generators",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "price_generators"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "ppti-all",
+      "configurePreset": "ppti",
+      "jobs": 2
+    },
+    {
+      "name": "local-all",
+      "configurePreset": "local-sm89",
+      "jobs": 2
+    },
+    {
+      "name": "ppti-generators",
+      "configurePreset": "ppti",
+      "targets": [
+        "parameter_generators",
+        "price_generators",
+        "price_gradient_generators",
+        "sample_generators"
+      ],
+      "jobs": 2
+    },
+    {
+      "name": "local-generators",
+      "configurePreset": "local-sm89",
+      "targets": [
+        "parameter_generators",
+        "price_generators",
+        "price_gradient_generators",
+        "sample_generators"
+      ],
+      "jobs": 6
     }
   ],
   "testPresets": [
     {
       "name": "tests",
-      "configurePreset": "dev",
+      "configurePreset": "ppti",
       "filter": {
         "include": {
           "label": "^main$"
@@ -106,7 +300,7 @@
     },
     {
       "name": "validation",
-      "configurePreset": "dev",
+      "configurePreset": "ppti",
       "filter": {
         "include": {
           "label": "^validation$"
@@ -118,7 +312,7 @@
     },
     {
       "name": "fixed-income-tests",
-      "configurePreset": "dev",
+      "configurePreset": "ppti",
       "filter": {
         "include": {
           "label": "fixed_income"
@@ -130,7 +324,55 @@
     },
     {
       "name": "equity-tests",
-      "configurePreset": "dev",
+      "configurePreset": "ppti",
+      "filter": {
+        "include": {
+          "label": "equity"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "local-tests",
+      "configurePreset": "local-sm89",
+      "filter": {
+        "include": {
+          "label": "^main$"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "local-validation",
+      "configurePreset": "local-sm89",
+      "filter": {
+        "include": {
+          "label": "^validation$"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "local-fixed-income-tests",
+      "configurePreset": "local-sm89",
+      "filter": {
+        "include": {
+          "label": "fixed_income"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "local-equity-tests",
+      "configurePreset": "local-sm89",
       "filter": {
         "include": {
           "label": "equity"

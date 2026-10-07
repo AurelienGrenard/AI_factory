@@ -12,7 +12,9 @@
 #include "tests/price_gradients/american_cuda_test_support.cuh"
 #include "tests/price_gradients/mixed_node_graph_cuda_test_support.cuh"
 
+#include <cmath>
 #include <iostream>
+#include <stdexcept>
 #include <string_view>
 #include <vector>
 
@@ -715,6 +717,23 @@ void check_black_scholes_frozen_regression_policy() {
         plan, test_paths, 128U, 4U, 91871U,
         Contract::diagonal_launcher()
     );
+    // Independent QuantLib 1.43 CRR Bermudan reference: Business252 with a
+    // NullCalendar, exercise at days 9, 18, ..., 63, and 4032 tree steps.
+    // This checks the central LSM price level, beyond launcher parity.
+    constexpr double bermudan_reference = 0.03752383405936103;
+    const double price_tolerance =
+        6.0 * frozen_time.price_errors[0U] + 0.001;
+    if (std::abs(frozen_time.prices[0U] - bermudan_reference)
+        >= price_tolerance) {
+        std::cerr << "Black-Scholes Bermudan price mismatch: observed="
+                  << frozen_time.prices[0U]
+                  << " reference=" << bermudan_reference
+                  << " standard_error=" << frozen_time.price_errors[0U]
+                  << '\n';
+        throw std::runtime_error(
+            "American LSM price misses independent Bermudan reference."
+        );
+    }
     const auto frozen_policy = american_test::execute<
         pg::SensitivityOrders::first_and_second
     >(

@@ -4,9 +4,12 @@
 #include "common/volterra/fractional_kernel_approximation.hpp"
 #include "model/equity/rough/quadratic_rough_heston/dynamics.cuh"
 
+#include <bit>
 #include <cmath>
+#include <cstdint>
 #include <cstddef>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 
 namespace ai_factory::workbench::model::equity::quadratic_rough_heston {
@@ -154,12 +157,25 @@ std::vector<PreparedDynamics<FactorCount>> prepare_dynamics(
 ) {
     std::vector<PreparedDynamics<FactorCount>> prepared;
     prepared.reserve(models.size());
+    // The L2 fit depends on H, horizon and dt, but not on the other model
+    // parameters. Preserve the exact fitted rule across repeated H values.
+    std::unordered_map<
+        std::uint32_t, volterra::ExponentialKernel<FactorCount>
+    > kernels_by_hurst;
     for (const ModelParameters& model : models) {
-        prepared.push_back(prepare_dynamics<FactorCount>(
-            model,
-            approximation_horizon,
-            dt
-        ));
+        const auto hurst_bits = std::bit_cast<std::uint32_t>(
+            model.hurst_exponent
+        );
+        auto kernel = kernels_by_hurst.find(hurst_bits);
+        if (kernel == kernels_by_hurst.end()) {
+            kernel = kernels_by_hurst.emplace(
+                hurst_bits,
+                volterra::fit_positive_fractional_kernel_l2<FactorCount>(
+                    model.hurst_exponent, approximation_horizon, dt
+                )
+            ).first;
+        }
+        prepared.push_back(prepare_dynamics(model, kernel->second, dt));
     }
     return prepared;
 }

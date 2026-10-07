@@ -65,10 +65,10 @@ int main() {
         "Representative expiries and strikes concentrated around 0.97."
     );
     GeneratedRows stress = regime(
-        linear_business_day_grid(5U, 3780U, 10U),
-        {21U, 2520U},
-        {0.20f, 0.60f, 0.97f, 1.25f, 1.75f},
-        "Very short/long expiries and tenors with unusually wide bond strikes."
+        linear_business_day_grid(21U, 1890U, 10U),
+        {63U, 1260U},
+        {0.55f, 0.75f, 0.97f, 1.10f, 1.25f},
+        "One-month to 7.5-year expiries, quarterly to five-year tenors, and moderate bond-price strike tails."
     );
     const GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)

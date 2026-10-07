@@ -272,6 +272,15 @@ def fixed_income_closed_form_metadata(spec):
             f"        PricingPolicy, ModelParameters, product::{product_type}Parameters\n"
             "    >"
         )
+    shared_scalar_policy_definition = ""
+    scenario_policy_declaration = f"    using Policy = {scenario_policy};"
+    if model == "cir" and product == "european_swaption" and not fitted:
+        # One device function body preserves root-solve rounding across
+        # diagonal and mixed scalar kernels without changing other models.
+        scenario_policy_declaration = (
+            f"    using BasePolicy = {scenario_policy};\n"
+            "    using Policy = SharedScalarEvaluationPolicy<BasePolicy>;"
+        )
     implementation_include = (
         f'#include "model/fixed_income/{model}/{curve}/analytics_impl.cuh"'
         if fitted else
@@ -297,6 +306,8 @@ def fixed_income_closed_form_metadata(spec):
         "plan_type": plan_type,
         "pricing_policy": pricing_policy,
         "scenario_policy": scenario_policy,
+        "scenario_policy_declaration": scenario_policy_declaration,
+        "shared_scalar_policy_definition": shared_scalar_policy_definition,
         "implementation_include": implementation_include,
     }
 
@@ -684,6 +695,39 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             "device_prepared_cooperative_closed_form",
         }:
             values.update(fixed_income_closed_form_metadata(spec))
+            values["second_order_guard"] = (
+                '    throw std::invalid_argument(\n'
+                '        "CIR Jamshidian second-order sensitivities are unsupported "\n'
+                '        "in the FP32 pricing path."\n'
+                '    );\n'
+                if spec.supported_orders == ("first",) else ""
+            )
+            values["second_order_include"] = (
+                "#include <stdexcept>\n"
+                if spec.supported_orders == ("first",) else ""
+            )
+            values["second_order_request_guard"] = (
+                "    if (request.orders != pg::SensitivityOrders::first\n"
+                "        || !request.diagonal_second.empty()\n"
+                "        || !request.mixed_second.empty()\n"
+                "        || request.all_mixed_second) {\n"
+                + "".join(
+                    "    " + line
+                    for line in values["second_order_guard"].splitlines(keepends=True)
+                )
+                + "    }\n"
+                if spec.supported_orders == ("first",) else ""
+            )
+            if (spec.pricing.model == "cir"
+                    and spec.pricing.product == "european_swaption"
+                    and spec.pricing.curve is None):
+                fragment = template_root / (
+                    "pricing/closed_form/fixed_income/price_gradients/"
+                    "shared_scalar_evaluation_policy.cu.tpl"
+                )
+                values["shared_scalar_policy_definition"] = (
+                    "\n" + fragment.read_text()
+                )
         for suffix in ("cuh", "cu"):
             if spec.preparation_strategy == "device_prepared_fixed_income_lsm":
                 template = (
@@ -1126,6 +1170,11 @@ def render_recipes(
         if spec.exercise_replay is not None:
             metadata["numerical_method"] = early_exercise_numerical_method(spec)
             metadata["exercise_replay"] = spec.exercise_replay
+            metadata["standard_error_scope"] = (
+                "paired path dispersion conditional on the central in-sample LSM fit; "
+                "excludes fit variability, policy bias, stencil bias and discretization bias"
+            )
+            metadata["fit_and_valuation_paths"] = "same paths"
         if stochastic:
             metadata["seeds"] = {"dynamics": seed}
             metadata["random_number_generator"] = "philox"

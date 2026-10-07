@@ -242,10 +242,10 @@ Ils ne suffisent pas à certifier une intensité, un paramètre de marque ou une
 maturité pour toutes les largeurs de bump et toutes les seeds.
 
 **Sortie logicielle atteinte :** les coordonnées déclarées possèdent une loi,
-un compensateur, un couplage et un stencil implémentés. **Sortie numérique
-ouverte :** NUM-031 et NUM-032 conservent les campagnes de collisions/bornes,
-de lois, de bumps, de forte intensité, de registres et de temps complet avant
-qualification de publication.
+un compensateur, un couplage et un stencil implémentés. NUM-031 et NUM-032
+ont été fermés le 2026-10-02 ; les campagnes de collisions/bornes, de lois,
+de bumps, de forte intensité, de registres et de temps complet restent des
+validations possibles avant une publication qui les exigerait.
 
 ### 4. Fermer la porte markovienne avant le rough
 
@@ -315,8 +315,9 @@ preuve de campagne selon le
 [contrat de réutilisation des datasets](../dataset-provenance-contract.md) ;
 ils n'imposent pas de conserver des recettes `price_delta` comme capacités
 actives du catalogue. Les archives d'audit ne sont pas réécrites pour simuler
-une migration rétroactive. Le constat [DELTA-001](../audit/response.md#delta-001--déployer-et-qualifier-la-voie-prix-delta-sans-dupliquer-les-moteurs-métier)
-reste ouvert tant que ses propres critères ne sont pas remplis.
+une migration rétroactive. [DELTA-001](../audit/closed.md#delta-001--voie-prix-delta-equity)
+a été fermé le 2026-10-02 ; ce plan décrit les migrations restantes sans
+maintenir ce constat historique ouvert.
 
 ## Preuves requises à chaque migration
 

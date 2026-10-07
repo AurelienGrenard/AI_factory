@@ -197,6 +197,7 @@ struct RegularHybridSchedule {
         float maturity_years;
         float time_step;
         std::uint32_t step_count;
+        std::uint32_t prefix_step_count;
         std::uint32_t observation_count;
     };
 
@@ -234,6 +235,15 @@ struct RegularHybridSchedule {
         const HybridTimeConfiguration& time_configuration,
         std::uint32_t step_count
     ) {
+        return prepare(calendar, time_configuration, step_count, step_count);
+    }
+
+    __device__ __forceinline__ static PreparedSchedule prepare(
+        const Calendar& calendar,
+        const HybridTimeConfiguration& time_configuration,
+        std::uint32_t step_count,
+        std::uint32_t central_step_count
+    ) {
         const std::uint64_t maturity_days =
             static_cast<std::uint64_t>(calendar.observation_interval_days)
             * calendar.observation_count;
@@ -243,6 +253,7 @@ struct RegularHybridSchedule {
             maturity_years,
             maturity_years / static_cast<float>(step_count),
             step_count,
+            central_step_count,
             calendar.observation_count,
         };
     }
@@ -277,7 +288,8 @@ struct RegularHybridSchedule {
                && rounded_observation_step(
                     cursor.observation + 1U,
                     schedule.observation_count,
-                    schedule.step_count
+                    cursor.observation + 1U == schedule.observation_count
+                        ? schedule.step_count : schedule.prefix_step_count
                ) == step + 1U) {
             keep_running = handler.on_observation(
                 cursor.observation,
@@ -300,6 +312,7 @@ struct StubbedRegularHybridSchedule {
         std::uint32_t observation_interval_days;
         std::uint32_t maturity_days;
         std::uint32_t observation_count;
+        std::uint32_t prefix_step_count;
     };
 
     struct Cursor {
@@ -330,6 +343,15 @@ struct StubbedRegularHybridSchedule {
         const HybridTimeConfiguration& time_configuration,
         std::uint32_t step_count
     ) {
+        return prepare(calendar, time_configuration, step_count, step_count);
+    }
+
+    __device__ __forceinline__ static PreparedSchedule prepare(
+        const Calendar& calendar,
+        const HybridTimeConfiguration& time_configuration,
+        std::uint32_t step_count,
+        std::uint32_t central_step_count
+    ) {
         const std::uint64_t maturity_days = calendar.first_observation_day
             + static_cast<std::uint64_t>(calendar.observation_count - 1U)
                 * calendar.observation_interval_days;
@@ -343,6 +365,7 @@ struct StubbedRegularHybridSchedule {
             calendar.observation_interval_days,
             static_cast<std::uint32_t>(maturity_days),
             calendar.observation_count,
+            central_step_count,
         };
     }
 
@@ -378,7 +401,8 @@ struct StubbedRegularHybridSchedule {
                         + static_cast<std::uint64_t>(cursor.observation)
                             * schedule.observation_interval_days,
                     schedule.maturity_days,
-                    schedule.step_count
+                    cursor.observation + 1U == schedule.observation_count
+                        ? schedule.step_count : schedule.prefix_step_count
                ) == step + 1U) {
             keep_running = handler.on_observation(
                 cursor.observation,
@@ -437,6 +461,15 @@ struct CalendarHybridSchedule {
         const HybridTimeConfiguration& time_configuration,
         std::uint32_t step_count
     ) {
+        return prepare(calendar, time_configuration, step_count, step_count);
+    }
+
+    __device__ __forceinline__ static PreparedSchedule prepare(
+        const Calendar& calendar,
+        const HybridTimeConfiguration& time_configuration,
+        std::uint32_t step_count,
+        std::uint32_t central_step_count
+    ) {
         PreparedSchedule schedule{};
         std::uint64_t maturity_days = 0U;
         #pragma unroll
@@ -460,7 +493,8 @@ struct CalendarHybridSchedule {
                 rounded_observation_step(
                     cumulative_days,
                     maturity_days,
-                    step_count
+                    observation + 1U == ObservationCount
+                        ? step_count : central_step_count
                 );
         }
         return schedule;

@@ -22,7 +22,7 @@ variante à un coupon : 48 prix à `2^18` chemins.
 - Tests des swaptions fermées un facteur inchangés ; codegen zéro diff,
   layout des sources et frontières des générateurs contrôlés.
 
-Les [48 diagnostics indépendants](../../tests/performance/reports/g2-european-swaption-sm89-2026-09-08/diagnostics.json)
+Les [48 diagnostics indépendants](../../maintainer/tests/performance/reports/g2-european-swaption-sm89-2026-09-08/diagnostics.json)
 conservent chaque prix, SE, méthode de référence, budget et exception technique :
 
 - 34 références `QuantLib.G2SwaptionEngine`, comparées à 128 et 256 points ;

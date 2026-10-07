@@ -5,6 +5,8 @@ must never remove reusable source code or an intentionally published dataset.
 
 ```text
 work/
+├── catalog/{curve,model,product}/
+├── datasets/{curve,model,product}/
 ├── generation/<campaign-id>/
 └── experiments/<asset-class>/<model>/<study-id>/
 ```
@@ -48,6 +50,17 @@ and opt in during configuration with
 `-DAI_FACTORY_ENABLE_LOCAL_EXPERIMENTS=ON`. These targets are deliberately
 excluded from every permanent catalogue aggregate, so deleting `work/` leaves
 the versioned build unchanged.
+
+## Maintainer evidence
+
+Completed audit snapshots and historical catalogue archives, qualifications,
+and releases live under ignored `maintainer/evidence/`. Their receipts and
+manifests keep the original logical paths and hashes. The path resolver in
+`tools/datasets/catalog_layout.py` maps those logical paths to the current
+physical files. `maintainer/tools/`, `maintainer/tests/`, and
+`maintainer/cmake/` contain development checks, references, benchmarks and
+profilers; they are absent from the delivered build unless
+`AI_FACTORY_ENABLE_MAINTAINER=ON`.
 
 ## Publication boundary
 

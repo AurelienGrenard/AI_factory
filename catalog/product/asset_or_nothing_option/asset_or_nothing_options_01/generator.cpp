@@ -23,7 +23,7 @@ int main() {
         linear_business_day_grid(21U, 756U, 45U),
         20U,
         0.2f,
-        linear_business_day_grid(5U, 1764U, 10U),
+        linear_business_day_grid(5U, 1260U, 10U),
         10U,
         0.2f
     );

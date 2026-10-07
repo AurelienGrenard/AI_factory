@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/hull_white/parameters/hull_white_01/recipe.yaml
-  sha256: 18970bd5947fe58cc88dec1a331c7712e4db3427a6013ad52b2f44ff4aa5708e
 artifact:
   row_count: 1000
-  sha256: 13fcf2d23d843352b95166e0e8533519c208d22d9da62f765b9cc9b38a653247
+  path: datasets/model/fixed_income/hull_white/parameters/hull_white_01.json
+  sha256: 78ed492b72e86be6c2b99241ca4153335adaa3eb00991ea2961f24f427d31da7
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/model/fixed_income/hull_white/parameters/hull_white_01/generator.cpp
+  source_sha256: 6deeccd02a905aec15a8db183cb473a09d4485f94f68cd9b033f3cff52b16489
+  binary_sha256: 94853042901fd44a8d6c2ceb01de71800eaa52e825ae881c48ed66e41fce4522
+  recipe_sha256: c34ac2af896b0414a2eb5d7c191e1fabd171d7fe795f18fd8c377f5bbb146b78
+  started_at_utc: '2026-10-07T13:47:28.644490+00:00'
+  seed: 1630000201
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.013650722998136189
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/model/fixed_income/hull_white/parameters/hull_white_01/recipe.yaml
+  sha256: c34ac2af896b0414a2eb5d7c191e1fabd171d7fe795f18fd8c377f5bbb146b78
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: 7b6baebf89ca01ce2c163bc44a424e74fcdd007a3f05cc45417e61500aa679b4
+  generator: catalog/model/fixed_income/hull_white/parameters/hull_white_01/generator.cpp
+  generator_sha256: 6deeccd02a905aec15a8db183cb473a09d4485f94f68cd9b033f3cff52b16489
+  binary_sha256: 94853042901fd44a8d6c2ceb01de71800eaa52e825ae881c48ed66e41fce4522
+  parameter_campaign: full model/product refresh
+record_sha256: 48d55047eeeca50938bf71d82c247b110970b4740238b59ef662a743607ecbc0

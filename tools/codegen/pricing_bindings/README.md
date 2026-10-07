@@ -39,7 +39,11 @@ CUDA rebuilds.
 | Define selected-gradient bindings and datasets | `price_gradients/manifest.py` |
 | Store complete C++ and recipe templates | `templates/` |
 | Record generated-file fingerprints | `PricingCapabilityManifest.json` |
-| Test manifest composition | [`tests/codegen/test_capability_manifest.py`](../../../tests/codegen/test_capability_manifest.py) |
+| Test manifest composition | [`tests/codegen/test_capability_manifest.py`](../../../maintainer/tests/codegen/test_capability_manifest.py) |
+
+`EQUITY_PRODUCT_BINDINGS` in `manifest.py` is the single declaration of
+shared equity products. It feeds Markovian, Black-Scholes and rough bindings;
+engine-specific behavior stays in each binding resolution.
 
 `capability_manifest.py` is the public inventory. It resolves each declared
 `(model, curve, product, variant)` to one engine, binding, target, and recipe,
@@ -112,9 +116,11 @@ Jamshidian retain their explicit host-prepared strategies. The renderer rejects
 an undeclared strategy instead of falling back to a model-specific template.
 The binding manifest records derivative capabilities separately from public
 dataset recipes. First-order, spot-only, diagonal and full-Hessian variants
-remain available in codegen. The catalogue materialises only
-`price_gradient_diagonal_hessian`, with orders `first` and `diagonal_second`,
-under the `price_gradients` family. Run
+remain available where the binding declares them. CIR standalone Jamshidian
+declares only `first`: its second-order API requests fail, and its four public
+recipes materialise `price_gradient` without a Hessian. Other catalogue
+bindings materialise `price_gradient_diagonal_hessian` with orders `first`
+and `diagonal_second`. Run
 `python3 tools/codegen/pricing_bindings/price_gradients/coverage.py` to inspect
 every Markovian pricing binding and the gradient orders currently exposed by
 its launcher. Coordinate-level exclusions remain in the model and product

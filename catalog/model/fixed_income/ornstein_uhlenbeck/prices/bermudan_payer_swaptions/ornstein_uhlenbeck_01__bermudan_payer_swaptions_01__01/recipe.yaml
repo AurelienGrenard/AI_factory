@@ -22,6 +22,8 @@
     "standard_error"
   ],
   "paths_per_price": 1048576,
+  "standard_error_scope": "in-sample discounted cashflow dispersion / sqrt(paths); excludes variation across fitted policies and policy bias",
+  "fit_and_valuation_paths": "same paths",
   "seeds": {
     "dynamics": 11668829125597986816
   },

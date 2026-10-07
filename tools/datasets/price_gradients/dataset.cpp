@@ -568,6 +568,12 @@ void write_dataset(const Recipe& recipe, const Results& result) {
         }},
     };
     append_exercise_replay_metadata(recipe, metadata);
+    if (recipe.exercise_replay.has_value()) {
+        metadata["standard_error_scope"] =
+            "paired path dispersion conditional on the central in-sample LSM fit; "
+            "excludes fit variability, policy bias, stencil bias and discretization bias";
+        metadata["lsm_fit_and_valuation_paths"] = "same paths";
+    }
     if (curve_rows != nullptr) {
         metadata["curve_dataset"] = reference(curves);
     }

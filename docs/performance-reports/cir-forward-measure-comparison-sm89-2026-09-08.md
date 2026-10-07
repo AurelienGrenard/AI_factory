@@ -47,8 +47,8 @@ C'est un détecteur d'écarts, **pas une certification financière**, ni une
 borne du biais LSM. Deux prix nuls avec erreur standard nulle ne démontrent
 pas une bonne précision relative sur un événement rare.
 
-Les [1 000 lignes payeuses](../../tests/performance/reports/cir-forward-measure-sm89-2026-09-08/payer/rows.csv)
-et les [1 000 lignes receveuses](../../tests/performance/reports/cir-forward-measure-sm89-2026-09-08/receiver/rows.csv)
+Les [1 000 lignes payeuses](../../maintainer/tests/performance/reports/cir-forward-measure-sm89-2026-09-08/payer/rows.csv)
+et les [1 000 lignes receveuses](../../maintainer/tests/performance/reports/cir-forward-measure-sm89-2026-09-08/receiver/rows.csv)
 conservent les deux méthodes, les erreurs standards, une deuxième graine
 forward et l'EDP. La synthèse correspondante contient les empreintes des sources.
 
@@ -206,7 +206,7 @@ Ces mesures ne constituent ni un tuning optimal ni une rebaseline.
 
 ## Reproduction et preuves
 
-La [notice de qualification](../../tests/performance/cir_forward_measure/README.md)
+La [notice de qualification](../../maintainer/tests/performance/cir_forward_measure/README.md)
 décrit les cibles CMake opt-in, scripts et fixtures. Les essais GPU sont
 séquentiels et bornés, sans nouvelle tentative automatique. Les mesures
 initiales n'ont remplacé aucun dataset ou cache de validation. La notice

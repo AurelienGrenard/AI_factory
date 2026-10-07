@@ -54,7 +54,7 @@ exactement ces empreintes.
 ## Couverture permanente
 
 Le manifeste
-`tests/performance/price_gradients/strategy_manifest.json` possède le SHA-256
+`maintainer/tests/performance/price_gradients/strategy_manifest.json` possède le SHA-256
 `04301666fc3e2405fde42a5a3082fe2148193a8d2d6996f7efb81e498d4094ee`.
 Il exige les phases suivantes :
 
@@ -132,7 +132,7 @@ différence finie d'une divergence entre stratégies.
 
 ```bash
 cmake --build build --target price_gradients_performance_benchmarks -j2
-python3 tools/performance/run_price_gradient_strategies.py \
+python3 maintainer/tools/performance/run_price_gradient_strategies.py \
   --build-dir build \
   --output-dir artifacts/audit/price-gradients-strategies-sm89-<run> \
   --profile

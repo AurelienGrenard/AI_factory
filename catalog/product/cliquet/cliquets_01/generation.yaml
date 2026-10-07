@@ -1,18 +1,26 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/product/cliquet/cliquets_01/recipe.yaml
-  sha256: 53eb097189f034dfb80af38266df463bee6684fc82b88b42db73f1fb9ff96cc8
 artifact:
   row_count: 1000
-  sha256: 80af7142c863ef1100458e076be5999070bef44a7868208f3f93f7d7eba5b525
+  path: datasets/product/cliquet/cliquets_01.json
+  sha256: b6e5db6f40d6e9826c718518174eb4634d0d4cd9e10df1776bef86dc5147c0a4
 execution:
-  mode: legacy_materialization
-  evidence: limited to fields preserved by the legacy combined metadata
+  mode: native_parameter_generator
+  generator: catalog/product/cliquet/cliquets_01/generator.cpp
+  source_sha256: 5690181a2b6bf354523b138e38a319c32298108f339fdc8ce3c6efdc1230fe7d
+  binary_sha256: b3a33789f069cd1760957dfa100cc22732c4b1c142a86022e77846cd7aa7cf70
+  recipe_sha256: bec15427fe9d43ab6d395e3da6b88d97f844954ccb63b8c03d0746b36cfcbdc0
+  started_at_utc: '2026-10-07T13:47:28.951498+00:00'
+  seed: 1632000101
 timing:
-  wall_seconds: null
-  kernel_seconds: null
+  wall_seconds: 0.01166169499992975
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/product/cliquet/cliquets_01/recipe.yaml
+  sha256: bec15427fe9d43ab6d395e3da6b88d97f844954ccb63b8c03d0746b36cfcbdc0
 provenance:
-  metadata_migration: dataset.yaml split into canonical recipe and generation receipt
-  limitation: original execution and timing evidence unavailable
-record_sha256: 39225fb5acb949a6ad0418e747e3c49089a2ae9edf5881e71f473a2a122fc760
+  generator: catalog/product/cliquet/cliquets_01/generator.cpp
+  generator_sha256: 5690181a2b6bf354523b138e38a319c32298108f339fdc8ce3c6efdc1230fe7d
+  binary_sha256: b3a33789f069cd1760957dfa100cc22732c4b1c142a86022e77846cd7aa7cf70
+  parameter_campaign: full model/product refresh
+record_sha256: 84d4a8bd9bd80e60ac04bd937c7e080d36ac48037cfd9f58274c6028527864f2

@@ -19,7 +19,7 @@ int main() {
     const std::string url =
         "https://datasets.ai-factory.example/v1/model/fixed_income/g2/parameters/g2_01.json";
 
-    constexpr std::uint64_t seed = 750000201ULL;
+    constexpr std::uint64_t seed = 1650000201ULL;
     GeneratedRows core = g2::generate_rows(
         900U,
         seed,
@@ -29,7 +29,7 @@ int main() {
                 {0.10f, 1.00f},
                 {0.0025f, 0.018f},
                 {0.0015f, 0.012f},
-                {-0.75f, 0.25f},
+                {-0.75f, -0.05f},
             },
             {0.001f, 0.05f},
             {0.001f, 0.03f},
@@ -40,14 +40,14 @@ int main() {
         seed + 2ULL,
         {
             {
-                {0.005f, 0.70f},
-                {0.02f, 1.80f},
-                {0.001f, 0.035f},
-                {0.001f, 0.025f},
-                {-0.98f, 0.75f},
+                {0.02f, 0.50f},
+                {0.05f, 1.30f},
+                {0.0015f, 0.025f},
+                {0.001f, 0.018f},
+                {-0.90f, -0.02f},
             },
-            {-0.03f, 0.10f},
-            {-0.03f, 0.08f},
+            {-0.02f, 0.08f},
+            {-0.02f, 0.06f},
         }
     );
     const GeneratedRows rows = core_stress_rows(

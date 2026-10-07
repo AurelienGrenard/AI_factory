@@ -6,6 +6,7 @@
 
 # Local audit evidence, performance runs and validation tool caches.
 /artifacts/
+/maintainer/
 
 # Local disposable generation campaigns and experiments.
 /work/
@@ -29,10 +30,23 @@
 *.swo
 __pycache__/
 *.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+htmlcov/
+*.ncu-rep
+*.nsys-rep
 
 # Local agent instructions are workstation-specific.
 /AGENTS.md
 
+# Private PPTI access and machine setup scripts.
+/sync-ppti-gpu-4.sh
+
 # The local website and validation workspace are not published.
 /AI_factory_website/
+/AI_factory.code-workspace
 /validation/

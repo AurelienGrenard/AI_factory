@@ -31,7 +31,7 @@ de performance au protocole v3.
 GPU RTX 4090 Laptop, SM89, 16 Gio ; build Release, CUDA 13.3.73, driver CUDA
 13.2. Révision `872a986b1f0947a1a832af0615ffc6d80dbedb81`, worktree sale conservé.
 L'empreinte exacte du binaire et les sources des sondes sont dans chaque
-manifeste/snapshot ; le [résumé structuré](../../tests/performance/reports/cross_model_lsm_20260905.json)
+manifeste/snapshot ; le [résumé structuré](../../maintainer/tests/performance/reports/cross_model_lsm_20260905.json)
 rattache les mesures à leurs fichiers bruts et empreintes.
 
 Neuf modèles, onze compositions : OU, Vasicek, G2, Hull–White/NS et /Svensson,
@@ -226,7 +226,7 @@ retenir un réglage de campagne. Les prix et erreurs restent bit-identiques.
 
 ## Reproduction et artefacts
 
-La [sonde](../../tests/performance/fixed_income_lsm_probe.cu), malgré son nom
+La [sonde](../../maintainer/tests/performance/fixed_income_lsm_probe.cu), malgré son nom
 historique, couvre maintenant les modèles ci-dessus. Compilation limitée :
 
 ```sh
@@ -239,7 +239,7 @@ et exécuté leurs cas. Pas de validation Premia/QuantLib lancée : aucun calcul
 de production n'a été changé.
 
 Les suites et fixtures réutilisables sont `--suite other-models` et
-`tests/performance/fixtures/lsm_probe_other_{geometry,chunks,profiles,confirmation}.json`.
+`maintainer/tests/performance/fixtures/lsm_probe_other_{geometry,chunks,profiles,confirmation}.json`.
 Le runner accepte `--start-index` uniquement pour reprendre dans un **nouveau**
 répertoire de preuves ; `--profile` capture un échauffement puis une mesure.
 Chaque commande réellement exécutée est dans son `results.ndjson`.
@@ -252,12 +252,12 @@ sont locaux ; le résumé JSON et ce rapport sont des fichiers source à version
 Le résumé se reconstruit sans GPU avec :
 
 ```sh
-python3 tools/performance/summarize_lsm_probe.py \
+python3 maintainer/tools/performance/summarize_lsm_probe.py \
   build-dev/lsm-probe-20260905/other-models \
   build-dev/lsm-probe-20260905/other-geometry \
   build-dev/lsm-probe-20260905/other-geometry-resumed \
   build-dev/lsm-probe-20260905/other-chunks \
   build-dev/lsm-probe-20260905/other-profiles \
   build-dev/lsm-probe-20260905/other-confirmation \
-  --output tests/performance/reports/cross_model_lsm_20260905.json
+  --output maintainer/tests/performance/reports/cross_model_lsm_20260905.json
 ```

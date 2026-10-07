@@ -6,11 +6,10 @@
 #include "common/longstaff_schwartz/concepts.cuh"
 #include "common/longstaff_schwartz/exercise_decision.cuh"
 #include "common/longstaff_schwartz/execution_plan.cuh"
+#include "common/longstaff_schwartz/host_progress.cuh"
 #include "common/longstaff_schwartz/launch.cuh"
-#include "common/longstaff_schwartz/price_gradients/execution_plan.cuh"
 #include "common/reductions.cuh"
 #include "common/simulation/schedule.cuh"
-#include "tools/cuda/generation_progress.hpp"
 
 #include <cuda_runtime.h>
 
@@ -534,6 +533,9 @@ LaunchResult launch_longstaff_schwartz_cuda(
     std::size_t blocks_per_price,
     std::uint64_t base_seed,
     float* device_prices,
+    // Empirical dispersion of discounted cashflows / sqrt(paths) on the
+    // same paths used to fit the LSM policy. This omits fit variability and
+    // policy bias; a t0 exercise decision may publish zero.
     float* device_standard_errors,
     const char* diagnostic_name,
     const char* diagnostic_variant,
@@ -567,18 +569,12 @@ LaunchResult launch_longstaff_schwartz_cuda(
     std::size_t maximum_batch_size = static_cast<std::size_t>(
         properties.maxGridSize[1]
     );
-    if constexpr (requires { device_inputs.task_count; }) {
-        maximum_batch_size = longstaff_schwartz::price_gradients::
-            maximum_batch_size(
-                device_inputs.task_count,
-                maximum_batch_size
-            );
-    } else if constexpr (requires { device_inputs.sensitivity_count; }) {
-        maximum_batch_size = longstaff_schwartz::price_gradients::
-            maximum_batch_size(
-                device_inputs.sensitivity_count,
-                maximum_batch_size
-            );
+    if constexpr (requires {
+        device_inputs.maximum_batch_size(maximum_batch_size);
+    }) {
+        maximum_batch_size = device_inputs.maximum_batch_size(
+            maximum_batch_size
+        );
     }
     const WorkspaceBudget budget = query_workspace_budget(product_name);
     const ExecutionPlan plan =
@@ -599,16 +595,14 @@ LaunchResult launch_longstaff_schwartz_cuda(
             + " batch exceeds the current gridDim.y limit."
         );
     }
-    if constexpr (requires { device_inputs.task_count; }) {
-        longstaff_schwartz::price_gradients::validate_task_grid(
+    if constexpr (requires {
+        device_inputs.validate_batch_grid(
             plan.maximum_prices_per_batch,
-            device_inputs.task_count,
             static_cast<std::size_t>(properties.maxGridSize[1])
         );
-    } else if constexpr (requires { device_inputs.sensitivity_count; }) {
-        longstaff_schwartz::price_gradients::validate_task_grid(
+    }) {
+        device_inputs.validate_batch_grid(
             plan.maximum_prices_per_batch,
-            device_inputs.sensitivity_count,
             static_cast<std::size_t>(properties.maxGridSize[1])
         );
     }
@@ -972,9 +966,7 @@ LaunchResult launch_longstaff_schwartz_cuda(
             ),
             "cudaMemcpy early-exercise regression diagnostics"
         );
-        offline::cuda::record_active_host_progress(
-            batch.result_offset + batch.result_count
-        );
+        report_completed_batch(batch.result_offset + batch.result_count);
         for (std::size_t batch_price = 0U;
              batch_price < batch.result_count;
              ++batch_price) {

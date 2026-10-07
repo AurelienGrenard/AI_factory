@@ -20,7 +20,7 @@ int main() {
         "https://datasets.ai-factory.example/v1/model/"
         "fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json";
 
-    constexpr std::uint64_t seed = 740000201ULL;
+    constexpr std::uint64_t seed = 1640000201ULL;
     GeneratedRows core = ornstein_uhlenbeck::generate_rows(
         900U,
         seed,
@@ -37,10 +37,10 @@ int main() {
         seed + 2ULL,
         {
             {
-                {0.005f, 2.5f},
-                {0.001f, 0.060f},
+                {0.02f, 1.5f},
+                {0.001f, 0.040f},
             },
-            {-0.05f, 0.15f},
+            {-0.02f, 0.12f},
         }
     );
     const GeneratedRows rows = core_stress_rows(

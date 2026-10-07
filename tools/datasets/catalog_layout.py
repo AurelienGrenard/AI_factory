@@ -35,10 +35,28 @@ def physical_path(root: Path, relative: str) -> Path:
     routes = _routes(base)
     route = routes.get(part.as_posix(), part.as_posix())
     if routes and part.as_posix() not in routes and len(part.parts) > 1:
-        if part.parts[0] == "catalog" and part.parts[1] in {"model", "product", "curve"}:
-            route = str(Path("work/catalog") / Path(*part.parts[1:]))
+        if part.parts[0] == "catalog" and part.parts[1] in {"model", "product", "curve", "archives", "qualifications", "releases"}:
+            destination = ("maintainer/evidence/catalog"
+                           if part.parts[1] in {"archives", "qualifications", "releases"}
+                           else "work/catalog")
+            route = str(Path(destination) / Path(*part.parts[1:]))
+        elif part.parts[0] == "datasets" and part.parts[1] == "prod":
+            suffix = part.parts[2:]
+            destination = "maintainer/evidence/datasets" if suffix and suffix[0] in {"qualifications", "releases"} else "datasets"
+            route = str(Path(destination) / Path(*suffix))
+        elif part.parts[0] == "datasets" and part.parts[1] == "other":
+            route = str(Path("work/datasets") / Path(*part.parts[2:]))
+        elif part.parts[0] == "datasets" and part.parts[1] in {"qualifications", "releases"}:
+            route = str(Path("maintainer/evidence/datasets") / Path(*part.parts[1:]))
         elif part.parts[0] == "datasets" and part.parts[1] in {"model", "product", "curve"}:
-            route = str(Path("datasets/other") / Path(*part.parts[1:]))
+            route = str(Path("work/datasets") / Path(*part.parts[1:]))
+    # Historical receipts retain their original logical work paths. Their
+    # bytes and hashes remain fixed while completed evidence lives outside work.
+    route_parts = Path(route).parts
+    if len(route_parts) >= 3 and route_parts[:2] in {
+        ("work", "catalog"), ("work", "datasets")
+    } and route_parts[2] in {"archives", "qualifications", "releases"}:
+        route = str(Path("maintainer/evidence") / Path(*route_parts[1:]))
     path = base / route
     if path.resolve() != path:
         raise ValueError(f"Artifact path traverses a symlink: {path}")

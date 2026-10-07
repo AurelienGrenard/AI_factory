@@ -81,6 +81,8 @@ __device__ __forceinline__ void evaluate_nodes_body(
     constexpr std::size_t node_capacity =
         terminal_node_graph_node_capacity<MaximumSensitivities>();
     static_assert(GroupSize * NodesPerWorker >= node_capacity);
+    const std::size_t node_stride =
+        terminal_node_graph_active_node_capacity(plan.sensitivity_count);
 
     using NodePolicy =
         PathNodePolicy<Dynamics, ProductPolicy, Preparation, Schedule>;
@@ -268,7 +270,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
             NodePolicy::prepare_metadata(scenarios[node], plan.time);
         if (blockIdx.y == 0U) {
             workspace.node_metadata[
-                local_row * node_capacity + node
+                local_row * node_stride + node
             ] = owned_metadata[slot];
         }
     }
@@ -570,7 +572,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
                 : central_state;
             workspace.node_values[
                 (local_row * path_capacity + path - first_path)
-                    * node_capacity
+                    * node_stride
                 + node
             ] = NodePolicy::finalize(
                 owned_metadata[slot],

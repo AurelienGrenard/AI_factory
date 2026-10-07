@@ -65,9 +65,10 @@ template<pg::SensitivityOrders Orders>
 __host__ __device__ constexpr std::size_t terminal_node_graph_output_count(
     std::size_t sensitivity_count
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     constexpr std::size_t channels =
-        (pg::requests_first_v<Orders> ? 1U : 0U) + 1U;
+        (pg::requests_first_v<Orders> ? 1U : 0U)
+        + (pg::requests_second_v<Orders> ? 1U : 0U);
     return 1U + channels * sensitivity_count;
 }
 
@@ -82,6 +83,11 @@ __host__ __device__ constexpr std::size_t terminal_node_graph_node_capacity() {
     return 1U + 3U * MaximumSensitivities;
 }
 
+__host__ __device__ constexpr std::size_t
+terminal_node_graph_active_node_capacity(std::size_t sensitivity_count) {
+    return 1U + 3U * sensitivity_count;
+}
+
 template<
     pg::SensitivityOrders Orders,
     std::size_t MaximumSensitivities>
@@ -91,7 +97,7 @@ terminal_node_graph_workspace_requirements(
     unsigned int reduction_threads,
     TerminalNodeGraphConfiguration configuration
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     if (sensitivity_count == 0U
         || sensitivity_count > MaximumSensitivities) {
         throw std::invalid_argument(
@@ -118,8 +124,8 @@ terminal_node_graph_workspace_requirements(
         );
     }
 
-    constexpr auto nodes =
-        terminal_node_graph_node_capacity<MaximumSensitivities>();
+    const auto nodes =
+        terminal_node_graph_active_node_capacity(sensitivity_count);
     const auto rows = configuration.row_chunk_size;
     const auto outputs =
         terminal_node_graph_output_count<Orders>(sensitivity_count);

@@ -30,8 +30,8 @@ __device__ __forceinline__ float reconstruct_sample(
     std::size_t sensitivity_count,
     std::size_t output
 ) {
-    constexpr std::size_t node_capacity =
-        terminal_node_graph_node_capacity<MaximumSensitivities>();
+    const std::size_t node_capacity =
+        terminal_node_graph_active_node_capacity(sensitivity_count);
     const auto* values = workspace.node_values
         + (local_row * path_capacity + local_path) * node_capacity;
     const auto* metadata = workspace.node_metadata

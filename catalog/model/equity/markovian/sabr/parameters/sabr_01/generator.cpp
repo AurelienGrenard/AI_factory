@@ -8,9 +8,9 @@
 int main() {
     using namespace ai_factory::workbench;
     using namespace datasets;
-    constexpr std::uint64_t seed = 710001301ULL;
-    constexpr float spot_min = 0.05f;
-    constexpr float spot_max = 10.0f;
+    constexpr std::uint64_t seed = 1610001301ULL;
+    constexpr float spot_min = 0.20f;
+    constexpr float spot_max = 5.0f;
     constexpr float core_spot_min = 0.25f;
     constexpr float core_spot_max = 4.0f;
     GeneratedRows rows = core_stress_rows(
@@ -19,20 +19,25 @@ int main() {
             {"risk_free_rate", 0.001f, 0.08f},
             {"dividend_yield", 0.0f, 0.06f},
             {"initial_volatility", 0.08f, 0.50f},
-            {"volatility_of_volatility", 0.10f, 2.0f},
-            {"rho", -0.90f, 0.20f},
-            {"beta", 0.30f, 1.0f},
+            {"volatility_of_volatility", 0.10f, 1.50f},
+            {"rho", -0.90f, -0.20f},
+            {"beta", 0.50f, 0.95f},
         }),
         uniform_rows(100U, seed + 1U, {
             {"spot", spot_min, spot_max},
             {"risk_free_rate", -0.03f, 0.12f},
             {"dividend_yield", 0.0f, 0.10f},
-            {"initial_volatility", 0.03f, 1.0f},
-            {"volatility_of_volatility", 0.0f, 4.0f},
-            {"rho", -0.99f, 0.80f},
-            {"beta", 0.0f, 1.0f},
+            {"initial_volatility", 0.04f, 0.55f},
+            {"volatility_of_volatility", 0.08f, 1.80f},
+            {"rho", -0.98f, -0.10f},
+            {"beta", 0.40f, 0.95f},
         })
     );
+    rows.construction["aligned_mc_domain"] = {
+        {"rho", "negative spot/alpha correlation for the aligned price reference campaign"},
+        {"beta", "CEV elasticity at least 0.50 in core and 0.40 in stress, away from the absorption-sensitive beta-near-zero regime"},
+        {"stress_volatility", "initial volatility at most 0.55 and lognormal alpha volatility at most 1.80"},
+    };
     rows.construction["spot_range"] = {
         {"S0_min", spot_min}, {"S0_max", spot_max}
     };

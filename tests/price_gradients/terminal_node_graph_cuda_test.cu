@@ -636,6 +636,22 @@ void check_merton(std::size_t paths) {
     compare(reference, graph);
 }
 
+void check_active_workspace_capacity() {
+    for (const std::size_t paths : {4096U, 1U << 20U}) {
+        for (const std::size_t axes : {1U, 4U, 9U}) {
+            const auto requirements =
+                mcpg::terminal_node_graph_workspace_requirements<
+                    pg::SensitivityOrders::first_and_second, 9U
+                >(axes, 128U, {1U, paths, 1U});
+            const auto nodes = 1U + 3U * axes;
+            require(requirements.node_values == paths * nodes,
+                    "Terminal graph reserves unused path nodes.");
+            require(requirements.node_metadata == nodes,
+                    "Terminal graph reserves unused metadata nodes.");
+        }
+    }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -650,6 +666,7 @@ int main(int argc, char** argv) {
         if (cudaGetDeviceCount(&devices) != cudaSuccess || devices == 0) {
             return 77;
         }
+        check_active_workspace_capacity();
         check_heston<OptionSide::call>(
             paths, PriceConstruction::Aligned
         );

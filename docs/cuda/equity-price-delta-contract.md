@@ -75,35 +75,29 @@ The delta shares this work when changing S0 leaves volatility unchanged.
 | Rough Bergomi, log-modulated rough Bergomi, rough Stein–Stein | Original Gaussian innovations and FFT convolution | Scaled central observations |
 | Rough SABR | Original Gaussian innovations and FFT convolution | Three original model transitions |
 
-The N-factor launcher takes the existing prepared dynamics buffer. Its factors
-are independent of S0 in both Heston schemes. Preparation is performed once
-per model. Each product still receives its own central and bumped preparation.
-The common MC kernel computes the four moments: price and delta sums and squares.
+The N-factor compatibility launcher accepts the existing prepared dynamics
+buffer. It downloads each distinct model preparation once per batch and
+registers it in the rough graph cache. Spot nodes share these fitted factors;
+the graph prepares product scenarios and reconstructs the derivative from
+paired path samples.
 
-Rough SABR uses a coupled adapter. Its public `xi_0` fixes relative initial
-variance. The dimensional volatility coefficient depends on S0 and beta.
-`CoupledVolterraSpotPaths` therefore calls the original preparation at both
-bumped spots. It advances three states with the same innovations and Volterra
-value. It does not copy the rough SABR equation or hold that coefficient fixed.
+For rough SABR, changing S0 also changes the dimensional volatility
+coefficient. The Gaussian graph prepares distinct model transitions for the
+spot endpoints while sharing their innovations and kernel spectrum. The
+node preparation follows the rough SABR model policy.
 
-`hybrid_path_simulation.cuh` owns the shared path traversal. It preserves the
-three normals consumed at each step and the original observation schedule.
-`hybrid_fft_pricer.cuh` owns preparation, convolution and chunk submission.
-Its scalar consumer writes price moments. The separate paired consumer in
-`hybrid_fft_price_delta.cuh` writes price and delta moments. Both use the same
-product observers as ordinary MC. Each scenario stops independently.
+`hybrid_path_simulation.cuh` owns the price-only path traversal and its
+observation schedule. Historical rough spot-delta launchers now call the
+first-order sensitivity graph. The graph shares a Gaussian kernel spectrum
+between central and spot-bumped nodes, evaluates them with common random
+numbers, and reduces the pathwise stencil samples into a delta and standard
+error. It uses the same product observers as ordinary MC.
 
-The paired FFT workspace adds two FP64 partial moments per path block. It keeps
-one kernel spectrum, one variance table and one convolution chunk. It allocates
-no additional path history. Use `plan_hybrid_fft_price_delta_workspace` for its
-size; the price-only workspace is too small. The two moment arrays use the
-original scalar finalization order. A host occupancy check runs once per row,
-before chunk submission. There is no strategy selection inside a path loop.
-
-FFT launchers accept one result index at a time. Host mirrors validate the bump
-and calendar for that row. The supplied step count must match the schedule.
-The launch planner preserves the compiled FFT geometry and path chunk size.
-These settings are inherited candidates, not tuned delta profiles.
+`plan_hybrid_fft_price_delta_workspace` remains the sizing contract of the
+public compatibility API. The launcher reuses that workspace when it fits the
+graph plan and otherwise allocates graph scratch space. FFT launchers accept
+one result index at a time; host mirrors validate the bump and calendar for
+that row, and the supplied step count must match the schedule.
 
 ## Numerical and launch contract
 
@@ -266,10 +260,9 @@ paths. The remaining fixtures use short calendars and smaller path counts.
 `price_delta_rough_fft_cuda` checks public European and barrier launchers for
 all four FFT models. It covers 2^20-path terminal cases and an odd path count
 across chunk boundaries. Cartesian indexing and invalid launch inputs are
-checked on the barrier fixtures. `price_delta_rough_fft_path_oracle_cuda`
-compares paired moments with three independently prepared scalar paths.
-It covers terminal, barrier, cliquet and Phoenix memory payoffs. It also
-compares the direct and precomputed-convolution path consumers.
+checked on the barrier fixtures. The rough graph tests compare Gaussian
+terminal and path-product sensitivities with independent bumped prices,
+including CRN behavior and central price parity.
 
 These checks establish bounded implementation consistency. They do not bound
 rough time-discretization error, factor-approximation error or bump bias.

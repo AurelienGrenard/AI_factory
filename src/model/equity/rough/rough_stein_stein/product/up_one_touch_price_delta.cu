@@ -1,11 +1,7 @@
-// Rough Stein-Stein up-one-touch composition over the Volterra FFT engine.
+// Rough Stein-Stein up-one-touch legacy delta API backed by the rough graph.
 #include "model/equity/rough/rough_stein_stein/product/up_one_touch_price_delta.cuh"
-
-#include "common/volterra/hybrid_schedule.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_fft_price_delta.cuh"
-#include "model/equity/rough/rough_stein_stein/dynamics_impl.cuh"
-#include "product/up_one_touch/pricing_policy.cuh"
+#include "model/equity/rough/rough_stein_stein/product/up_one_touch_price_gradients.cuh"
+#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {
 
@@ -33,34 +29,17 @@ void launch_rough_stein_stein_up_one_touch_price_delta_cuda(
     float* device_deltas,
     float* device_delta_errors
 ) {
-    using ProductPolicy = product::UpOneTouchPathPolicy;
-    volterra::hybrid_fft::launch_price_delta_cuda<
-        volterra::FractionalResolventHybridKernelPolicy, PathPolicy, ProductPolicy, volterra::DenseHybridSchedule,
-        ::ai_factory::workbench::equity::price_delta::MultiplicativeVolterraSpotPath<PathPolicy>
-    >(
-        host_models,
-        device_models,
-        model_count,
-        host_products,
-        device_products,
-        product_count,
-        construction,
-        result_count,
-        result_index,
-        monte_carlo_paths_per_price,
-        volterra::HybridTimeConfiguration{day_fraction, target_dt},
-        step_count,
-        path_chunk_size,
-        device_workspace,
-        workspace_bytes,
-        base_seed,
-        bump,
-        device_prices,
-        device_standard_errors,
-        device_deltas,
-        device_delta_errors,
-        "rough_stein_stein.up_one_touch.price_delta",
-        "default"
+    (void)device_models;
+    (void)device_products;
+    using Graph = UpOneTouchNodeGraph<::ai_factory::workbench::price_gradients::SensitivityOrders::first, 1U>;
+    volterra::price_gradients::launch_legacy_fft_spot_delta<Graph>(
+        host_models, model_count, host_products, product_count,
+        construction, result_count, result_index,
+        monte_carlo_paths_per_price, day_fraction, target_dt,
+        step_count, path_chunk_size, device_workspace, workspace_bytes,
+        base_seed, bump, device_prices, device_standard_errors,
+        device_deltas, device_delta_errors,
+        prepare_rough_stein_stein_up_one_touch_sensitivities
     );
 }
 

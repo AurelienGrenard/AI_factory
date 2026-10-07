@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/longstaff_schwartz/frozen_exercise_trace.cuh"
+#include "common/longstaff_schwartz/price_gradients/execution_plan.cuh"
 #include "common/longstaff_schwartz/price_gradients/device_prepared_frozen_replay_kernels.cuh"
 #include "common/longstaff_schwartz/price_gradients/exercise_replay.cuh"
 #include "common/longstaff_schwartz/price_gradients/workspace.cuh"
@@ -122,6 +123,20 @@ struct BermudanSwaptionDevicePreparedSensitivityPolicy
         std::size_t sensitivity_count;
         std::uint32_t maximum_exercise_count;
         pg::SensitivityOutputs outputs;
+
+        std::size_t maximum_batch_size(std::size_t maximum_grid_y) const {
+            return longstaff_schwartz::price_gradients::maximum_batch_size(
+                sensitivity_count, maximum_grid_y
+            );
+        }
+
+        void validate_batch_grid(
+            std::size_t batch_size, std::size_t maximum_grid_y
+        ) const {
+            longstaff_schwartz::price_gradients::validate_task_grid(
+                batch_size, sensitivity_count, maximum_grid_y
+            );
+        }
 
         void validate_inputs_and_tasks(std::size_t results) const {
             validate_device_pointer(primary.models, "sensitivity models");

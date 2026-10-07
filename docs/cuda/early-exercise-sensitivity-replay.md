@@ -94,10 +94,10 @@ second derivative of the fully refitted optimal-stopping value.
 ## Performance qualification
 
 The reproducible matrix is driven by
-`tools/performance/run_early_exercise_replay.py`. It compares both replay
+`maintainer/tools/performance/run_early_exercise_replay.py`. It compares both replay
 rules and both diagonal execution strategies on Black--Scholes, Heston, Bates,
 CIR, G2 and G2++/Svensson. The versioned SM89 evidence is available in the
-[frozen replay report](../../tests/performance/reports/frozen-replay-sm89-2026-09-30-final/summary.md).
+[frozen replay report](../../maintainer/tests/performance/reports/frozen-replay-sm89-2026-09-30-final/summary.md).
 
 The reported public-API medians use 4,096 paths, 20 warmups, 11 samples and 64
 complete calls per sample. The separate capture/replay times come from Nsight
