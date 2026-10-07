@@ -25,7 +25,7 @@ struct ZeroCouponBondUpAndOutRecipe {
         offline::cuda_tuning::PricingFamily::fixed_income_mc,
         "ornstein_uhlenbeck", "zero_coupon_bond_up_and_out", ""};
     PriceConstruction construction = PriceConstruction::Aligned;
-    std::size_t paths_per_price = 65'536U;
+    std::size_t paths_per_price = 1'048'576U;
     std::uint32_t simulation_steps_per_day = 1U;
     std::filesystem::path curve_dataset_path{};
     std::string transition_method =

@@ -226,13 +226,14 @@ def inventory(
                          ),
                      },
                      "identity": "/".join(value for value in (spec.model, spec.curve, spec.product) if value)})
+        if spec.dataset_kind in {"prices", "price_gradients"}:
+            jobs[-1]["paths_per_price"] = recipe.get("paths_per_price")
         if spec.dataset_kind in {"price_gradients"}:
             time_key = "time_representation" if "time_representation" in recipe else "time_grid"
             jobs[-1].update(sensitivity=recipe["sensitivity"], time_key=time_key,
                             time_configuration=recipe[time_key],
                             exercise_replay=recipe.get("exercise_replay"),
-                            preparation=recipe.get("preparation", {}),
-                            paths_per_price=recipe.get("paths_per_price"))
+                            preparation=recipe.get("preparation", {}))
     return jobs
 
 
@@ -318,6 +319,10 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
         expected_paths = job["launch_plan"]["paths_per_price"]
         if generation["execution"].get("paths_per_price", 0) != expected_paths:
             raise ValueError("Published MC path count contradicts the compiled production plan")
+        native_plan = generation["execution"].get("launch_plan")
+        if (isinstance(native_plan, dict)
+                and native_plan.get("profile_id") != job["launch_plan"].get("profile_id")):
+            raise ValueError("Native launch profile contradicts the compiled production plan")
         expected_replay = job.get("exercise_replay")
         if (job["kind"] == "price_gradients"
                 and generation["execution"].get("exercise_replay")

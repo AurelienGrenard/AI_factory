@@ -12,7 +12,7 @@ int main() {
         "datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json",
         "${price_dataset_path}", "${catalog_path}", "${url}",
         ${dynamics_seed}ULL, ${launch_identity}, PriceConstruction::${construction},
-        65'536U, 1U, {}, "${model_transition_method}",
+        1'048'576U, 1U, {}, "${model_transition_method}",
     };
     const auto models = rates::load_models(recipe.model_dataset_path);
     const auto products = product::load_zero_coupon_bond_up_and_outs(recipe.product_dataset_path);
