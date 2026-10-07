@@ -599,8 +599,13 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool,
     return state
 
 
-def verify_matching_prices(state: dict, job: dict, work: Path) -> dict | None:
-    """Require bitwise equal central prices when the source price is in this run."""
+def compare_matching_prices(state: dict, job: dict, work: Path) -> dict | None:
+    """Record central-price agreement without vetoing valid native generation.
+
+    Closed-form scalar and cooperative kernels sum FP32 bond legs in different
+    orders. Their comparison is a qualification diagnostic, not an identity
+    requirement for two independently generated datasets.
+    """
     if job["kind"] != "price_gradients":
         return None
     source_recipe = job["sensitivity"]["source_price_recipe"]
@@ -621,14 +626,31 @@ def verify_matching_prices(state: dict, job: dict, work: Path) -> dict | None:
     gradient_rows = json.loads(contained_path(work, job["dataset"]).read_text())["results"]
     if len(price_rows) != len(gradient_rows):
         raise ValueError(f"Central price row count differs: {job['target']}")
+    different = outside_budget = 0
+    maximum_absolute = maximum_budget_ratio = 0.0
     for index, (price, gradient) in enumerate(zip(price_rows, gradient_rows), 1):
+        if price["id"] != gradient["id"]:
+            raise ValueError(f"Central price row identity differs at row {index}")
         left = price["outputs"]["price"]
         right = gradient["outputs"]["price"]
-        if price["id"] != gradient["id"] or struct.pack("!d", left) != struct.pack("!d", right):
-            raise ValueError(f"Central price differs from {peer['target']} at row {index}")
-    return {"source_target": peer["target"],
-            "source_dataset_sha256": source_digest,
-            "matched_rows": len(price_rows), "comparison": "binary64_exact"}
+        difference = abs(left - right)
+        budget = 2e-6 + 2e-5 * max(abs(left), abs(right))
+        different += struct.pack("!d", left) != struct.pack("!d", right)
+        outside_budget += difference > budget
+        maximum_absolute = max(maximum_absolute, difference)
+        maximum_budget_ratio = max(maximum_budget_ratio, difference / budget)
+    return {
+        "source_target": peer["target"],
+        "source_dataset_sha256": source_digest,
+        "matched_rows": len(price_rows),
+        "comparison": "fp32_cross_kernel_budget_v1",
+        "different_rows": different,
+        "outside_budget_rows": outside_budget,
+        "maximum_absolute_difference": maximum_absolute,
+        "maximum_budget_ratio": maximum_budget_ratio,
+        "budget": "2e-6 + 2e-5 * max(abs(price_only), abs(gradient_central))",
+        "status": "within_budget" if outside_budget == 0 else "review_required",
+    }
 
 
 def append_journal(path: Path, event: str, **details: object) -> None:
@@ -711,6 +733,7 @@ def execute(run: Path, state: dict) -> None:
     root = Path(state["root"])
     if digest(run / "sources.tar.gz") != state["source_archive_sha256"]:
         raise ValueError("Frozen source archive changed")
+    verify_verifier_amendment(run, state)
     for name, expected in state["build_hashes"].items():
         if digest(contained_path(run / "build", name)) != expected:
             raise ValueError(f"Frozen build configuration changed: {name}")
@@ -782,9 +805,16 @@ def execute(run: Path, state: dict) -> None:
                         raise ValueError(f"Generator modified a parameter input: {item}")
                 started = time.perf_counter()
                 job["artifacts"] = check_outputs(work, job)
-                parity = verify_matching_prices(state, job, work)
+                parity = compare_matching_prices(state, job, work)
                 if parity is not None:
                     job["price_parity"] = parity
+                    if parity["outside_budget_rows"]:
+                        print(
+                            f"Quality review: {job['target']} has "
+                            f"{parity['outside_budget_rows']} central prices outside "
+                            "the cross-kernel comparison budget",
+                            flush=True,
+                        )
                 attach_generation(work, job, state)
                 # The publication journal must cover the enriched YAML, not
                 # the native intermediate. JSON bytes remain untouched.
@@ -830,6 +860,52 @@ def interrupt_campaign(*_arguments) -> None:
     raise KeyboardInterrupt("campaign interrupted; resume explicitly")
 
 
+
+def amend_verifier(run: Path, state: dict, root: Path) -> None:
+    """Record a verifier-only change while keeping frozen binaries and inputs.
+
+    The original controller and source archive remain in the campaign. The
+    replacement controller is copied separately and cited by later receipts.
+    This is allowed only for a staged campaign, once, and only when all other
+    controller files still match their frozen hashes.
+    """
+    name = "tools/datasets/generate_catalog.py"
+    if state["publish"] or state.get("controller_amendments"):
+        raise ValueError("Verifier amendment requires an unpublished, unamended campaign")
+    old_hash = state["controller_hashes"][name]
+    new_hash = digest(contained_path(root, name))
+    if old_hash == new_hash or digest(contained_path(run / "sources", name)) != old_hash:
+        raise ValueError("No valid frozen controller change to amend")
+    for other, expected in state["controller_hashes"].items():
+        if other != name and digest(contained_path(root, other)) != expected:
+            raise ValueError(f"Other controller changed since this campaign was frozen: {other}")
+    snapshot = f"amendments/generate_catalog-{new_hash}.py"
+    if (run / snapshot).exists():
+        raise ValueError("Verifier amendment snapshot already exists")
+    if copy_frozen(contained_path(root, name), run / snapshot) != new_hash:
+        raise ValueError("Verifier amendment copy changed")
+    amendment = {
+        "kind": "central_price_comparison_report_only",
+        "controller": name,
+        "previous_sha256": old_hash,
+        "sha256": new_hash,
+        "snapshot": snapshot,
+        "unix_time": time.time(),
+        "completed_jobs_before": sum(job["state"] == "complete" for job in state["jobs"]),
+    }
+    state["controller_amendments"] = [amendment]
+    state["controller_hashes"][name] = new_hash
+    save_campaign(run / "campaign.json", state)
+
+
+def verify_verifier_amendment(run: Path, state: dict) -> None:
+    for amendment in state.get("controller_amendments", []):
+        name = amendment["controller"]
+        if (digest(contained_path(run / "sources", name)) != amendment["previous_sha256"]
+                or digest(contained_path(run, amendment["snapshot"])) != amendment["sha256"]
+                or state["controller_hashes"][name] != amendment["sha256"]):
+            raise ValueError("Verifier amendment provenance changed")
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", type=Path, default=ROOT / "build")
@@ -857,9 +933,13 @@ def main() -> int:
         help="publish immutable staged outputs; differing existing bytes are rejected",
     )
     parser.add_argument("--resume", action="store_true", help="explicitly resume the frozen campaign")
+    parser.add_argument("--amend-verifier", action="store_true",
+                        help="resume an unpublished run with this recorded parity-verifier update")
     arguments = parser.parse_args()
     if arguments.resume and (not arguments.execute or not arguments.run_dir):
         parser.error("--resume requires --execute and --run-dir")
+    if arguments.amend_verifier and not arguments.resume:
+        parser.error("--amend-verifier requires --resume")
     if arguments.publish and not arguments.execute:
         parser.error("--publish requires --execute")
     if arguments.compile_jobs <= 0:
@@ -871,9 +951,12 @@ def main() -> int:
         validate_document(state, "campaign", arguments.run_dir / "campaign.json")
         if state["version"] != 4 or state["root"] != str(ROOT):
             raise ValueError("Unsupported campaign version or repository; retain its original controller")
-        for name, expected in state["controller_hashes"].items():
-            if digest(contained_path(ROOT, name)) != expected:
-                raise ValueError(f"Controller changed since this campaign was frozen: {name}")
+        changed_controllers = [name for name, expected in state["controller_hashes"].items()
+                               if digest(contained_path(ROOT, name)) != expected]
+        if changed_controllers != (["tools/datasets/generate_catalog.py"]
+                                   if arguments.amend_verifier else []):
+            raise ValueError("Controller changed since this campaign was frozen: "
+                             + ", ".join(changed_controllers))
         if (arguments.model or arguments.target or arguments.asset_class
                 or arguments.model_family or arguments.construction
                 or arguments.input_override or arguments.skip_published
@@ -922,6 +1005,8 @@ def main() -> int:
         run = arguments.run_dir.resolve()
         if not arguments.resume:
             state = freeze(ROOT, build, run, jobs, arguments.publish, overrides)
+        elif arguments.amend_verifier:
+            amend_verifier(run, state, ROOT)
         signal.signal(signal.SIGTERM, interrupt_campaign)
         execute(run, state)
     print("Campaign complete. Independent price validation was not run.")
