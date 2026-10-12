@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/price_construction.cuh"
+#include "common/equity/spot_relative_product.hpp"
 #include "common/price_gradients/device_prepared_launch.cuh"
 #include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 #include "common/price_gradients/sensitivity_graph_plan.hpp"
@@ -99,7 +100,7 @@ struct CurveDevicePreparedSensitivityPlan {
 };
 
 template<typename Plan, typename Model, typename Product>
-Plan prepare_device_sensitivities(
+Plan prepare_device_sensitivities_absolute(
     std::span<const Model> models,
     std::span<const Product> products,
     PriceConstruction construction,
@@ -170,6 +171,34 @@ Plan prepare_device_sensitivities(
         rows,
         std::move(sensitivity_graph),
     };
+}
+
+// Equity public plans accept spot-relative product quotes. Resolve each pair
+// once before any sensitivity scenario is formed; all bumped model spots see
+// the same absolute contract as the central model row.
+template<typename Plan, typename Model, typename Product>
+Plan prepare_device_sensitivities(
+    std::span<const Model> models,
+    std::span<const Product> products,
+    PriceConstruction construction,
+    TimeConfiguration time,
+    const PriceGradientConfiguration& configuration,
+    SensitivityRequest request
+) {
+    if constexpr (requires(const Model& model) { model.spot; }) {
+        auto rows = equity::spot_relative::resolve_rows(
+            models, products, construction
+        );
+        return prepare_device_sensitivities_absolute<Plan>(
+            std::span<const Model>(rows.models),
+            std::span<const Product>(rows.products),
+            rows.construction, time, configuration, request
+        );
+    } else {
+        return prepare_device_sensitivities_absolute<Plan>(
+            models, products, construction, time, configuration, request
+        );
+    }
 }
 
 template<typename Plan, typename Model, typename Curve, typename Product>

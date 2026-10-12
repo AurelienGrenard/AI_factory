@@ -1,6 +1,7 @@
 // Native gradient artifact checks include one-sided stencils and fail-before-write behavior.
 #include "tools/datasets/price_gradients/dataset.hpp"
 #include "tools/datasets/artifact_io.hpp"
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -34,6 +35,52 @@ int main() {
         require(valid["sensitivity"]["parameters"][0]["displacement"]==.125);
         require(valid["sensitivity"]["method"]
             == "finite_difference_shared_innovations");
+        // A spot-relative product level executes at an absolute S0-scaled
+        // strike, while the published stencil and gradient use ratio units.
+        auto quote_recipe = recipe;
+        quote_recipe.configuration.sensitivities[0].parameter =
+            "product.strike";
+        quote_recipe.dataset = directory / "quote_gradients.json";
+        quote_recipe.catalog = directory / "quote_generation.yaml";
+        auto quote_result = result;
+        auto& quote_stencil = quote_result.stencils[0];
+        quote_stencil.central = 2.0f;
+        quote_stencil.first = 1.98f;
+        quote_stencil.second = 2.02f;
+        quote_stencil.displacement = .01f;
+        quote_stencil.represented_width =
+            (quote_stencil.second - quote_stencil.first) / 2.0f;
+        quote_stencil.kind = pg::StencilKind::centered;
+        quote_stencil.first_weight = 0.0f;
+        quote_stencil.second_weight = 0.0f;
+        data::write_dataset(quote_recipe, quote_result);
+        const auto quote_document = datasets::read_json_file(
+            quote_recipe.dataset
+        );
+        const auto centered_quote =
+            quote_document["results"][0]["stencils"]["product.strike"];
+        require(std::abs(centered_quote["central"].get<float>() - 1.0f)
+            < 1e-5f);
+        require(centered_quote["represented_width"].get<float>()
+            == centered_quote["second"].get<float>()
+                - centered_quote["first"].get<float>());
+        require(std::abs(centered_quote["execution_coordinate_scale"]
+            .get<double>() - 2.0) < 1e-5);
+        quote_stencil.first = 1.98f;
+        quote_stencil.second = 1.96f;
+        quote_stencil.represented_width =
+            (quote_stencil.second - quote_stencil.first) / 2.0f;
+        quote_stencil.kind = pg::StencilKind::backward;
+        quote_stencil.first_weight = -200.0f;
+        quote_stencil.second_weight = 50.0f;
+        data::write_dataset(quote_recipe, quote_result);
+        const auto backward_quote = datasets::read_json_file(
+            quote_recipe.dataset
+        )["results"][0]["stencils"]["product.strike"];
+        require(backward_quote["kind"] == "backward");
+        require(backward_quote["represented_width"].get<float>() < 0.0f);
+        require(std::abs(backward_quote["central"].get<float>() - 1.0f)
+            < 1e-5f);
         auto lsm_recipe = recipe;
         lsm_recipe.dataset = directory / "lsm_gradients.json";
         lsm_recipe.catalog = directory / "lsm_generation.yaml";

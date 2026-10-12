@@ -396,7 +396,7 @@ int main() {
             product::AthenaAutocallPricingPolicy<RegularSchedule>,
             product::AthenaAutocallPathPolicy,
             (product::AthenaAutocallParameters{
-                63U, 21U, 1.10f, 0.75f, 0.12f,
+                63U, 21U, 1.10f, 0.75f, 0.12f, 1.0f,
             }),
             "athena_autocall"
         );
@@ -484,7 +484,7 @@ int main() {
             product::PhoenixAutocallPricingPolicy<RegularSchedule>,
             product::PhoenixAutocallPathPolicy,
             (product::PhoenixAutocallParameters{
-                63U, 21U, 1.10f, 0.90f, 0.70f, 0.12f,
+                63U, 21U, 1.10f, 0.90f, 0.70f, 0.12f, 1.0f,
             }),
             "phoenix_autocall"
         );
@@ -492,7 +492,7 @@ int main() {
             product::PhoenixMemoryAutocallPricingPolicy<RegularSchedule>,
             product::PhoenixMemoryAutocallPathPolicy,
             (product::PhoenixMemoryAutocallParameters{
-                63U, 21U, 1.10f, 0.90f, 0.70f, 0.12f,
+                63U, 21U, 1.10f, 0.90f, 0.70f, 0.12f, 1.0f,
             }),
             "phoenix_memory_autocall"
         );

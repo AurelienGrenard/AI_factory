@@ -176,6 +176,8 @@ __global__ void evaluate_prepared_lift_nodes_kernel(
     >::kNodeCapacity;
     const auto local_row = static_cast<std::size_t>(blockIdx.x);
     if (local_row >= row_count) return;
+    const auto node_stride =
+        mcpg::terminal_node_graph_active_node_capacity(sensitivity_count);
     const auto& row = rows[local_row];
     __shared__ typename Dynamics::PreparedDynamics shared_dynamics[capacity];
     __shared__ typename NodePolicy::Metadata shared_metadata[capacity];
@@ -191,7 +193,7 @@ __global__ void evaluate_prepared_lift_nodes_kernel(
     if (blockIdx.y == 0U && threadIdx.x == 0U) {
         workspace.row_status[local_row] = 1U;
         for (std::size_t node = 0U; node < row.node_count; ++node) {
-            workspace.node_metadata[local_row * capacity + node] =
+            workspace.node_metadata[local_row * node_stride + node] =
                 shared_metadata[node];
         }
         for (std::size_t sensitivity = 0U;
@@ -210,7 +212,7 @@ __global__ void evaluate_prepared_lift_nodes_kernel(
     const auto path = first_path + local_path;
     const auto key = philox::make_key(base_seed + global_row);
     auto* values = workspace.node_values
-        + (local_row * path_capacity + local_path) * capacity;
+        + (local_row * path_capacity + local_path) * node_stride;
     if constexpr (Evaluation::kBatchSharedPath) {
         constexpr std::size_t batch_capacity = 8U;
         std::uint16_t indices[batch_capacity]{};

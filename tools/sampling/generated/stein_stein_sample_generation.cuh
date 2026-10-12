@@ -32,8 +32,9 @@ inline std::vector<ModelParameters> generate_core_parameters(
         const float initial_volatility = uniform({0.1f, 0.35f}, uniforms);
         const float mean_reversion = uniform({0.5f, 8.0f}, uniforms);
         const float volatility_of_volatility = uniform({0.05f, 0.5f}, uniforms);
+        const float rho = uniform({-0.75f, -0.1f}, uniforms);
         if (!(true)) continue;
-        parameters.push_back({spot, risk_free_rate, dividend_yield, initial_volatility, mean_reversion, volatility_of_volatility, 0.0f});
+        parameters.push_back({spot, risk_free_rate, dividend_yield, initial_volatility, mean_reversion, volatility_of_volatility, rho});
     }
     return parameters;
 }
@@ -74,17 +75,17 @@ inline datasets::ModelSampleRecipe recipe(
         {
             {"regime", "plausible core only"},
             {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
-            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "initial_volatility", "mean_reversion", "volatility_of_volatility"}},
+            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "initial_volatility", "mean_reversion", "volatility_of_volatility", "rho"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
                 {"dividend_yield", {0.0f, 0.06f}},
                 {"initial_volatility", {0.1f, 0.35f}},
                 {"mean_reversion", {0.5f, 8.0f}},
-                {"volatility_of_volatility", {0.05f, 0.5f}}
+                {"volatility_of_volatility", {0.05f, 0.5f}},
+                {"rho", {-0.75f, -0.1f}}
             }},
-            {"acceptance", "true"},
-            {"derived_parameters", {{"rho", "Constant 0; independent spot and volatility innovations; no parameter draw."}}}
+            {"acceptance", "true"}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}},

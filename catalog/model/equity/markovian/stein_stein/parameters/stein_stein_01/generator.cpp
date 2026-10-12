@@ -16,6 +16,7 @@ int main() {
             {"initial_volatility", 0.10f, 0.35f},
             {"mean_reversion", 0.5f, 8.0f},
             {"volatility_of_volatility", 0.05f, 0.50f},
+            {"rho", -0.75f, -0.10f},
         }),
         uniform_rows(100U, seed + 1U, {
             {"risk_free_rate", -0.03f, 0.12f},
@@ -23,13 +24,16 @@ int main() {
             {"initial_volatility", 0.02f, 0.60f},
             {"mean_reversion", 0.20f, 12.0f},
             {"volatility_of_volatility", 0.02f, 0.80f},
+            {"rho", -0.90f, -0.05f},
         })
     );
     for (auto& row : rows.rows) {
         row["spot"] = 1.0f;
-        row["rho"] = 0.0f;
     }
-    rows.construction["fixed_parameters"] = {{"spot", 1.0f}, {"rho", 0.0f}};
+    rows.construction["fixed_parameters"] = {{"spot", 1.0f}};
+    rows.construction["aligned_mc_domain"] = {
+        {"rho", "negative spot/volatility correlation in core and stress rows"},
+    };
     const std::filesystem::path dataset =
         "datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json";
     write_model_dataset(
@@ -43,11 +47,12 @@ int main() {
             {"initial_volatility", "Initial arithmetic volatility."},
             {"mean_reversion", "Zero-mean OU rate."},
             {"volatility_of_volatility", "OU diffusion coefficient."},
-            {"rho", "Fixed to zero for the original Stein-Stein model."},
+            {"rho", "Spot/volatility Brownian correlation, sampled per row."},
         },
         {
             {"spot", "dS/S=(r-q)dt+X dW_S."},
             {"volatility", "dX=-kappa X dt+nu dW_X."},
+            {"correlation", "d<W_S,W_X>_t = rho dt."},
             {"simulation", "Exact OU endpoint coupled to the Euler stock increment."},
         },
         rows

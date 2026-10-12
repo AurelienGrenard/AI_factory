@@ -64,7 +64,7 @@ int main() {
     };
     rows.construction["cash_payoff"] = 1.0f;
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "up_one_touches_01",
         "Up One-Touches",
         dataset_path,

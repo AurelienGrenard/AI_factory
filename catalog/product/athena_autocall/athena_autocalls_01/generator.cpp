@@ -28,7 +28,7 @@ int main() {
         core_row_count, tail_row_count, seed
     );
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "athena_autocalls_01",
         "Athena Autocalls",
         dataset_path,
@@ -67,8 +67,8 @@ int main() {
             },
             {
                 "unprotected_redemption",
-                "At maturity, S_T < protection_barrier repays S_T because "
-                "S_0 = 1."
+                "At maturity, S_T < protection_barrier repays "
+                "S_T / S_ref on unit notional, with S_ref fixed at issuance."
             },
             {
                 "protection_monitoring",

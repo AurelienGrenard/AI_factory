@@ -15,16 +15,20 @@ time_convention:
 parameters:
   maturity: "Time from issuance to final redemption in business days."
   observation_interval: "Business days between observation dates."
-  autocall_barrier: "Spot level triggering early redemption."
-  protection_barrier: "Final spot level protecting the normalized nominal."
+  autocall_barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
+  protection_barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   annual_coupon_rate: "Annual gain rate accumulated until redemption."
 payoff:
   intermediate_payments: "None: the accumulated gain is paid only at redemption."
   early_redemption: "At observation time t before maturity, S_t >= autocall_barrier pays 1 + annual_coupon_rate * t and terminates the note."
   successful_maturity: "At maturity, S_T >= autocall_barrier pays 1 + annual_coupon_rate * maturity."
   protected_redemption: "At maturity, protection_barrier <= S_T < autocall_barrier repays nominal 1 without gain."
-  unprotected_redemption: "At maturity, S_T < protection_barrier repays S_T because S_0 = 1."
+  unprotected_redemption: "At maturity, S_T < protection_barrier repays S_T / S_ref on unit notional, with S_ref fixed at issuance."
   protection_monitoring: "European: protection_barrier is observed only at maturity."
+  spot_level_quote:
+    unit: "ratio_to_central_spot"
+    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
+    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 constrained core-stress sample"
   row_order:
@@ -33,7 +37,7 @@ construction:
   core_share: 0.9
   stress_share: 0.1
   valuation_time: "issuance"
-  reference_spot: 1.0
+  spot_quote_convention: "Barriers are ratios to each paired model central S0; 1.0 represents 100%."
   nominal: 1.0
   sampling:
     regime_counts: "900 core rows and 100 stress rows"

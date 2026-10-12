@@ -34,7 +34,7 @@ construction:
   core_share: 0.9
   stress_share: 0.1
   valuation_time: "issuance"
-  reference_spot: 1.0
+  spot_quote_convention: "Returns use S(t_i)/S(t_{i-1}) for each paired model."
   nominal: 1.0
   sampling:
     regime_counts: "900 core rows and 100 stress rows"

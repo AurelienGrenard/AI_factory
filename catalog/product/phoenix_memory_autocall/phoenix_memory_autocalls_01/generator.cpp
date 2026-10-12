@@ -31,7 +31,7 @@ int main() {
     rows.construction["paired_terms"] =
         "Rows match phoenix_autocalls_01 term by term.";
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "phoenix_memory_autocalls_01",
         "Phoenix Memory Autocalls",
         dataset_path,
@@ -68,8 +68,8 @@ int main() {
             },
             {
                 "unprotected_redemption",
-                "At maturity, S_T < protection_barrier repays S_T because "
-                "S_0 = 1."
+                "At maturity, S_T < protection_barrier repays "
+                "S_T / S_ref on unit notional, with S_ref fixed at issuance."
             },
             {"final_coupon", "Remembered coupons are lost unless S_T >= coupon_barrier."},
             {

@@ -8,12 +8,12 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pg = price_gradients;
     try {
-        const datasets::price_gradients::Recipe recipe{
+        ${recipe_const}datasets::price_gradients::Recipe recipe{
             "$model_input", "$product_input", "$dataset", "$catalog", "$url", "$source_recipe",
             PriceConstruction::$construction, {{
         $selections
             }}, {1.0f/504.0f, 2U}, $exact_transition,
-            pg::SensitivityOrders::first_and_second};
+            pg::SensitivityOrders::first_and_second};$exact_schedule_assignment
         const auto models = model::equity::$model::load_models(recipe.model_input);
         const auto products = $product_loader_expression;
         const auto prepare = [](const auto& model_rows, const auto& product_rows,
@@ -28,8 +28,7 @@ int main() {
             recipe,
             {offline::cuda_tuning::PricingFamily::$family, "$model", "$product", ""},
             ${seed}ULL, models, products, prepare,
-            model::equity::$model::launch_${model}_${product}_diagonal_sensitivities_cuda<
-                OptionSide::$side, pg::SensitivityOrders::first_and_second>,
+            model::equity::$model::launch_${model}_${product}_diagonal_sensitivities_cuda${sensitivity_template_arguments},
             offline::cuda_tuning::kProductionPathsPerPrice,
             model::equity::$model::prepare_${product}_diagonal_sensitivity_stencils_cuda);
     } catch (const std::exception& error) {

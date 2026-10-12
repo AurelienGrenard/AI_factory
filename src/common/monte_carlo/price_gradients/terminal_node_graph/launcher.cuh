@@ -41,7 +41,7 @@ void launch_device_prepared_terminal_node_graph(
     const char* kernel_name,
     const char* variant
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     static_assert(tuning::valid_profile_v<Tuning>);
     constexpr auto node_capacity =
         terminal_node_graph_node_capacity<MaximumSensitivities>();

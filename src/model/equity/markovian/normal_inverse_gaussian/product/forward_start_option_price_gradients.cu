@@ -152,8 +152,8 @@ std::size_t normal_inverse_gaussian_forward_start_option_node_graph_workspace_by
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
         8U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -195,8 +195,8 @@ void launch_normal_inverse_gaussian_forward_start_option_node_graph_sensitivitie
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
         8U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

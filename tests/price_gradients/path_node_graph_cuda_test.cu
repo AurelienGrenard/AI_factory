@@ -127,7 +127,7 @@ void check_merton_athena(std::size_t paths) {
         1.0f, 0.02f, 0.01f, 0.20f, 0.25f, -0.05f, 0.15f
     }};
     const std::vector<product::AthenaAutocallParameters> products{{
-        12U, 3U, 1.0f, 0.70f, 0.08f
+        12U, 3U, 1.0f, 0.70f, 0.08f, 1.0f
     }};
     const pg::PriceGradientConfiguration selection{{
         {"model.spot", {.005f, pg::BumpScale::relative}},

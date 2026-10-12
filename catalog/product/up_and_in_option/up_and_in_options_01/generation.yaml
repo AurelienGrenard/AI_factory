@@ -2,25 +2,50 @@ schema_version: 1
 status: complete
 artifact:
   row_count: 1000
-  path: datasets/product/up_and_in_option/up_and_in_options_01.json
   sha256: 555de00ea102d9750d89b5f5620f557a50d8d3fe21cc4192d61091db56dc4739
 execution:
   mode: native_parameter_generator
-  generator: catalog/product/up_and_in_option/up_and_in_options_01/generator.cpp
-  source_sha256: 50d30b23e57725f125455e97f42269684797deeec8ce6db2dea9e9fa66014e83
-  binary_sha256: c17b2b74de8d560d18d6294767d84a0d5b2fa960f6fb6929f7b235b487cf3794
-  recipe_sha256: 32f1e6b547cba8816e2068f5b8082f3328e5a19351ed3f567a5c87465d4692a0
-  started_at_utc: '2026-10-07T13:47:29.493756+00:00'
-  seed: null
+  binary_sha256: ffbd9cb2a8ae8ade6b1df22e257777146016b7ff77e192cb90eb960d4534b4c5
+  generator_sha256: 9cf9903c38f14654d1605c7b42a9014570f2c34b9819bfe54a86cbfdea38697c
+  declared_method:
+    engine: product_parameters
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
+    CMakeFiles/generate_up_and_in_options_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
 timing:
-  wall_seconds: 0.009192373003315879
+  wall_seconds: 0.0
   kernel_seconds: 0.0
 recipe:
   path: catalog/product/up_and_in_option/up_and_in_options_01/recipe.yaml
-  sha256: 32f1e6b547cba8816e2068f5b8082f3328e5a19351ed3f567a5c87465d4692a0
+  sha256: 33a81b89df2be718f3cfc51b6ee8284e016bd36a7de74b88e02d21acf677f049
+inputs: {}
 provenance:
   generator: catalog/product/up_and_in_option/up_and_in_options_01/generator.cpp
-  generator_sha256: 50d30b23e57725f125455e97f42269684797deeec8ce6db2dea9e9fa66014e83
-  binary_sha256: c17b2b74de8d560d18d6294767d84a0d5b2fa960f6fb6929f7b235b487cf3794
-  parameter_campaign: full model/product refresh
-record_sha256: 049ac63bc9ce4fbda87cf0f95a247d689efbfbf38d3e3512c1cb906e5ee1a9da
+  input_files: {}
+  hardware_used:
+    device: cpu
+    model: 13th Gen Intel(R) Core(TM) i9-13900HK
+    host: ALIENWAREAG
+  build_options:
+    cmake_generator: Unix Makefiles
+    build_type: Release
+    cxx_standard: 20
+    cuda_standard: 20
+    cuda_architectures: '89'
+    tuning_profile: sm89_cuda12_unqualified_v1
+    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
+    cxx_compiler: /usr/bin/g++-14
+    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
+    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
+    cuda_host_compiler: /usr/bin/g++-14
+    cxx_release_flags: -O3 -DNDEBUG
+    cuda_release_flags: -O3 -DNDEBUG
+    target_flags:
+      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
+      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
+    cuda_dependency_flags: {}
+    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
+  generated_at_utc: '2026-10-12T21:54:12.360316+00:00'
+record_sha256: 3c1953d1206104c378ae34d367c2a34d7e30b090d9b66385292e79eb6c71a4e7

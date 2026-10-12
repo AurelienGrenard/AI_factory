@@ -146,8 +146,8 @@ std::size_t stein_stein_gap_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         epg::TerminalProductSensitivityPolicy<product::GapOptionPathPolicy<Side>>,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(host, configuration);
 }
 
@@ -187,8 +187,8 @@ void launch_stein_stein_gap_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         epg::TerminalProductSensitivityPolicy<product::GapOptionPathPolicy<Side>>,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(
         host,
         device,

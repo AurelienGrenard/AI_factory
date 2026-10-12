@@ -27,6 +27,7 @@ std::vector<PhoenixAutocallParameters> load_phoenix_autocalls(
                 parameters.at("coupon_barrier").get<float>(),
                 parameters.at("protection_barrier").get<float>(),
                 parameters.at("annual_coupon_rate").get<float>(),
+                1.0f, // Replaced with the paired central model spot by the host resolver.
             };
             if (product.maturity_days == 0U)
                 throw std::invalid_argument(prefix + "maturity must be a positive business-day count.");

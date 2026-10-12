@@ -234,6 +234,11 @@ def inventory(
                             time_configuration=recipe[time_key],
                             exercise_replay=recipe.get("exercise_replay"),
                             preparation=recipe.get("preparation", {}))
+            if "sensitivity_strategy" in recipe:
+                strategy = recipe["sensitivity_strategy"]
+                if strategy not in {"mono", "node_graph"}:
+                    raise ValueError(f"Invalid recipe sensitivity strategy: {recipe_path}")
+                jobs[-1]["sensitivity_strategy"] = strategy
     return jobs
 
 
@@ -323,6 +328,13 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
         if (isinstance(native_plan, dict)
                 and native_plan.get("profile_id") != job["launch_plan"].get("profile_id")):
             raise ValueError("Native launch profile contradicts the compiled production plan")
+        if (job["kind"] == "price_gradients"
+                and "sensitivity_strategy" in job
+                and generation["execution"].get("sensitivity_strategy")
+                != job["sensitivity_strategy"]):
+            raise ValueError(
+                "Generation receipt sensitivity strategy contradicts frozen recipe"
+            )
         expected_replay = job.get("exercise_replay")
         if (job["kind"] == "price_gradients"
                 and generation["execution"].get("exercise_replay")
@@ -408,6 +420,27 @@ def cmake_make_program(build: Path) -> str:
     return match.group(1)
 
 
+def build_has_pending_actions(build: Path, targets: list[str]) -> bool:
+    """Ask the native build graph whether selected binaries need more work."""
+    graph = build_graph_files(build)
+    if graph[1] == "build.ninja":
+        dry = subprocess.run(["ninja", "-C", str(build), "-n", *targets],
+                             text=True, capture_output=True, check=True,
+                             env={**os.environ, "LC_ALL": "C"})
+        return "no work to do" not in dry.stdout
+    # CMake's outer Makefile has phony targets: make -q reports stale even
+    # when every executable is current. Dry-run the concrete dependency
+    # graph and look for an actual compile, generated file or link step.
+    dry = subprocess.run(
+        [cmake_make_program(build), "-C", str(build), "-n", "-f", "CMakeFiles/Makefile2",
+         *(f"CMakeFiles/{target}.dir/all" for target in targets)],
+        text=True, capture_output=True, check=True,
+        env={**os.environ, "LC_ALL": "C"},
+    )
+    return any(re.search(r'"(?:Building|Linking|Generating) ', line)
+               for line in dry.stdout.splitlines())
+
+
 def require_current_build(root: Path, build: Path, jobs: list[dict],
                           input_overrides: dict[str, Path] | None = None) -> None:
     """Use the native build graph to reject missing or stale generation prerequisites."""
@@ -420,48 +453,32 @@ def require_current_build(root: Path, build: Path, jobs: list[dict],
     for path in [build / target for target in targets] + inputs:
         if not path.is_file():
             raise ValueError(f"Missing build/input prerequisite: {path}")
-    graph = build_graph_files(build)
-    if graph[1] == "build.ninja":
-        dry = subprocess.run(["ninja", "-C", str(build), "-n", *targets],
-                             text=True, capture_output=True, check=True,
-                             env={**os.environ, "LC_ALL": "C"})
-        stale = "no work to do" not in dry.stdout
-    else:
-        # CMake's outer Makefile has phony targets: make -q reports stale even
-        # when every executable is current. Dry-run the concrete dependency
-        # graph and look for an actual compile, generated file or link step.
-        dry = subprocess.run(
-            [cmake_make_program(build), "-C", str(build), "-n", "-f", "CMakeFiles/Makefile2",
-             *(f"CMakeFiles/{target}.dir/all" for target in targets)],
-            text=True, capture_output=True, check=True,
-            env={**os.environ, "LC_ALL": "C"},
-        )
-        stale = any(re.search(r'"(?:Building|Linking|Generating) ', line)
-                    for line in dry.stdout.splitlines())
-    if stale:
-        raise ValueError("Generators need rebuilding; run the CMake aggregate build first")
+    if build_has_pending_actions(build, targets):
+        raise ValueError("Generators need rebuilding; rerun with --compile")
 
 
 def compile_selected(root: Path, build: Path, jobs: list[dict], parallel_jobs: int) -> None:
-    """Compile only the selected generators and their shared launch inspector."""
+    """Compile selected generators and repair stale links left by a build pass."""
     if parallel_jobs <= 0:
         raise ValueError("Compile jobs must be positive")
     targets = {job["target"] for job in jobs}
     if any(job["kind"] in {"prices", "price_gradients"} for job in jobs):
         targets.add("inspect_pricing_launch_plan")
-    subprocess.run(
-        [
-            "cmake",
-            "--build",
-            str(build),
-            "--target",
-            *sorted(targets),
-            f"-j{parallel_jobs}",
-        ],
-        cwd=root,
-        env={**os.environ, "CCACHE_DISABLE": "1"},
-        check=True,
-    )
+    selected = sorted(targets)
+    for attempt in range(3):
+        subprocess.run(
+            ["cmake", "--build", str(build), "--target", *selected,
+             f"-j{parallel_jobs}"],
+            cwd=root,
+            env={**os.environ, "CCACHE_DISABLE": "1"},
+            check=True,
+        )
+        if not build_has_pending_actions(build, selected):
+            return
+        if attempt < 2:
+            print("CMake left selected generators stale; retrying the incremental build",
+                  file=sys.stderr)
+    raise ValueError("Selected generators remain stale after three CMake build passes")
 
 
 def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
@@ -504,6 +521,8 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
                     )
                 if strategy == "node_graph":
                     inspector.append("--node-graph")
+            elif job.get("sensitivity_strategy") == "node_graph":
+                inspector.append("--node-graph")
         plan = json.loads(subprocess.check_output(inspector, cwd=inputs, text=True))
         description = {"rows": rows, "launch_plan": plan}
     else:

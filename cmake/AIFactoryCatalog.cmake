@@ -94,13 +94,22 @@ endfunction()
 # Register one CUDA price generator with shared build settings.
 function(add_price_generator target source)
     if(source MATCHES
-        "(catalog|work/catalog)/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/")
+        "(catalog|work/catalog)/model/equity/rough/(rough_heston|quadratic_rough_heston)/prices/"
+        OR source MATCHES
+        "(catalog|work/catalog)/model/equity/rough/[^/]+/price_gradients/")
         # Rough preparation and schedule policies include device definitions.
         # Their generated entry points keep .cpp names but need nvcc.
         set_source_files_properties(${source} PROPERTIES LANGUAGE CUDA)
     endif()
     add_executable(${target} EXCLUDE_FROM_ALL ${source})
     target_include_directories(${target} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    if(source MATCHES
+        "(catalog|work/catalog)/model/equity/rough/[^/]+/price_gradients/"
+        AND AI_FACTORY_MATHDX_ROOT)
+        if(TARGET ai_factory_cufftdx)
+            target_link_libraries(${target} PRIVATE ai_factory_cufftdx)
+        endif()
+    endif()
     ai_factory_collect_source_dependencies(dependencies ${source})
     if(NOT dependencies)
         message(FATAL_ERROR

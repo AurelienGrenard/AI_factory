@@ -308,16 +308,40 @@ __host__ __device__ inline bool build_stencil(
     const float value = Preparation::read_parameter(
         sensitivity.parameter, central
     );
-    return prepare_stencil<Orders, Preparation>(
-        value,
-        sensitivity.bump,
-        central,
-        sensitivity.parameter,
-        time,
-        RegularEndpoint{value},
-        stencil,
-        error
-    );
+    float coordinate_scale = 1.0f;
+    if constexpr (requires {
+        Preparation::coordinate_scale(sensitivity.parameter, central);
+    }) {
+        coordinate_scale = Preparation::coordinate_scale(
+            sensitivity.parameter, central
+        );
+    }
+    if (!finite(coordinate_scale) || !(coordinate_scale > 0.0f)) {
+        error = invalid_central;
+        return false;
+    }
+    auto absolute_bump = sensitivity.bump;
+    if (absolute_bump.scale == pg::BumpScale::absolute) {
+        absolute_bump.displacement *= coordinate_scale;
+    }
+    if (!prepare_stencil<Orders, Preparation>(
+            value, absolute_bump, central, sensitivity.parameter, time,
+            RegularEndpoint{value}, stencil, error
+        )) {
+        return false;
+    }
+    // Nodes and parameter_values remain absolute. The weights are in quote
+    // units, so GPU pathwise reductions and their MC errors share those units.
+    stencil.displacement /= coordinate_scale;
+    stencil.represented_width /= coordinate_scale;
+    stencil.first_endpoint_weights[0U] *= coordinate_scale;
+    stencil.first_endpoint_weights[1U] *= coordinate_scale;
+    if constexpr (pg::SensitivityTraits<Orders>::node_capacity == 4U) {
+        for (std::size_t node = 0U; node < 4U; ++node) {
+            stencil.second_weights[node] *= coordinate_scale * coordinate_scale;
+        }
+    }
+    return true;
 }
 
 template<std::size_t NodeCapacity>

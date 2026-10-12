@@ -152,8 +152,8 @@ std::size_t normal_inverse_gaussian_phoenix_memory_autocall_node_graph_workspace
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
         11U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -195,8 +195,8 @@ void launch_normal_inverse_gaussian_phoenix_memory_autocall_node_graph_sensitivi
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
         11U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

@@ -11,9 +11,9 @@ int main() {
 
     constexpr std::uint64_t seed = 1610001001ULL;
     constexpr float fixed_spot = 1.0f;
-    constexpr float fixed_xi_0 = 0.04f;
 
     GeneratedRows core = uniform_rows(900U, seed, {
+        {"xi_0", 0.01f, 0.09f},
         {"risk_free_rate", 0.001f, 0.08f},
         {"dividend_yield", 0.0f, 0.06f},
         {"eta", 0.50f, 3.0f},
@@ -21,6 +21,7 @@ int main() {
         {"rho", -0.95f, -0.30f},
     });
     GeneratedRows stress = uniform_rows(100U, seed + 1U, {
+        {"xi_0", 0.005f, 0.12f},
         {"risk_free_rate", 0.0001f, 0.12f},
         {"dividend_yield", 0.0f, 0.10f},
         {"eta", 0.25f, 3.5f},
@@ -33,7 +34,6 @@ int main() {
     for (ParameterRow& row : rows.rows) {
         ParameterRow completed = {
             {"spot", fixed_spot},
-            {"xi_0", fixed_xi_0},
         };
         for (const auto& [name, value] : row.items()) {
             completed[name] = value;
@@ -42,7 +42,6 @@ int main() {
     }
     rows.construction["fixed_parameters"] = {
         {"spot", fixed_spot},
-        {"xi_0", fixed_xi_0},
         {"forward_variance_curve", "xi_0(t) = xi_0 for all t"},
     };
     rows.construction["aligned_mc_domain"] = {
@@ -70,7 +69,7 @@ int main() {
             {"dividend_yield", "Continuously compounded dividend yield."},
             {
                 "xi_0",
-                "Flat forward variance level; fixed to 0.04 in this dataset."
+                "Flat forward variance level, independently sampled per row."
             },
             {"eta", "Volatility of the logarithmic variance."},
             {

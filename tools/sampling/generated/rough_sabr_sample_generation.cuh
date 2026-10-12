@@ -29,7 +29,7 @@ inline std::vector<ModelParameters> generate_core_parameters(
         const float spot = uniform({0.25f, 4.0f}, uniforms);
         const float risk_free_rate = uniform({0.001f, 0.08f}, uniforms);
         const float dividend_yield = uniform({0.0f, 0.06f}, uniforms);
-        const float xi_0 = uniform({0.04f, 0.04f}, uniforms);
+        const float xi_0 = uniform({0.01f, 0.09f}, uniforms);
         const float eta = uniform({0.5f, 3.0f}, uniforms);
         const float hurst_exponent = uniform({0.03f, 0.25f}, uniforms);
         const float rho = uniform({-0.95f, -0.3f}, uniforms);
@@ -82,7 +82,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"spot", {0.25f, 4.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
                 {"dividend_yield", {0.0f, 0.06f}},
-                {"xi_0", {0.04f, 0.04f}},
+                {"xi_0", {0.01f, 0.09f}},
                 {"eta", {0.5f, 3.0f}},
                 {"hurst_exponent", {0.03f, 0.25f}},
                 {"rho", {-0.95f, -0.3f}},

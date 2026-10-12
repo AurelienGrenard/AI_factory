@@ -126,11 +126,16 @@ int generate_american_option_equity_price_dataset(
     const auto models = std::invoke(
         std::forward<ModelLoader>(model_loader), recipe.model_dataset_path
     );
-    const auto products = product::load_american_options(
+    const auto quotes = product::load_american_options(
         recipe.product_dataset_path
     );
+    const auto paired = equity::spot_relative::resolve_rows(
+        models, quotes, recipe.construction
+    );
+    const auto& resolved_models = paired.models;
+    const auto& products = paired.products;
     const std::size_t result_count = price_row_count(
-        models.size(), products.size(), recipe.construction
+        resolved_models.size(), products.size(), paired.construction
     );
     cuda::GenerationProgress progress(result_count);
     longstaff_schwartz::LaunchResult execution{};
@@ -141,7 +146,7 @@ int generate_american_option_equity_price_dataset(
         profile.identity, result_count, profile.paths_per_price, settings
     );
     const auto run = cuda::run_monte_carlo(
-        cuda::inputs(models, products),
+        cuda::inputs(resolved_models, products),
         result_count,
         [&](auto& resources) {
             std::invoke(
@@ -165,11 +170,11 @@ int generate_american_option_equity_price_dataset(
                 launcher,
                 plan,
                 resources.template input<0U>(),
-                models.size(),
+                resolved_models.size(),
                 products.data(),
                 resources.template input<1U>(),
                 products.size(),
-                recipe.construction,
+                paired.construction,
                 result_count,
                 profile.paths_per_price,
                 resources.prices(),
@@ -181,6 +186,11 @@ int generate_american_option_equity_price_dataset(
         }
     );
     progress.complete();
+    auto execution_metadata = american_option_cuda_execution(
+        profile, execution, plan
+    );
+    execution_metadata["product_spot_levels"] =
+        "quote ratio times central model spot; fixed during model bumps";
 
     datasets::write_monte_carlo_price_dataset(
         recipe.model_dataset_path,
@@ -195,7 +205,7 @@ int generate_american_option_equity_price_dataset(
         recipe.numerical_method,
         profile.paths_per_price,
         profile.delta_t_description,
-        american_option_cuda_execution(profile, execution, plan),
+        execution_metadata,
         american_option_catalog_sections(profile),
         profile.seed,
         run.wall_seconds,

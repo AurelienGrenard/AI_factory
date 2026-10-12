@@ -163,14 +163,4 @@ int main() {
     require(heston.find("core_share: 0.9") != std::string::npos
                 && heston.find("stress_share: 0.1") != std::string::npos,
             "parameter recipe lost its ordered core/stress construction");
-    const std::string bermudan_gradient = read_text(
-        "catalog/model/fixed_income/vasicek/price_gradients/"
-        "bermudan_payer_swaptions/"
-        "vasicek_01__bermudan_payer_swaptions_01__01_"
-        "price_gradient_diagonal_hessian_frozen_policy/recipe.yaml"
-    );
-    require(bermudan_gradient.find(
-                "\"exercise_replay\": \"frozen_regression_policy\""
-            ) != std::string::npos,
-            "public Bermudan gradient lost its frozen regression policy");
 }

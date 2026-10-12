@@ -1,11 +1,18 @@
 // Independent polynomial, domain, selection and Brownian covariance checks for host plans.
 #include "model/equity/markovian/black_scholes/product/european_option_price_gradients.cuh"
+#include "model/equity/markovian/black_scholes/product/double_knock_out_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/cev/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/american_option_price_gradients.cuh"
 #include "model/fixed_income/cir/product/european_swaption_price_gradients.cuh"
 #include "common/price_gradients/result.cuh"
+#include "common/price_gradients/reconstruction.cuh"
+#include "common/equity/spot_relative_product.hpp"
+#include "product/double_knock_out_option/parameters.hpp"
+#include "product/up_one_touch/parameters.hpp"
+#include "product/range_accrual/parameters.hpp"
+#include "product/athena_autocall/parameters.hpp"
 #include "common/price_gradients/row_mapping.cuh"
 #include <iostream>
 
@@ -108,9 +115,10 @@ void selection() {
     const auto prepare = [&](const auto& config) { return bs::prepare_black_scholes_european_option_price_gradients(models, products,
         PriceConstruction::CartesianProduct, {}, config); };
     const auto plan = prepare(selected);
-    require(plan.result_count == 4U && plan.models.size() == 2U
-            && plan.products.size() == 2U && plan.sensitivities.size() == 2U,
-        "Selected Cartesian shape is incorrect.");
+    require(plan.result_count == 4U && plan.models.size() == 4U
+            && plan.products.size() == 4U && plan.sensitivities.size() == 2U
+            && plan.construction == PriceConstruction::Aligned,
+        "Cartesian quote pairs were not resolved in model-major order.");
     for (std::size_t row = 0U; row < plan.result_count; ++row) {
         const auto central = central_row(plan, row);
         require(
@@ -120,8 +128,10 @@ void selection() {
         );
     }
     require(central_row(plan, 1U).product.strike == .9f
-            && central_row(plan, 2U).model.spot == 1.2f,
-        "Cartesian ordering changed.");
+            && central_row(plan, 2U).model.spot == 1.2f
+            && std::abs(central_row(plan, 3U).product.strike - 1.08f)
+                < 1.e-6f,
+        "Cartesian quote resolution or ordering changed.");
     require(first_order_task(plan, 0U, 0U).central_requirement
                 == pg::CentralRequirement::state
         && first_order_task(plan, 0U, 1U).central_requirement
@@ -309,7 +319,10 @@ void heston_device_preparation() {
                 "Four-node first-derivative reconstruction is incorrect."
             );
             require(
-                std::abs(result.second - 2.f) < 2.e-3f,
+                std::abs(result.second - 2.f *
+                    std::pow(decltype(plan)::Preparation::coordinate_scale(
+                        sensitivity.parameter, central
+                    ), 2.f)) < 2.e-3f,
                 "Four-node diagonal-Hessian reconstruction is incorrect."
             );
             for (std::size_t node = 0U; node < node_count; ++node) {
@@ -400,6 +413,121 @@ void american_selection() {
     rejects([&] { prepare({{{"product.exercise_interval_days",
                             {1.f, pg::BumpScale::absolute}}}}); });
 }
+void spot_relative_contract() {
+    namespace quotes = equity::spot_relative;
+    const std::array<bs::ModelParameters, 1> models{{
+        {3.f, 0.f, 0.f, .2f}
+    }};
+    const std::array<product::EuropeanOptionParameters, 1> products{{
+        {.9f, 252U}
+    }};
+    const pg::PriceGradientConfiguration selected{{
+        {"model.spot", {.005, pg::BumpScale::relative}},
+        {"product.strike", {.01, pg::BumpScale::absolute}},
+    }};
+    const auto plan = bs::prepare_black_scholes_european_option_price_gradients(
+        models, products, PriceConstruction::Aligned, {}, selected
+    );
+    require(std::abs(plan.products[0].strike - 2.7f) < 1.e-6f,
+        "Quoted strike was not resolved against central spot.");
+    const auto spot = first_order_task(plan, 0U, 0U);
+    require(spot.nodes[1U].product.strike == plan.products[0].strike
+            && spot.nodes[2U].product.strike == plan.products[0].strike,
+        "Spot bump moved the frozen strike.");
+    const auto strike = first_order_task(plan, 0U, 1U);
+    require(std::abs(strike.nodes[2U].product.strike
+                     - strike.nodes[1U].product.strike - .06f) < 2.e-6f,
+        "Absolute ratio bump did not scale by central spot.");
+    pg::SensitivityValues<3U> values{};
+    for (std::size_t node = 0U; node < 3U; ++node) {
+        const float absolute = strike.nodes[node].product.strike;
+        values[node] = absolute * absolute;
+    }
+    require(std::abs(pg::reconstruct_first_sensitivity(
+                strike.stencil, values
+            ) - 2.f * .9f * 3.f * 3.f) < 2.e-4f,
+        "Strike stencil does not differentiate in quoted-ratio units.");
+
+    const std::vector<bs::ModelParameters> equal_spot_models{
+        models.front(), models.front()
+    };
+    const std::vector<product::EuropeanOptionParameters> equal_spot_quotes{
+        products.front(), {.8f, 252U}
+    };
+    const auto compact_cartesian = quotes::resolve_rows(
+        equal_spot_models, equal_spot_quotes,
+        PriceConstruction::CartesianProduct
+    );
+    require(compact_cartesian.construction == PriceConstruction::CartesianProduct
+            && compact_cartesian.models.size() == 2U
+            && compact_cartesian.products.size() == 2U
+            && std::abs(compact_cartesian.products[1U].strike - 2.4f)
+                < 1.e-6f,
+        "Common-spot Cartesian inputs were expanded unnecessarily.");
+
+    const std::vector<bs::ModelParameters> varying_spot_models{
+        models.front(), {1.f, 0.f, 0.f, .2f}
+    };
+    const std::vector<product::RangeAccrualParameters> relative_ranges{
+        {252U, 21U, .8f, 1.2f, .05f}
+    };
+    const auto compact_relative = quotes::resolve_rows(
+        varying_spot_models, relative_ranges,
+        PriceConstruction::CartesianProduct
+    );
+    require(compact_relative.construction == PriceConstruction::CartesianProduct
+            && compact_relative.models.size() == 2U
+            && compact_relative.products.size() == 1U,
+        "Already-relative Cartesian product was expanded unnecessarily.");
+
+    const auto barrier = quotes::resolve_product(
+        product::DoubleKnockOutOptionParameters{1.f, .9f, 1.1f, 252U},
+        3.f
+    );
+    require(barrier.lower_barrier < 3.f && barrier.upper_barrier > 3.f
+            && std::abs(barrier.strike - 3.f) < 1.e-6f,
+        "Double barrier does not adapt to nonunit spot.");
+    const std::array<product::DoubleKnockOutOptionParameters, 1> barriers{{
+        {1.f, .9f, 1.1f, 252U}
+    }};
+    const auto barrier_plan =
+        bs::prepare_black_scholes_double_knock_out_option_price_gradients(
+            models, barriers, PriceConstruction::Aligned, {},
+            {{{"model.spot", {.005f}},
+              {"product.lower_barrier", {.01f, pg::BumpScale::absolute}}}}
+        );
+    const auto spot_barrier_task = first_order_task(barrier_plan, 0U, 0U);
+    const auto lower_barrier_task = first_order_task(barrier_plan, 0U, 1U);
+    require(std::abs(barrier_plan.products[0].lower_barrier - 2.7f) < 1.e-6f
+            && spot_barrier_task.nodes[1U].product.lower_barrier
+                == barrier_plan.products[0].lower_barrier
+            && spot_barrier_task.nodes[2U].product.lower_barrier
+                == barrier_plan.products[0].lower_barrier
+            && std::abs(lower_barrier_task.nodes[2U].product.lower_barrier
+                - lower_barrier_task.nodes[1U].product.lower_barrier
+                - .06f) < 2.e-6f,
+        "Spot and barrier-ratio bumps were not independent.");
+    const auto touch = quotes::resolve_product(
+        product::UpOneTouchParameters{1.1f, .25f, 252U}, 3.f
+    );
+    require(std::abs(touch.barrier - 3.3f) < 1.e-6f
+            && touch.cash_payoff == .25f,
+        "Touch cash payoff was scaled with its barrier.");
+    const auto range = quotes::resolve_product(
+        product::RangeAccrualParameters{252U, 21U, .9f, 1.1f, .05f},
+        3.f
+    );
+    require(range.lower_barrier == .9f && range.upper_barrier == 1.1f,
+        "Already-relative range accrual was scaled twice.");
+    const auto autocall = quotes::resolve_product(
+        product::AthenaAutocallParameters{252U, 21U, 1.f, .7f, .06f, 1.0f},
+        3.f
+    );
+    require(autocall.autocall_barrier == 3.f
+            && std::abs(autocall.protection_barrier - 2.1f) < 1.e-6f
+            && autocall.reference_spot == 3.f,
+        "Autocall level/reference resolution changed.");
+}
 void fixed_income_selection() {
     namespace cir = model::fixed_income::cir;
     const std::array<cir::ModelParameters, 2> models{{
@@ -464,7 +592,7 @@ void fixed_income_selection() {
 int main() {
     try { stencils(); covariance(); selection(); cev_domains(); merton_domains();
         heston_device_preparation();
-        american_selection(); fixed_income_selection();
+        american_selection(); spot_relative_contract(); fixed_income_selection();
         std::cout << "Gradient host contracts passed\n"; return 0; }
     catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

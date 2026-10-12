@@ -150,8 +150,8 @@ std::size_t cev_range_accrual_node_graph_workspace_bytes(
         product::RangeAccrualPathPolicy,
         RangeAccrualGradientSchedule,
         9U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_cev_range_accrual_node_graph_sensitivities_cuda(
         product::RangeAccrualPathPolicy,
         RangeAccrualGradientSchedule,
         9U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(
         host,
         device,

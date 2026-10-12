@@ -72,14 +72,14 @@ void exercise_model(
                             pg::TimeConfiguration{dt, 2U}, configuration,
                             pg::SensitivityRequest{Orders});
         Cache cache(1.0f, dt);
-        using Engine = Graph<OptionSide::call, 7U, Orders, 4U>;
+        using Engine = Graph<OptionSide::call, 7U, Orders, 8U>;
         const auto execution = Engine::plan(host, cache, launch);
         require(cache.values().size() == 3U,
                 "Cartesian spot/strike nodes must reuse prepared dynamics.");
         require(cache.unique_kernel_count() == 3U,
                 "The H endpoints must each fit one distinct kernel.");
         const auto row = volterra::price_gradients::
-            prepare_lift_graph_row<Orders, 4U>(host, 1U, cache);
+            prepare_lift_graph_row<Orders, 8U>(host, 1U, cache);
         require(row.prepared_indices[0U] == row.prepared_indices[1U],
                 "Spot endpoint duplicated the central dynamics.");
         require(row.prepared_indices[0U] == row.prepared_indices[5U],

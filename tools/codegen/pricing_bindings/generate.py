@@ -63,6 +63,7 @@ from capability_manifest import (
 )
 from sample_manifest import SAMPLE_MODELS, SAMPLE_MODEL_BY_NAME, SampleModelSpec
 from price_gradients.render import render_bindings as render_price_gradient_bindings
+from price_gradients.manifest import default_sensitivities
 from price_gradients.render import render_recipes as render_price_gradient_recipes
 
 
@@ -1878,6 +1879,19 @@ def generate_provenance_manifest(
                 "supported_orders": list(spec.supported_orders),
                 "qualification": "bounded_checks; bias_and_performance_not_certified"}
             for spec in PRICE_GRADIENT_BINDING_SPECS
+        } | {
+            f"src/model/equity/rough/{binding.model}/product/"
+            f"{binding.product}_price_gradients": {
+                "identity": f"{binding.model}/{binding.product}",
+                "maximum_sensitivities": len(default_sensitivities(
+                    binding.model, binding.product, None
+                )),
+                "preparation_strategy": "device_prepared_rough_graph",
+                "supported_orders": ["first"],
+                "qualification": "bounded_checks; bias_and_performance_not_certified",
+            }
+            for binding in PRODUCT_BINDING_SPECS
+            if binding.engine in {"equity_n_factor", "equity_volterra_fft"}
         },
         "pricing_launch_families": {
             "/".join(filter(None, (binding.model, binding.curve, binding.product))):

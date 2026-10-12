@@ -146,8 +146,8 @@ std::size_t heston_3_2_digital_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         epg::TerminalProductSensitivityPolicy<product::DigitalOptionPathPolicy<Side>>,
         11U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U)
     >(host, configuration);
 }
 
@@ -187,8 +187,8 @@ void launch_heston_3_2_digital_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         epg::TerminalProductSensitivityPolicy<product::DigitalOptionPathPolicy<Side>>,
         11U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U)
     >(
         host,
         device,

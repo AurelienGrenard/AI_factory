@@ -1,6 +1,9 @@
 // Verify exact Black-Scholes dynamics and closed-form product identities.
 #include "common/check_cuda.cuh"
 #include "common/equity/handlers.cuh"
+#include "common/equity/spot_relative_product.hpp"
+#include "product/athena_autocall/pricing_policy.cuh"
+#include "product/phoenix_coupon_memory_path_policy.cuh"
 #include "common/simulation/path_simulation.cuh"
 #include "model/equity/markovian/black_scholes/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
@@ -132,6 +135,23 @@ __global__ void exercise_analytics_kernel(AnalyticsResults* output) {
             );
     }
     *output = results;
+}
+
+__global__ void exercise_autocall_redemption_kernel(float* output) {
+    using namespace ai_factory::workbench;
+    const product::AthenaAutocallPathPolicy::PreparedProduct athena{
+        1U, 3.0f, 2.1f, 3.0f, 0.0f, 1.0f
+    };
+    auto athena_handler = product::AthenaAutocallPathPolicy::make_handler(
+        athena
+    );
+    athena_handler.on_observation(0U, 1.5f);
+    output[0U] = athena_handler.discounted_payoff;
+    product::detail::PhoenixCouponMemoryObservationHandler<false> phoenix{
+        1U, 3.0f, 2.5f, 2.1f, 3.0f, 0.0f, 1.0f
+    };
+    phoenix.on_observation(0U, 1.5f);
+    output[1U] = phoenix.present_value;
 }
 
 void require(bool condition, const char* message) {
@@ -476,6 +496,34 @@ int main() {
     const product::EuropeanOptionParameters vanilla{1.0f, 252U};
     const float call = price_one(model, vanilla, ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_european_option_cuda<OptionSide::call>);
     const float put = price_one(model, vanilla, ai_factory::workbench::model::equity::black_scholes::launch_black_scholes_european_option_cuda<OptionSide::put>);
+    const ModelParameters scaled_model = {
+        3.0f, model.risk_free_rate, model.dividend_yield,
+        model.volatility
+    };
+    const auto scaled_vanilla = equity::spot_relative::resolve_product(
+        vanilla, scaled_model.spot
+    );
+    const float scaled_call = price_one(
+        scaled_model, scaled_vanilla,
+        ai_factory::workbench::model::equity::black_scholes::
+            launch_black_scholes_european_option_cuda<OptionSide::call>
+    );
+    require(close(scaled_call, 3.0f * call, 1.0e-5f),
+        "Quoted strike did not preserve Black-Scholes spot homogeneity.");
+    float* device_autocall_payoffs = nullptr;
+    check_cuda(cudaMalloc(&device_autocall_payoffs, 2U * sizeof(float)),
+        "BS autocall payoff allocation");
+    exercise_autocall_redemption_kernel<<<1, 1>>>(device_autocall_payoffs);
+    check_cuda(cudaGetLastError(), "BS autocall payoff kernel");
+    float autocall_payoffs[2U]{};
+    check_cuda(cudaMemcpy(autocall_payoffs, device_autocall_payoffs,
+        sizeof(autocall_payoffs), cudaMemcpyDeviceToHost),
+        "BS autocall payoff copy");
+    check_cuda(cudaFree(device_autocall_payoffs),
+        "BS autocall payoff free");
+    require(close(autocall_payoffs[0U], .5f)
+            && close(autocall_payoffs[1U], .5f),
+        "Unit-notional autocall loss was not normalized by central S0.");
     const float discount = std::exp(-model.risk_free_rate);
     const float discounted_spot = std::exp(-model.dividend_yield);
     require(close(call - put, discounted_spot - discount), "BS put-call parity failed");

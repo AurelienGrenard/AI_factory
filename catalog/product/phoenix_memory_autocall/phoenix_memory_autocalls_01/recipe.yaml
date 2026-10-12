@@ -15,17 +15,21 @@ time_convention:
 parameters:
   maturity: "Time from issuance to final redemption in business days."
   observation_interval: "Business days between observation dates."
-  autocall_barrier: "Spot level triggering early redemption."
-  coupon_barrier: "Spot level releasing current and remembered coupons."
-  protection_barrier: "Final spot level protecting the normalized nominal."
+  autocall_barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
+  coupon_barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
+  protection_barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   annual_coupon_rate: "Annual coupon rate prorated over each observation interval."
 payoff:
   coupon_memory: "Missed coupons are paid at the next successful coupon observation."
   early_redemption: "Before maturity, S_t >= autocall_barrier pays nominal 1 plus all due coupons and terminates the note."
   protected_redemption: "At maturity, S_T >= protection_barrier repays nominal 1."
-  unprotected_redemption: "At maturity, S_T < protection_barrier repays S_T because S_0 = 1."
+  unprotected_redemption: "At maturity, S_T < protection_barrier repays S_T / S_ref on unit notional, with S_ref fixed at issuance."
   final_coupon: "Remembered coupons are lost unless S_T >= coupon_barrier."
   protection_monitoring: "European: protection_barrier is observed only at maturity."
+  spot_level_quote:
+    unit: "ratio_to_central_spot"
+    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
+    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 constrained core-stress sample"
   row_order:
@@ -34,7 +38,7 @@ construction:
   core_share: 0.9
   stress_share: 0.1
   valuation_time: "issuance"
-  reference_spot: 1.0
+  spot_quote_convention: "Barriers are ratios to each paired model central S0; 1.0 represents 100%."
   nominal: 1.0
   sampling:
     regime_counts: "900 core rows and 100 stress rows"

@@ -338,8 +338,10 @@ auto plan_gaussian_fft_node_graph(
     }
     // One row at a time keeps the expensive convolution buffer bounded.
     constexpr std::size_t fft_threads = tuning::kPricingPathThreads;
+    // Larger batches amortize FFT setup and convolution launches. The
+    // workspace-limit loop below still reduces the batch when necessary.
     std::size_t path_chunk = std::min<std::size_t>(
-        2048U,
+        131072U,
         std::max<std::size_t>(
             fft_threads,
             launch.paths_per_price / fft_threads * fft_threads
@@ -522,6 +524,7 @@ __global__ void evaluate_gaussian_fft_group_nodes_kernel(
     std::size_t first_path,
     std::size_t path_count,
     std::size_t path_capacity,
+    std::size_t sensitivity_count,
     mcpg::TerminalNodeGraphWorkspace<
         typename Evaluation::NodePolicy
     > workspace
@@ -559,7 +562,9 @@ __global__ void evaluate_gaussian_fft_group_nodes_kernel(
     const auto convolution = hybrid_fft::FftPathConvolution{
         convolutions, local_path / 2U, (local_path & 1U) != 0U
     };
-    auto* values = workspace.node_values + local_path * capacity;
+    const auto node_stride =
+        mcpg::terminal_node_graph_active_node_capacity(sensitivity_count);
+    auto* values = workspace.node_values + local_path * node_stride;
     if constexpr (Evaluation::kBatchSharedPath) {
         if (kernel_index == row->kernel_indices[0U]
             && step_count == row->scenarios[0U].step_count) {
@@ -636,6 +641,7 @@ void launch_gaussian_fft_convolution_group(
     std::size_t first_path,
     std::size_t count,
     std::size_t path_capacity,
+    std::size_t sensitivity_count,
     std::uint64_t seed,
     pg::TimeConfiguration time
 ) {
@@ -686,7 +692,7 @@ void launch_gaussian_fft_convolution_group(
     ), tuning::kPricingPathThreads>>>(
         device_row, kernel_index, step_count, time, prepared_row,
         variances, convolutions,
-        first_path, count, path_capacity, node_workspace
+        first_path, count, path_capacity, sensitivity_count, node_workspace
     );
     check_cuda(cudaGetLastError(), "Gaussian graph path evaluation");
 }
@@ -899,8 +905,8 @@ void launch_gaussian_fft_node_graph(
                         device_descriptors[index].variances,
                         prepared_row, convolutions, node_workspace,
                         first_path, count,
-                        execution.graph.path_chunk_size, launch.base_seed,
-                        host.time
+                        execution.graph.path_chunk_size,
+                        host.sensitivity_count(), launch.base_seed, host.time
                     );
                 });
             }

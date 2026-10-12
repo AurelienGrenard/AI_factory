@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "source_sha256": "66516674f5a82094afd862336a69b97d4433128c968797fda3d7a19aa7073ce5",
+  "source_sha256": "a1cfe6496c7d0e06989d37c22d0642de4fb0eb6a0e6b8d4f6aaa85f71d51d3c1",
   "counts": {
     "engines": 13,
     "models": 25,
     "products": 27,
-    "available_datasets": 2423,
+    "available_datasets": 2061,
     "deferred_datasets": 0,
     "bounded_exceptions": 1,
-    "generated_outputs": 7083
+    "generated_outputs": 6359
   },
-  "outputs_sha256": "f1d12d66014a47f23653b2dcd6dcd1b5b0333a57639d96c50512e5f3a2614ec9",
+  "outputs_sha256": "e08d310ba77d1fd8f08b506e72be4a2cb8ee06b8ffb2cdbc41d49b4bcdb62283",
   "price_delta_bindings": {
     "src/model/equity/markovian/bates/product/asian_option_price_delta": {
       "pricing": "src/model/equity/markovian/bates/product/asian_option",
@@ -5774,6 +5774,1140 @@
         "first",
         "diagonal_second",
         "mixed_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/asian_option_price_gradients": {
+      "identity": "rough_bergomi/asian_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/asset_or_nothing_option_price_gradients": {
+      "identity": "rough_bergomi/asset_or_nothing_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/athena_autocall_price_gradients": {
+      "identity": "rough_bergomi/athena_autocall",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/cliquet_price_gradients": {
+      "identity": "rough_bergomi/cliquet",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/digital_option_price_gradients": {
+      "identity": "rough_bergomi/digital_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/double_knock_out_option_price_gradients": {
+      "identity": "rough_bergomi/double_knock_out_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/down_and_in_option_price_gradients": {
+      "identity": "rough_bergomi/down_and_in_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/down_and_out_option_price_gradients": {
+      "identity": "rough_bergomi/down_and_out_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/european_option_price_gradients": {
+      "identity": "rough_bergomi/european_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/forward_start_option_price_gradients": {
+      "identity": "rough_bergomi/forward_start_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/gap_option_price_gradients": {
+      "identity": "rough_bergomi/gap_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/geometric_asian_option_price_gradients": {
+      "identity": "rough_bergomi/geometric_asian_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/lookback_option_price_gradients": {
+      "identity": "rough_bergomi/lookback_option",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/phoenix_autocall_price_gradients": {
+      "identity": "rough_bergomi/phoenix_autocall",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/phoenix_memory_autocall_price_gradients": {
+      "identity": "rough_bergomi/phoenix_memory_autocall",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/range_accrual_price_gradients": {
+      "identity": "rough_bergomi/range_accrual",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/straddle_price_gradients": {
+      "identity": "rough_bergomi/straddle",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/up_and_in_option_price_gradients": {
+      "identity": "rough_bergomi/up_and_in_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/up_and_out_option_price_gradients": {
+      "identity": "rough_bergomi/up_and_out_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/up_no_touch_price_gradients": {
+      "identity": "rough_bergomi/up_no_touch",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_bergomi/product/up_one_touch_price_gradients": {
+      "identity": "rough_bergomi/up_one_touch",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/asian_option_price_gradients": {
+      "identity": "rough_sabr/asian_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/asset_or_nothing_option_price_gradients": {
+      "identity": "rough_sabr/asset_or_nothing_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/athena_autocall_price_gradients": {
+      "identity": "rough_sabr/athena_autocall",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/cliquet_price_gradients": {
+      "identity": "rough_sabr/cliquet",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/digital_option_price_gradients": {
+      "identity": "rough_sabr/digital_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/double_knock_out_option_price_gradients": {
+      "identity": "rough_sabr/double_knock_out_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/down_and_in_option_price_gradients": {
+      "identity": "rough_sabr/down_and_in_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/down_and_out_option_price_gradients": {
+      "identity": "rough_sabr/down_and_out_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/european_option_price_gradients": {
+      "identity": "rough_sabr/european_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/forward_start_option_price_gradients": {
+      "identity": "rough_sabr/forward_start_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/gap_option_price_gradients": {
+      "identity": "rough_sabr/gap_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/geometric_asian_option_price_gradients": {
+      "identity": "rough_sabr/geometric_asian_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/lookback_option_price_gradients": {
+      "identity": "rough_sabr/lookback_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/phoenix_autocall_price_gradients": {
+      "identity": "rough_sabr/phoenix_autocall",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/phoenix_memory_autocall_price_gradients": {
+      "identity": "rough_sabr/phoenix_memory_autocall",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/range_accrual_price_gradients": {
+      "identity": "rough_sabr/range_accrual",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/straddle_price_gradients": {
+      "identity": "rough_sabr/straddle",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/up_and_in_option_price_gradients": {
+      "identity": "rough_sabr/up_and_in_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/up_and_out_option_price_gradients": {
+      "identity": "rough_sabr/up_and_out_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/up_no_touch_price_gradients": {
+      "identity": "rough_sabr/up_no_touch",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_sabr/product/up_one_touch_price_gradients": {
+      "identity": "rough_sabr/up_one_touch",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/asian_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/asian_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/asset_or_nothing_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/asset_or_nothing_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/athena_autocall_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/athena_autocall",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/cliquet_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/cliquet",
+      "maximum_sensitivities": 15,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/digital_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/digital_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/double_knock_out_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/double_knock_out_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/down_and_in_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/down_and_in_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/down_and_out_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/down_and_out_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/european_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/european_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/forward_start_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/forward_start_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/gap_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/gap_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/geometric_asian_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/geometric_asian_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/lookback_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/lookback_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/phoenix_autocall_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/phoenix_autocall",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/phoenix_memory_autocall_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/phoenix_memory_autocall",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/range_accrual_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/range_accrual",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/straddle_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/straddle",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/up_and_in_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/up_and_in_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/up_and_out_option_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/up_and_out_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/up_no_touch_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/up_no_touch",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/log_modulated_rough_bergomi/product/up_one_touch_price_gradients": {
+      "identity": "log_modulated_rough_bergomi/up_one_touch",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/asian_option_price_gradients": {
+      "identity": "rough_stein_stein/asian_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/asset_or_nothing_option_price_gradients": {
+      "identity": "rough_stein_stein/asset_or_nothing_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/athena_autocall_price_gradients": {
+      "identity": "rough_stein_stein/athena_autocall",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/cliquet_price_gradients": {
+      "identity": "rough_stein_stein/cliquet",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/digital_option_price_gradients": {
+      "identity": "rough_stein_stein/digital_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/double_knock_out_option_price_gradients": {
+      "identity": "rough_stein_stein/double_knock_out_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/down_and_in_option_price_gradients": {
+      "identity": "rough_stein_stein/down_and_in_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/down_and_out_option_price_gradients": {
+      "identity": "rough_stein_stein/down_and_out_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/european_option_price_gradients": {
+      "identity": "rough_stein_stein/european_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/forward_start_option_price_gradients": {
+      "identity": "rough_stein_stein/forward_start_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/gap_option_price_gradients": {
+      "identity": "rough_stein_stein/gap_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/geometric_asian_option_price_gradients": {
+      "identity": "rough_stein_stein/geometric_asian_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/lookback_option_price_gradients": {
+      "identity": "rough_stein_stein/lookback_option",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/phoenix_autocall_price_gradients": {
+      "identity": "rough_stein_stein/phoenix_autocall",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/phoenix_memory_autocall_price_gradients": {
+      "identity": "rough_stein_stein/phoenix_memory_autocall",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/range_accrual_price_gradients": {
+      "identity": "rough_stein_stein/range_accrual",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/straddle_price_gradients": {
+      "identity": "rough_stein_stein/straddle",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/up_and_in_option_price_gradients": {
+      "identity": "rough_stein_stein/up_and_in_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/up_and_out_option_price_gradients": {
+      "identity": "rough_stein_stein/up_and_out_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/up_no_touch_price_gradients": {
+      "identity": "rough_stein_stein/up_no_touch",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_stein_stein/product/up_one_touch_price_gradients": {
+      "identity": "rough_stein_stein/up_one_touch",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/asian_option_price_gradients": {
+      "identity": "rough_heston/asian_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/asset_or_nothing_option_price_gradients": {
+      "identity": "rough_heston/asset_or_nothing_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/athena_autocall_price_gradients": {
+      "identity": "rough_heston/athena_autocall",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/cliquet_price_gradients": {
+      "identity": "rough_heston/cliquet",
+      "maximum_sensitivities": 15,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/digital_option_price_gradients": {
+      "identity": "rough_heston/digital_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/double_knock_out_option_price_gradients": {
+      "identity": "rough_heston/double_knock_out_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/down_and_in_option_price_gradients": {
+      "identity": "rough_heston/down_and_in_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/down_and_out_option_price_gradients": {
+      "identity": "rough_heston/down_and_out_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/european_option_price_gradients": {
+      "identity": "rough_heston/european_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/forward_start_option_price_gradients": {
+      "identity": "rough_heston/forward_start_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/gap_option_price_gradients": {
+      "identity": "rough_heston/gap_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/geometric_asian_option_price_gradients": {
+      "identity": "rough_heston/geometric_asian_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/lookback_option_price_gradients": {
+      "identity": "rough_heston/lookback_option",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/phoenix_autocall_price_gradients": {
+      "identity": "rough_heston/phoenix_autocall",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/phoenix_memory_autocall_price_gradients": {
+      "identity": "rough_heston/phoenix_memory_autocall",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/range_accrual_price_gradients": {
+      "identity": "rough_heston/range_accrual",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/straddle_price_gradients": {
+      "identity": "rough_heston/straddle",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/up_and_in_option_price_gradients": {
+      "identity": "rough_heston/up_and_in_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/up_and_out_option_price_gradients": {
+      "identity": "rough_heston/up_and_out_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/up_no_touch_price_gradients": {
+      "identity": "rough_heston/up_no_touch",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/rough_heston/product/up_one_touch_price_gradients": {
+      "identity": "rough_heston/up_one_touch",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/asian_option_price_gradients": {
+      "identity": "quadratic_rough_heston/asian_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/asset_or_nothing_option_price_gradients": {
+      "identity": "quadratic_rough_heston/asset_or_nothing_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/athena_autocall_price_gradients": {
+      "identity": "quadratic_rough_heston/athena_autocall",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/cliquet_price_gradients": {
+      "identity": "quadratic_rough_heston/cliquet",
+      "maximum_sensitivities": 16,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/digital_option_price_gradients": {
+      "identity": "quadratic_rough_heston/digital_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/double_knock_out_option_price_gradients": {
+      "identity": "quadratic_rough_heston/double_knock_out_option",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/down_and_in_option_price_gradients": {
+      "identity": "quadratic_rough_heston/down_and_in_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/down_and_out_option_price_gradients": {
+      "identity": "quadratic_rough_heston/down_and_out_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/european_option_price_gradients": {
+      "identity": "quadratic_rough_heston/european_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/forward_start_option_price_gradients": {
+      "identity": "quadratic_rough_heston/forward_start_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/gap_option_price_gradients": {
+      "identity": "quadratic_rough_heston/gap_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/geometric_asian_option_price_gradients": {
+      "identity": "quadratic_rough_heston/geometric_asian_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/lookback_option_price_gradients": {
+      "identity": "quadratic_rough_heston/lookback_option",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/phoenix_autocall_price_gradients": {
+      "identity": "quadratic_rough_heston/phoenix_autocall",
+      "maximum_sensitivities": 15,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/phoenix_memory_autocall_price_gradients": {
+      "identity": "quadratic_rough_heston/phoenix_memory_autocall",
+      "maximum_sensitivities": 15,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/range_accrual_price_gradients": {
+      "identity": "quadratic_rough_heston/range_accrual",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/straddle_price_gradients": {
+      "identity": "quadratic_rough_heston/straddle",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/up_and_in_option_price_gradients": {
+      "identity": "quadratic_rough_heston/up_and_in_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/up_and_out_option_price_gradients": {
+      "identity": "quadratic_rough_heston/up_and_out_option",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/up_no_touch_price_gradients": {
+      "identity": "quadratic_rough_heston/up_no_touch",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/equity/rough/quadratic_rough_heston/product/up_one_touch_price_gradients": {
+      "identity": "quadratic_rough_heston/up_one_touch",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_rough_graph",
+      "supported_orders": [
+        "first"
       ],
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     }

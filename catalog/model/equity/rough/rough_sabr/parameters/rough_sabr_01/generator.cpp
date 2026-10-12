@@ -17,9 +17,9 @@ int main() {
     constexpr float spot_max = 5.0f;
     constexpr float core_spot_min = 0.25f;
     constexpr float core_spot_max = 4.0f;
-    constexpr float fixed_xi_0 = 0.04f;
 
     GeneratedRows core = uniform_rows(900U, seed, {
+        {"xi_0", 0.01f, 0.09f},
         {"spot", core_spot_min, core_spot_max},
         {"risk_free_rate", 0.001f, 0.08f},
         {"dividend_yield", 0.0f, 0.06f},
@@ -29,6 +29,7 @@ int main() {
         {"beta", 0.70f, 1.0f},
     });
     GeneratedRows stress = uniform_rows(100U, seed + 1U, {
+        {"xi_0", 0.005f, 0.12f},
         {"spot", spot_min, spot_max},
         {"risk_free_rate", -0.03f, 0.12f},
         {"dividend_yield", 0.0f, 0.10f},
@@ -45,7 +46,7 @@ int main() {
             {"spot", row.at("spot")},
             {"risk_free_rate", row.at("risk_free_rate")},
             {"dividend_yield", row.at("dividend_yield")},
-            {"xi_0", fixed_xi_0},
+            {"xi_0", row.at("xi_0")},
             {"eta", row.at("eta")},
             {"hurst_exponent", row.at("hurst_exponent")},
             {"rho", row.at("rho")},
@@ -54,7 +55,6 @@ int main() {
         row = std::move(completed);
     }
     rows.construction["fixed_parameters"] = {
-        {"xi_0", fixed_xi_0},
         {"forward_variance_curve", "xi_0(t) = xi_0 for all t"},
     };
     rows.construction["spot_range"] = {
@@ -85,7 +85,7 @@ int main() {
             {"dividend_yield", "Continuously compounded dividend yield."},
             {
                 "xi_0",
-                "Flat initial squared-volatility level; fixed to 0.04."
+                "Flat initial squared-volatility level, independently sampled per row."
             },
             {"eta", "Volatility of the logarithmic squared volatility."},
             {

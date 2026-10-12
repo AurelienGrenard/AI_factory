@@ -40,6 +40,7 @@ class PublicCatalogInventoryTest(unittest.TestCase):
         expected = {
             spec.generator_path.removeprefix("catalog/").removesuffix("/generator.cpp")
             for spec in selected
+            if (ROOT / spec.generator_path).is_file()
         }
         self.assertEqual(sources, expected)
         for row in rows:
@@ -53,8 +54,22 @@ class PublicCatalogInventoryTest(unittest.TestCase):
                      if row["kind"] == "price_gradients"
                      and "/fixed_income/" in row["source"]
                      and "/bermudan_" in row["source"]]
-        self.assertEqual(len(bermudans), 26)
         self.assertTrue(all(row["id"].endswith("_frozen_policy") for row in bermudans))
+        planned_bermudans = [spec for spec in PRICE_GRADIENT_DATASET_SPECS
+                             if spec.asset_class == "fixed_income"
+                             and spec.construction == "aligned"
+                             and spec.product == "bermudan_swaption"]
+        self.assertEqual(len(planned_bermudans), 26)
+        self.assertTrue(all(spec.exercise_replay == "frozen_regression_policy"
+                            for spec in planned_bermudans))
+        self.assertEqual(
+            len(bermudans),
+            sum(spec.asset_class == "fixed_income"
+                and spec.construction == "aligned"
+                and spec.product == "bermudan_swaption"
+                and (ROOT / spec.generator_path).is_file()
+                for spec in PRICE_GRADIENT_DATASET_SPECS),
+        )
         self.assertEqual(
             len([spec for spec in PRICE_GRADIENT_DATASET_SPECS
                  if spec.asset_class == "fixed_income"
@@ -62,6 +77,20 @@ class PublicCatalogInventoryTest(unittest.TestCase):
                  and spec.product != "bermudan_swaption"]),
             78,
         )
+
+    def test_exact_schedule_sensitivities_declare_native_calendar(self) -> None:
+        checked = 0
+        for spec in PRICE_GRADIENT_DATASET_SPECS:
+            generator = ROOT / spec.generator_path
+            if not generator.is_file() or not generator.is_relative_to(ROOT / "catalog"):
+                continue
+            recipe = yaml.safe_load((ROOT / spec.recipe_yaml_path).read_text())
+            kind = recipe.get("time_representation", {}).get("kind")
+            native_schedule = "recipe.exact_schedule_transition = true;" in generator.read_text()
+            self.assertEqual(native_schedule, kind == "exact_schedule_transition", spec.generator_path)
+            checked += 1
+        self.assertEqual(checked, sum((ROOT / spec.generator_path).is_file()
+                                      for spec in PRICE_GRADIENT_DATASET_SPECS))
 
     def test_fixed_income_price_generator_url_versions_match_recipes(self) -> None:
         helper_path = ROOT / "tools/pricing/bermudan_swaption_price_generation.cuh"

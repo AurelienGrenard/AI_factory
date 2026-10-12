@@ -68,7 +68,7 @@ nlohmann::ordered_json common_construction(
         {"core_share", 0.9},
         {"stress_share", 0.1},
         {"valuation_time", "issuance"},
-        {"reference_spot", 1.0},
+        {"spot_quote_convention", "Barriers are ratios to each paired model central S0; 1.0 represents 100%."},
         {"nominal", 1.0},
         {"sampling", {
             {

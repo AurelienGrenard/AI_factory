@@ -2,25 +2,50 @@ schema_version: 1
 status: complete
 artifact:
   row_count: 1000
-  path: datasets/product/range_accrual/range_accruals_01.json
   sha256: 02da73cd4fb249f09d32ab091f883c6c514328b8bcffc7e7b7bbdd741fc99fb9
 execution:
   mode: native_parameter_generator
-  generator: catalog/product/range_accrual/range_accruals_01/generator.cpp
-  source_sha256: 8efdca9e7109aa410aebab4b8ad47916176ff7ca60cf58636779d9b23c2097c8
-  binary_sha256: 06228057c31b2006c55d410533cc39f0c333dba0c985e83ca40b73886ae633f0
-  recipe_sha256: f92a884728d106d3cba5e6abec218ff37cf116103c62904460b7b46ba864861c
-  started_at_utc: '2026-10-07T13:47:29.423006+00:00'
-  seed: 1633000101
+  binary_sha256: 79401ce64c67e34caae1cba47aedc4062b6e430767427bcad3a633f069be368c
+  generator_sha256: 8efdca9e7109aa410aebab4b8ad47916176ff7ca60cf58636779d9b23c2097c8
+  declared_method:
+    engine: product_parameters
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
+    CMakeFiles/generate_range_accruals_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
 timing:
-  wall_seconds: 0.00837033100106055
+  wall_seconds: 0.0
   kernel_seconds: 0.0
 recipe:
   path: catalog/product/range_accrual/range_accruals_01/recipe.yaml
-  sha256: f92a884728d106d3cba5e6abec218ff37cf116103c62904460b7b46ba864861c
+  sha256: 29d29c652271556ff478c909507583d0694bf09fde83019c6e4f0344011564b0
+inputs: {}
 provenance:
   generator: catalog/product/range_accrual/range_accruals_01/generator.cpp
-  generator_sha256: 8efdca9e7109aa410aebab4b8ad47916176ff7ca60cf58636779d9b23c2097c8
-  binary_sha256: 06228057c31b2006c55d410533cc39f0c333dba0c985e83ca40b73886ae633f0
-  parameter_campaign: full model/product refresh
-record_sha256: 0ab7546d148bb610799d59a805aee6856483f12b9e8a358b7dbd06ff54c3f8e4
+  input_files: {}
+  hardware_used:
+    device: cpu
+    model: 13th Gen Intel(R) Core(TM) i9-13900HK
+    host: ALIENWAREAG
+  build_options:
+    cmake_generator: Unix Makefiles
+    build_type: Release
+    cxx_standard: 20
+    cuda_standard: 20
+    cuda_architectures: '89'
+    tuning_profile: sm89_cuda12_unqualified_v1
+    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
+    cxx_compiler: /usr/bin/g++-14
+    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
+    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
+    cuda_host_compiler: /usr/bin/g++-14
+    cxx_release_flags: -O3 -DNDEBUG
+    cuda_release_flags: -O3 -DNDEBUG
+    target_flags:
+      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
+      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
+    cuda_dependency_flags: {}
+    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
+  generated_at_utc: '2026-10-12T21:54:01.845353+00:00'
+record_sha256: 4a626a6030ba3fbe086a12e8e40d28c7e45a01974956a7e6cc91ea0f7b80c20c

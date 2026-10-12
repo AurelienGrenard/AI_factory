@@ -2,25 +2,50 @@ schema_version: 1
 status: complete
 artifact:
   row_count: 1000
-  path: datasets/product/athena_autocall/athena_autocalls_01.json
   sha256: ef6d5d6477019f8a8f7cc4df7d2d92883fee8d5ad6929249a2dc01d0a12d9aec
 execution:
   mode: native_parameter_generator
-  generator: catalog/product/athena_autocall/athena_autocalls_01/generator.cpp
-  source_sha256: 1581630cbc1fff96ba1e16799efe1d4ca0b97f7d79470f11ec1e11afe4afb8e4
-  binary_sha256: 7a76784e0f2eec264872deefd4292593c16171b3da08dd0f19037242a81adf9e
-  recipe_sha256: 0059cb9d0875c9ebdaabed55089d38255b2efa6d6d57b8966828de9264d50f9c
-  started_at_utc: '2026-10-07T13:47:28.873033+00:00'
-  seed: 1631000401
+  binary_sha256: a608037221925bc95278d25634e2afa6dbf8a8f9922ded1505b1b85a1d5e3c6e
+  generator_sha256: e22fa5cd4ed62b837893382f6438471bfb725766891483785fabf00be10bb71c
+  declared_method:
+    engine: product_parameters
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
+    CMakeFiles/generate_athena_autocalls_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
 timing:
-  wall_seconds: 0.011043708000215702
+  wall_seconds: 0.0
   kernel_seconds: 0.0
 recipe:
   path: catalog/product/athena_autocall/athena_autocalls_01/recipe.yaml
-  sha256: 0059cb9d0875c9ebdaabed55089d38255b2efa6d6d57b8966828de9264d50f9c
+  sha256: 3450ddf2aae31c1524d7c7f44bdc6a4f4112e68537b5bd7e379763719977f0f0
+inputs: {}
 provenance:
   generator: catalog/product/athena_autocall/athena_autocalls_01/generator.cpp
-  generator_sha256: 1581630cbc1fff96ba1e16799efe1d4ca0b97f7d79470f11ec1e11afe4afb8e4
-  binary_sha256: 7a76784e0f2eec264872deefd4292593c16171b3da08dd0f19037242a81adf9e
-  parameter_campaign: full model/product refresh
-record_sha256: 3c63b7fae923f6be3ad7885bbc8461c334e7fbf06206abbd3f5e8c0a4f460931
+  input_files: {}
+  hardware_used:
+    device: cpu
+    model: 13th Gen Intel(R) Core(TM) i9-13900HK
+    host: ALIENWAREAG
+  build_options:
+    cmake_generator: Unix Makefiles
+    build_type: Release
+    cxx_standard: 20
+    cuda_standard: 20
+    cuda_architectures: '89'
+    tuning_profile: sm89_cuda12_unqualified_v1
+    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
+    cxx_compiler: /usr/bin/g++-14
+    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
+    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
+    cuda_host_compiler: /usr/bin/g++-14
+    cxx_release_flags: -O3 -DNDEBUG
+    cuda_release_flags: -O3 -DNDEBUG
+    target_flags:
+      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
+      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
+    cuda_dependency_flags: {}
+    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
+  generated_at_utc: '2026-10-12T21:52:38.162066+00:00'
+record_sha256: 67faee3a9ead1a5ae2763d0c12486ad8d097c51e6f19554f9f807b8b61236d6a

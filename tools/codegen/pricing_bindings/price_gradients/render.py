@@ -3,6 +3,7 @@
 from pathlib import Path
 from string import Template
 import json
+from .strategy_map import covers, decision_for, first_order_decision_for
 from .manifest import (
     TERMINAL_PRODUCT_METADATA,
     PATH_PRODUCT_PARAMETER_COUNT,
@@ -27,12 +28,14 @@ FIXED_INCOME_MODEL_DISPLAY = {
     "vasicek": "Vasicek",
 }
 
+
 def terminal_explicit_instantiations(
     model: str,
     product: str,
     product_type: str,
     sided: bool,
     include_mixed: bool,
+    include_first_graph: bool,
 ) -> str:
     sides = ("OptionSide::call", "OptionSide::put") if sided else (None,)
     blocks = []
@@ -63,6 +66,21 @@ def terminal_explicit_instantiations(
                 f"    {product_type}PriceGradientPlan::DeviceInputs,",
                 f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
                 "    const pg::LaunchConfiguration&, pg::SensitivityOutputs);",
+                "template std::size_t",
+                f"{model}_{product}_node_graph_workspace_bytes{arguments}(",
+                f"    const {product_type}PriceGradientPlan&,",
+                "    const pg::LaunchConfiguration&);",
+                f"template void launch_{model}_{product}_node_graph_sensitivities_cuda"
+                f"{arguments}(",
+                f"    const {product_type}PriceGradientPlan&,",
+                f"    {product_type}PriceGradientPlan::DeviceInputs,",
+                f"    {product_type}PriceGradientPlan::DiagonalStencilOutputs,",
+                "    const pg::LaunchConfiguration&, pg::SensitivityOutputs,",
+                "    void*, std::size_t);",
+            ])
+        if include_first_graph:
+            arguments = sensitivity_arguments("first")
+            lines.extend([
                 "template std::size_t",
                 f"{model}_{product}_node_graph_workspace_bytes{arguments}(",
                 f"    const {product_type}PriceGradientPlan&,",
@@ -509,6 +527,37 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             if spec.pricing.product == "american_option"
             else {}
         )
+        diagonal_node_capacity = 1 + 3 * spec.maximum_sensitivities
+        strategy = (
+            decision_for(spec.pricing.model, spec.pricing.product)
+            if covers(spec.pricing.model) else None
+        )
+        graph_group_size = (
+            strategy.graph_threads_per_path if strategy is not None else None
+        )
+        if graph_group_size is None:
+            graph_group_size = next(
+                group for group in (2, 4, 8, 16, 32)
+                if group * 2 >= diagonal_node_capacity
+            )
+        graph_nodes_per_worker = next(
+            count for count in (2, 4, 8, 16, 32, 64)
+            if graph_group_size * count >= diagonal_node_capacity
+        )
+        first_strategy = (
+            first_order_decision_for(spec.pricing.model, spec.pricing.product)
+            if covers(spec.pricing.model) else None
+        )
+        first_graph_group_size = (
+            first_strategy.graph_threads_per_path
+            if first_strategy is not None
+            and first_strategy.graph_threads_per_path is not None
+            else graph_group_size
+        )
+        first_graph_nodes_per_worker = next(
+            count for count in (2, 4, 8, 16, 32, 64)
+            if first_graph_group_size * count >= diagonal_node_capacity
+        )
         values = {
             "model": spec.pricing.model,
             "product": spec.pricing.product,
@@ -579,11 +628,10 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                         * (spec.maximum_sensitivities - 1)
                 )
             )),
-            "graph_group_size": str(next(
-                group for group in (2, 4, 8, 16, 32)
-                if group * 2 >= 1 + 3 * spec.maximum_sensitivities
-            )),
-            "graph_nodes_per_worker": "2",
+            "graph_group_size": str(graph_group_size),
+            "graph_nodes_per_worker": str(graph_nodes_per_worker),
+            "first_graph_group_size": str(first_graph_group_size),
+            "first_graph_nodes_per_worker": str(first_graph_nodes_per_worker),
             "side_template": (
                 "template<OptionSide Side>"
                 if product_metadata.get("sided", True) else ""
@@ -628,6 +676,8 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                     "device_prepared_closed_form_terminal",
                     "device_prepared_closed_form_path",
                 },
+                first_strategy is not None
+                and first_strategy.strategy == "node_graph",
             ),
             "closed_form_explicit_instantiations": (
                 closed_form_explicit_instantiations(
@@ -950,6 +1000,21 @@ def render_recipes(
                     "fixed_income_european_swaption_mixed_hessian_generator."
                     "cpp.tpl"
                 )
+        if spec.engine in {"equity_n_factor", "equity_volterra_fft"}:
+            template_path = (
+                "catalog/pricing/price_gradients/"
+                "rough_node_graph_first_generator.cpp.tpl"
+            )
+        elif (spec.asset_class == "equity"
+              and spec.sensitivity_orders == ("first",)
+              and spec.product != "american_option"
+              and spec.engine != "equity_closed_form"
+              and covers(spec.model)
+              and first_order_decision_for(spec.model, spec.product).strategy == "node_graph"):
+            template_path = (
+                "catalog/pricing/price_gradients/"
+                "monte_carlo_node_graph_first_generator.cpp.tpl"
+            )
         template = Template((template_root / template_path).read_text())
         source = sources[spec.generator_path]
         model = model_specs[spec.model]
@@ -957,13 +1022,16 @@ def render_recipes(
             (spec.model, spec.curve, spec.product, spec.engine)
         )
         exact_transition = (
-            pricing_binding.manifest_binding.time_kind == "exact"
+            getattr(pricing_binding.manifest_binding, "time_kind", "") == "exact"
             if pricing_binding is not None
             and pricing_binding.manifest_binding is not None
             else model.transition_contract == "exact transition"
         )
         selected = default_sensitivities(
-            spec.model, spec.product, spec.curve
+            spec.model, spec.product, spec.curve,
+            include_all_model_parameters=(
+                spec.asset_class == "equity" and covers(spec.model)
+            ),
         )
         if spec.sensitivity_parameters:
             by_name = {item["parameter"]: item for item in selected}
@@ -977,6 +1045,16 @@ def render_recipes(
                     + ", ".join(missing)
                 )
             selected = [by_name[name] for name in spec.sensitivity_parameters]
+        strategy_decision = (
+            (first_order_decision_for(spec.model, spec.product)
+             if spec.sensitivity_orders == ("first",)
+             else decision_for(spec.model, spec.product))
+            if spec.asset_class == "equity" and covers(spec.model)
+            and stochastic
+            and ("diagonal_second" in spec.sensitivity_orders
+                 or spec.sensitivity_orders == ("first",))
+            else None
+        )
         seed = resolve_rng_domain(spec).seed("dynamics") if stochastic else 0
         model_input = f"datasets/{model.source_prefix}/parameters/{model.parameter_dataset_id}.json"
         if spec.asset_class == "fixed_income":
@@ -1081,6 +1159,10 @@ def render_recipes(
             if spec.asset_class == "fixed_income"
             else "closed_form"
             if not stochastic
+            else "rough_n_factor"
+            if spec.engine == "equity_n_factor"
+            else "rough_fft"
+            if spec.engine == "equity_volterra_fft"
             else "equity_exact_mc"
             if exact_transition else "equity_step_mc"
         )
@@ -1100,14 +1182,31 @@ def render_recipes(
                 and spec.product != "american_option" else "",
             "sensitivity_template_arguments": (
                 f"<OptionSide::{side}, "
-                "pg::SensitivityOrders::first_and_second>"
+                + ("pg::SensitivityOrders::first>"
+                   if spec.sensitivity_orders == ("first",)
+                   else "pg::SensitivityOrders::first_and_second>")
                 if variant.side is not None
-                else "<pg::SensitivityOrders::first_and_second>"
+                else ("<pg::SensitivityOrders::first>"
+                      if spec.sensitivity_orders == ("first",)
+                      else "<pg::SensitivityOrders::first_and_second>")
             ) if spec.asset_class == "equity"
                 and spec.product != "american_option" else "",
             "construction": "Aligned" if spec.construction == "aligned" else "CartesianProduct",
             "family": family,
             "exact_transition": str(exact_transition).lower(),
+            "sensitivity_strategy": (
+                strategy_decision.strategy if strategy_decision is not None
+                else "mono"
+            ),
+            "exact_schedule_assignment": (
+                "\n        recipe.exact_schedule_transition = true;"
+                if exact_transition and spec.product in PATH_PRODUCT_PARAMETER_COUNT
+                else ""
+            ),
+            "recipe_const": (
+                "" if exact_transition and spec.product in PATH_PRODUCT_PARAMETER_COUNT
+                else "const "
+            ),
             "exercise_replay": spec.exercise_replay or "",
             "curve": spec.curve or "",
             "curve_input": curve_input,
@@ -1135,6 +1234,15 @@ def render_recipes(
                 "offline::cuda_tuning::kProductionPathsPerPrice"
                 if stochastic else "0U"
             ),
+            "rough_product_type": "".join(
+                part.capitalize() for part in spec.product.split("_")
+            ),
+            "rough_graph_template_arguments": ", ".join((
+                *((f"OptionSide::{side}",) if variant.side is not None else ()),
+                *(("7U",) if spec.engine == "equity_n_factor" else ()),
+                "pg::SensitivityOrders::first", "16U",
+            )) if spec.engine in {"equity_n_factor", "equity_volterra_fft"}
+                else "",
             "selections": ",\n        ".join('{"' + item["parameter"] + '", {' + repr(item["displacement"])
                 + ', pg::BumpScale::' + item["scale"] + '}}' for item in selected)}
         from tools.datasets.catalog_layout import physical_path
@@ -1167,6 +1275,12 @@ def render_recipes(
                 "source_price_recipe": source.recipe_yaml_path,
             },
         }
+        if strategy_decision is not None:
+            metadata["sensitivity_strategy"] = strategy_decision.strategy
+        elif spec.engine in {"equity_n_factor", "equity_volterra_fft"}:
+            metadata["sensitivity_strategy"] = "node_graph"
+        elif spec.asset_class == "equity" and stochastic:
+            metadata["sensitivity_strategy"] = "mono"
         if spec.exercise_replay is not None:
             metadata["numerical_method"] = early_exercise_numerical_method(spec)
             metadata["exercise_replay"] = spec.exercise_replay
@@ -1182,7 +1296,9 @@ def render_recipes(
             metadata["sensitivity"]["orders"] = list(spec.sensitivity_orders)
         if "mixed_second" in spec.sensitivity_orders:
             metadata["sensitivity"]["mixed_second"] = "all"
-        if exact_transition:
+        # Early exercise replays a dated LSM policy on the 1/504 grid even
+        # when the underlying model has exact transitions between dates.
+        if exact_transition and spec.exercise_replay is None:
             metadata["time_representation"] = {
                 "kind": (
                     "exact_schedule_transition"

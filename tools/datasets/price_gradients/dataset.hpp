@@ -36,6 +36,7 @@ struct Recipe {
     std::optional<
         ::ai_factory::workbench::price_gradients::SensitivityRequest
     > sensitivity_request;
+    bool exact_schedule_transition = false;
 };
 void append_exercise_replay_metadata(
     const Recipe&,

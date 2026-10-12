@@ -41,6 +41,7 @@ struct DevicePreparation {
             && pg::finite_positive(product.autocall_barrier)
             && pg::finite_positive(product.coupon_barrier)
             && pg::finite_positive(product.protection_barrier)
+            && pg::finite_positive(product.reference_spot)
             && pg::finite_non_negative(product.annual_coupon_rate);
     }
 

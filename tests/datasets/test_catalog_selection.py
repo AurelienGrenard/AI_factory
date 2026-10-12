@@ -102,7 +102,8 @@ class CatalogSelectionTest(unittest.TestCase):
             {"target": "generate_z", "kind": "samples"},
             {"target": "generate_a", "kind": "price_gradients"},
         ]
-        with patch.object(campaign.subprocess, "run") as run:
+        with patch.object(campaign.subprocess, "run") as run, \
+                patch.object(campaign, "build_has_pending_actions", return_value=False):
             campaign.compile_selected(Path("/repo"), Path("/repo/build"), jobs, 2)
         command = run.call_args.args[0]
         self.assertEqual(
@@ -111,6 +112,15 @@ class CatalogSelectionTest(unittest.TestCase):
         )
         self.assertEqual(command[-1], "-j2")
         self.assertTrue(run.call_args.kwargs["check"])
+
+    def test_retries_when_the_first_build_leaves_a_stale_link(self) -> None:
+        jobs = [{"target": "generate_a", "kind": "samples"}]
+        with patch.object(campaign.subprocess, "run") as run, \
+                patch.object(campaign, "build_has_pending_actions",
+                             side_effect=[True, False]) as pending:
+            campaign.compile_selected(Path("/repo"), Path("/repo/build"), jobs, 2)
+        self.assertEqual(run.call_count, 2)
+        self.assertEqual(pending.call_count, 2)
 
 
 if __name__ == "__main__":

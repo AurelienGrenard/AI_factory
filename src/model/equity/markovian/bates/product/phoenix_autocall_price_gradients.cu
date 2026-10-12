@@ -150,8 +150,8 @@ std::size_t bates_phoenix_autocall_node_graph_workspace_bytes(
         product::PhoenixAutocallPathPolicy,
         PhoenixAutocallGradientSchedule,
         16U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 4U : 4U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_bates_phoenix_autocall_node_graph_sensitivities_cuda(
         product::PhoenixAutocallPathPolicy,
         PhoenixAutocallGradientSchedule,
         16U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 4U : 4U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(
         host,
         device,

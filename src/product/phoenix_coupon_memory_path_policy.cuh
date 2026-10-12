@@ -16,6 +16,7 @@ struct PhoenixCouponMemoryObservationHandler {
     float autocall_barrier;
     float coupon_barrier;
     float protection_barrier;
+    float reference_spot;
     float coupon_per_observation;
     float discount_per_observation;
     float present_value = 0.0f;
@@ -46,7 +47,8 @@ struct PhoenixCouponMemoryObservationHandler {
             return false;
         }
         if (maturity) {
-            const float capital = spot >= protection_barrier ? 1.0f : spot;
+            const float capital = spot >= protection_barrier
+                ? 1.0f : spot / reference_spot;
             present_value += discount * (capital + coupon);
             return false;
         }
@@ -67,6 +69,7 @@ struct PhoenixCouponMemoryPathPolicy {
         float autocall_barrier;
         float coupon_barrier;
         float protection_barrier;
+        float reference_spot;
         float coupon_per_observation;
         float discount_per_observation;
     };
@@ -99,6 +102,7 @@ struct PhoenixCouponMemoryPathPolicy {
             product.autocall_barrier,
             product.coupon_barrier,
             product.protection_barrier,
+            product.reference_spot,
             product.annual_coupon_rate * observation_years,
             expf(-model.risk_free_rate * observation_years),
         };
@@ -112,6 +116,7 @@ struct PhoenixCouponMemoryPathPolicy {
             product.autocall_barrier,
             product.coupon_barrier,
             product.protection_barrier,
+            product.reference_spot,
             product.coupon_per_observation,
             product.discount_per_observation,
         };

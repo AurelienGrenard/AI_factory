@@ -45,6 +45,8 @@ inline PriceGradientLaunchPlan make_price_gradient_launch_plan(
             && identity.family != PricingFamily::equity_exact_mc
             && identity.family != PricingFamily::equity_step_mc
             && identity.family != PricingFamily::fixed_income_mc
+            && identity.family != PricingFamily::rough_n_factor
+            && identity.family != PricingFamily::rough_fft
             && !is_lsm_family(identity.family)
             && identity.family != PricingFamily::jamshidian)
         throw std::invalid_argument("Unsupported price-gradient execution family.");
@@ -185,6 +187,39 @@ inline nlohmann::ordered_json device_prepared_price_gradient_launch_metadata(
     result["profile_id"] = "price_gradients_device_prepared_v2";
     result["represented_nodes_per_sensitivity"] =
         has_sensitivities ? 3U : 0U;
+    return result;
+}
+
+inline nlohmann::ordered_json first_node_graph_launch_metadata(
+    const PriceGradientLaunchPlan& plan,
+    std::size_t sensitivities
+) {
+    const auto graph = pg::make_sensitivity_graph_plan(
+        pg::SensitivityRequest{pg::SensitivityOrders::first},
+        sensitivities
+    );
+    auto result = device_prepared_price_gradient_launch_metadata(
+        plan, sensitivities
+    );
+    for (const char* field : {
+             "block_count", "full_batch_block_count", "tail_batch_block_count",
+             "sensitivity_batch_size", "sensitivity_batches_per_price",
+             "sensitivity_block_count", "sensitivity_kernel_variant",
+             "price_moment_batches_per_price", "path_blocks_per_price",
+             "gradient_tasks_per_durable_launch_upper_bound",
+             "gradient_post_kernels_per_native_batch",
+         }) result.erase(field);
+    result["kernel_launches_per_price_batch"] = nullptr;
+    result["central_work_policy"] =
+        "central node zero evaluated once per row and path chunk";
+    result["work_distribution"] =
+        "price and path chunks; unique first-order nodes evaluated before reconstruction";
+    result["profile_id"] = "price_gradients_first_node_graph_v1";
+    result["sensitivity_strategy"] = "node_graph";
+    result["maximum_live_scenarios"] = graph.node_capacity;
+    result["sensitivity_graph_node_capacity"] = graph.node_capacity;
+    result["represented_nodes_per_sensitivity"] =
+        sensitivities == 0U ? 0U : 2U;
     return result;
 }
 

@@ -28,7 +28,7 @@ int main() {
     );
     // Preserve the exact lower maturity bound in human-readable metadata.
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "lookback_options_01",
         "Fixed-Strike Lookback Calls",
         dataset_path,
@@ -41,7 +41,7 @@ int main() {
         {
             {"expression", "max(maximum(S_[0,T]) - K, 0)"},
             {"monitoring", "Simulation-grid endpoints including 0 and T."},
-            {"scaling_rule", "V(s, K) = s * V(1, K / s)"},
+            {"payoff_homogeneity", "Scaling the entire spot path and all strike/barrier levels by c scales the payoff by c."},
         },
         rows
     );

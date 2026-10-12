@@ -64,7 +64,7 @@ void launch_path_node_graph_sensitivities(
     const char* kernel_name,
     const char* variant
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     validate_terminal_diagonal_sensitivity_launch<Orders>(
         host, device, stencil_outputs, configuration, outputs
     );

@@ -150,8 +150,8 @@ std::size_t normal_inverse_gaussian_up_and_in_option_node_graph_workspace_bytes(
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
         9U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_normal_inverse_gaussian_up_and_in_option_node_graph_sensitivities_cu
         product::UpAndInOptionPathPolicy<Side>,
         UpAndInOptionGradientSchedule,
         9U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(
         host,
         device,

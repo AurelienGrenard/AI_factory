@@ -125,11 +125,14 @@ and `diagonal_second`. Run
 every Markovian pricing binding and the gradient orders currently exposed by
 its launcher. Coordinate-level exclusions remain in the model and product
 adapters; this is a coverage inventory, not numerical certification.
-All stochastic terminal diagonal generators expose both `mono` and
-`node_graph` execution through `--sensitivity-strategy`; `mono` remains the
-default. Both launchers consume the same compact plan and write the same
-artifact schema. The node-graph workspace is sized by the generated binding
-and owned by the shared offline runner.
+Stochastic equity Markovian diagonal generators expose both `mono` and
+`node_graph` through `--sensitivity-strategy`. With no argument, each generator
+uses the strategy declared in its `recipe.yaml`, selected by the versioned
+`price_gradients/strategy_map.py`; the command-line argument overrides it for
+measurements. These diagonal recipes select every model and product coordinate
+supported by their adapters (Kmax). Closed-form Black–Scholes generators do
+not use an MC strategy. The node-graph workspace is sized by the generated
+binding and owned by the shared offline runner.
 Every price recipe has an aligned target and a distinct Cartesian target. Every
 published sensitivity selection has the same pair. Cartesian rows use
 model-major/product-fastest order, or model-major/curve/product order for fitted

@@ -31,7 +31,7 @@ int main() {
         {"rule", "constant normalized cash amount"},
     };
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "digital_options_01",
         "Digital Options",
         dataset_path,

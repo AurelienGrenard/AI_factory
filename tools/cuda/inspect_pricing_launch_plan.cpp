@@ -36,9 +36,9 @@ int main(int argc, char** argv) {
         const bool price_gradients = argc > 2 && std::string_view(argv[argc-2]) == "--price-gradients";
         if ((diagonal || mixed) && !price_gradients)
             throw std::invalid_argument("Higher orders require --price-gradients K.");
-        if (node_graph && !diagonal)
+        if (node_graph && (!price_gradients || mixed))
             throw std::invalid_argument(
-                "--node-graph requires --price-gradients K --diagonal."
+                "--node-graph requires --price-gradients K, without --mixed."
             );
         const std::size_t sensitivity_count = price_gradients
             ? (std::string_view(argv[argc-1]) == "0" ? 0U : positive_count(argv[argc-1])) : 0U;
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
         if (price_delta) --argc;
         if (argc < 3 || argc > 5) {
             std::cerr << "Usage: inspect_pricing_launch_plan MODEL/[CURVE/]PRODUCT PRICES"
-                         " [PATHS_PER_PRICE [MAXIMUM_RESIDENT_PRICES]] [--price-delta | --price-gradients K [--diagonal [--node-graph]|--mixed]]\n"
+                         " [PATHS_PER_PRICE [MAXIMUM_RESIDENT_PRICES]] [--price-delta | --price-gradients K [--diagonal|--mixed] [--node-graph]]\n"
                          "Run from the repository root; no CUDA calls are made.\n";
             return 2;
         }
@@ -144,9 +144,13 @@ int main(int argc, char** argv) {
                     plan, sensitivity_count, graph
                 );
             } else if (node_graph) {
-                metadata = tuning::diagonal_node_graph_launch_metadata(
-                    plan, sensitivity_count
-                );
+                metadata = diagonal
+                    ? tuning::diagonal_node_graph_launch_metadata(
+                        plan, sensitivity_count
+                    )
+                    : tuning::first_node_graph_launch_metadata(
+                        plan, sensitivity_count
+                    );
             } else {
                 metadata = device_prepared
                     ? tuning::device_prepared_price_gradient_launch_metadata(plan,sensitivity_count)

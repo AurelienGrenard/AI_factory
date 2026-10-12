@@ -43,7 +43,7 @@ int main() {
         exercise_interval_seed
     );
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "american_options_01",
         "American Options",
         dataset_path,
@@ -60,7 +60,7 @@ int main() {
                 "interpretation",
                 "Continuous American exercise is approximated on discrete dates."
             },
-            {"scaling_rule", "V(s, K) = s * V(1, K / s)"},
+            {"payoff_homogeneity", "Scaling the entire spot path and all strike/barrier levels by c scales the payoff by c."},
         },
         rows
     );

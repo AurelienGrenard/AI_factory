@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/dataset_validation.hpp"
+#include "common/equity/spot_relative_product.hpp"
 #include "common/price_construction.cuh"
 #include "common/result_index.cuh"
 #include "tools/cuda/pricing_runner.cuh"
@@ -592,9 +593,15 @@ int generate_monte_carlo_equity_price_dataset(
     const auto products = std::invoke(
         product_loader, recipe.product_dataset_path
     );
-    MonteCarloExecution execution = std::invoke(
-        executor, models, products, recipe.construction, profile
+    const auto paired = equity::spot_relative::resolve_rows(
+        models, products, recipe.construction
     );
+    MonteCarloExecution execution = std::invoke(
+        executor, paired.models, paired.products, paired.construction,
+        profile
+    );
+    execution.execution_metadata["product_spot_levels"] =
+        "quote ratio times central model spot; frozen for sensitivities";
     datasets::write_monte_carlo_price_dataset(
         recipe.model_dataset_path,
         recipe.product_dataset_path,
@@ -632,9 +639,15 @@ int generate_volterra_equity_price_dataset(
     const auto products = std::invoke(
         product_loader, recipe.product_dataset_path
     );
-    MonteCarloExecution execution = std::invoke(
-        executor, models, products, recipe.construction, profile
+    const auto paired = equity::spot_relative::resolve_rows(
+        models, products, recipe.construction
     );
+    MonteCarloExecution execution = std::invoke(
+        executor, paired.models, paired.products, paired.construction,
+        profile
+    );
+    execution.execution_metadata["product_spot_levels"] =
+        "quote ratio times central model spot; frozen for sensitivities";
     datasets::write_monte_carlo_price_dataset(
         recipe.model_dataset_path,
         recipe.product_dataset_path,
@@ -672,9 +685,15 @@ int generate_analytical_equity_price_dataset(
     const auto products = std::invoke(
         product_loader, recipe.product_dataset_path
     );
-    AnalyticalExecution execution = std::invoke(
-        executor, models, products, recipe.construction, profile
+    const auto paired = equity::spot_relative::resolve_rows(
+        models, products, recipe.construction
     );
+    AnalyticalExecution execution = std::invoke(
+        executor, paired.models, paired.products, paired.construction,
+        profile
+    );
+    execution.execution_metadata["product_spot_levels"] =
+        "quote ratio times central model spot";
     datasets::write_analytical_price_dataset(
         recipe.model_dataset_path,
         recipe.product_dataset_path,

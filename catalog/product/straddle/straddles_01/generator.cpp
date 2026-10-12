@@ -26,7 +26,7 @@ int main() {
         0.2f
     );
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "straddles_01",
         "Straddles",
         dataset_path,
@@ -39,7 +39,7 @@ int main() {
         {
             {"expression", "abs(S_T - K)"},
             {"decomposition", "European call plus European put."},
-            {"scaling_rule", "V(s, K) = s * V(1, K / s)"},
+            {"payoff_homogeneity", "Scaling the entire spot path and all strike/barrier levels by c scales the payoff by c."},
         },
         rows
     );
