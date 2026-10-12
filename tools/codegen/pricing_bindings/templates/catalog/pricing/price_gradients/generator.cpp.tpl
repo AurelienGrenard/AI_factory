@@ -8,11 +8,11 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pg = price_gradients;
     try {
-        const datasets::price_gradients::Recipe recipe{
+        ${recipe_const}datasets::price_gradients::Recipe recipe{
             "$model_input", "$product_input", "$dataset", "$catalog", "$url", "$source_recipe",
             PriceConstruction::$construction, {{
         $selections
-            }}, {1.0f/504.0f, 2U}, $exact_transition};
+            }}, {1.0f/504.0f, 2U}, $exact_transition};$exact_schedule_assignment
         const auto models = model::equity::$model::load_models(recipe.model_input);
         const auto products = $product_loader_expression;
         return offline::pricing::price_gradients::execute_dataset<$stochastic>(recipe,

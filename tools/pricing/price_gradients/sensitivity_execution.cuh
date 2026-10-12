@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/price_gradients/sensitivity_strategy.hpp"
+#include "common/price_gradients/sensitivity_outputs.cuh"
 
 #include <cstddef>
 #include <functional>
@@ -150,6 +151,81 @@ auto node_graph_sensitivity_execution(
         std::move(graph_workspace_bytes),
         std::move(graph_launch)
     );
+}
+
+// First-order graph stencils have four represented slots while the direct
+// first-order kernel uses two. Keep the two execution contracts separate.
+template<typename GraphWorkspaceBytes, typename GraphLaunch>
+class FirstNodeGraphSensitivityExecution {
+public:
+    static constexpr std::size_t kStencilNodeCapacity = 4U;
+
+    FirstNodeGraphSensitivityExecution(
+        GraphWorkspaceBytes graph_workspace_bytes,
+        GraphLaunch graph_launch
+    )
+        : graph_workspace_bytes_(std::move(graph_workspace_bytes)),
+          graph_launch_(std::move(graph_launch)) {}
+
+    template<typename Plan>
+    std::size_t workspace_bytes(
+        const Plan& plan,
+        const pg::LaunchConfiguration& configuration
+    ) const {
+        return std::invoke(graph_workspace_bytes_, plan, configuration);
+    }
+
+    template<typename Plan, typename Inputs, typename Stencils>
+    void launch(
+        const Plan& plan,
+        Inputs inputs,
+        Stencils stencils,
+        const pg::LaunchConfiguration& configuration,
+        pg::Outputs outputs,
+        void* workspace,
+        std::size_t workspace_bytes
+    ) const {
+        std::invoke(
+            graph_launch_, plan, inputs, stencils, configuration,
+            pg::as_sensitivity_outputs(outputs), workspace, workspace_bytes
+        );
+    }
+
+    template<typename Plan, typename Inputs, typename Stencils>
+    void prepare_stencils(
+        const Plan& plan,
+        Inputs inputs,
+        Stencils stencils,
+        const pg::LaunchConfiguration& configuration,
+        pg::SensitivityOutputs outputs,
+        void* workspace,
+        std::size_t workspace_bytes
+    ) const {
+        std::invoke(
+            graph_launch_, plan, inputs, stencils, configuration,
+            outputs, workspace, workspace_bytes
+        );
+    }
+
+    std::string strategy_name() const { return "node_graph"; }
+
+    pg::SensitivityStrategy strategy() const noexcept {
+        return pg::SensitivityStrategy::node_graph;
+    }
+
+private:
+    GraphWorkspaceBytes graph_workspace_bytes_;
+    GraphLaunch graph_launch_;
+};
+
+template<typename GraphWorkspaceBytes, typename GraphLaunch>
+auto first_node_graph_sensitivity_execution(
+    GraphWorkspaceBytes graph_workspace_bytes,
+    GraphLaunch graph_launch
+) {
+    return FirstNodeGraphSensitivityExecution<
+        GraphWorkspaceBytes, GraphLaunch
+    >(std::move(graph_workspace_bytes), std::move(graph_launch));
 }
 
 template<typename GraphWorkspaceBytes, typename GraphLaunch>

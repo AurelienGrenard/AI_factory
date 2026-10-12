@@ -12,13 +12,15 @@ namespace ai_factory::workbench::price_gradients {
 namespace pg = ::ai_factory::workbench::price_gradients;
 namespace mcpg = ::ai_factory::workbench::monte_carlo::price_gradients;
 
-template<pg::SensitivityOrders Orders, typename HostPlan>
+template<
+    pg::SensitivityOrders Orders,
+    typename HostPlan,
+    std::size_t RepresentedCapacity =
+        pg::SensitivityTraits<Orders>::node_capacity>
 void prepare_device_sensitivity_stencils(
     const HostPlan& host,
     typename HostPlan::DeviceInputs device,
-    mcpg::DevicePreparedStencilOutputs<
-        pg::SensitivityTraits<Orders>::node_capacity
-    > stencil_outputs,
+    mcpg::DevicePreparedStencilOutputs<RepresentedCapacity> stencil_outputs,
     std::size_t result_offset,
     std::size_t result_count,
     const char* kernel_name
@@ -49,7 +51,8 @@ void prepare_device_sensitivity_stencils(
     );
     mcpg::launch_device_prepared_stencils<
         Orders,
-        typename HostPlan::DeviceInputs
+        typename HostPlan::DeviceInputs,
+        RepresentedCapacity
     >(
         device,
         plan,

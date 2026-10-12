@@ -35,6 +35,9 @@ target_include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+target_include_directories(inspect_pricing_launch_plan SYSTEM PRIVATE
+    ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
+)
 target_link_libraries(inspect_pricing_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
 target_compile_features(inspect_pricing_launch_plan PRIVATE cxx_std_20)
 

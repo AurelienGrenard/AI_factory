@@ -150,8 +150,8 @@ std::size_t normal_inverse_gaussian_geometric_asian_option_node_graph_workspace_
         product::GeometricAsianOptionPathPolicy<Side>,
         GeometricAsianOptionGradientSchedule,
         8U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_normal_inverse_gaussian_geometric_asian_option_node_graph_sensitivit
         product::GeometricAsianOptionPathPolicy<Side>,
         GeometricAsianOptionGradientSchedule,
         8U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(
         host,
         device,

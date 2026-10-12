@@ -1767,13 +1767,12 @@ PRICE_GRADIENT_DATASET_VARIANTS = compose_price_gradient_datasets(
 PRICE_GRADIENT_DATASET_SPECS = tuple(
     spec
     for spec in PRICE_GRADIENT_DATASET_VARIANTS
-    if spec.sensitivity_orders == ("first", "diagonal_second")
-    or (
-        spec.sensitivity_orders == ("first",)
-        and spec.model == "cir"
-        and spec.product == "european_swaption"
-        and spec.curve is None
-    )
+    if spec.sensitivity_orders == ("first",)
+    and spec.construction == "aligned"
+    and not spec.dataset_id.endswith("_price_gradient_spot")
+    and (spec.asset_class != "fixed_income"
+         or spec.product != "bermudan_swaption"
+         or spec.exercise_replay == "frozen_regression_policy")
 )
 PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
     gradient.generator_path: next(

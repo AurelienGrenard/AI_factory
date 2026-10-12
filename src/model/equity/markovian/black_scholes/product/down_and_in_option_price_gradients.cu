@@ -150,8 +150,8 @@ std::size_t black_scholes_down_and_in_option_node_graph_workspace_bytes(
         product::DownAndInOptionPathPolicy<Side>,
         DownAndInOptionGradientSchedule,
         7U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_black_scholes_down_and_in_option_node_graph_sensitivities_cuda(
         product::DownAndInOptionPathPolicy<Side>,
         DownAndInOptionGradientSchedule,
         7U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

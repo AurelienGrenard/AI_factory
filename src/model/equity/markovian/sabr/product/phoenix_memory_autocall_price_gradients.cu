@@ -150,8 +150,8 @@ std::size_t sabr_phoenix_memory_autocall_node_graph_workspace_bytes(
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
         12U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_sabr_phoenix_memory_autocall_node_graph_sensitivities_cuda(
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
         12U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U)
     >(
         host,
         device,

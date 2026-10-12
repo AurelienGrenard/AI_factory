@@ -154,11 +154,11 @@ int main() {
             model::equity::black_scholes::launch_black_scholes_range_accrual_cuda,
             model::equity::black_scholes::launch_black_scholes_range_accrual_price_delta_cuda, 1.f/252.f);
         compare_public<true, false>("bates/athena_autocall", fixtures::bates,
-            product::AthenaAutocallParameters{21U,7U,1.f,.7f,.05f}, 4096U,
+            product::AthenaAutocallParameters{21U,7U,1.f,.7f,.05f, 1.0f}, 4096U,
             model::equity::bates::launch_bates_athena_autocall_cuda,
             model::equity::bates::launch_bates_athena_autocall_price_delta_cuda, 1.f/504.f,2U);
         compare_public<true, false>("bates/phoenix_memory_autocall", fixtures::bates,
-            product::PhoenixMemoryAutocallParameters{21U,7U,1.f,.8f,.7f,.05f}, 4096U,
+            product::PhoenixMemoryAutocallParameters{21U,7U,1.f,.8f,.7f,.05f, 1.0f}, 4096U,
             model::equity::bates::launch_bates_phoenix_memory_autocall_cuda,
             model::equity::bates::launch_bates_phoenix_memory_autocall_price_delta_cuda, 1.f/504.f,2U);
         compare_public<true, false>("bates/cliquet", fixtures::bates,

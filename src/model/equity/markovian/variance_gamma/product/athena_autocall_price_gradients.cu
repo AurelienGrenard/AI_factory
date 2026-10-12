@@ -152,8 +152,8 @@ std::size_t variance_gamma_athena_autocall_node_graph_workspace_bytes(
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -195,8 +195,8 @@ void launch_variance_gamma_athena_autocall_node_graph_sensitivities_cuda(
         product::AthenaAutocallPathPolicy,
         AthenaAutocallGradientSchedule,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

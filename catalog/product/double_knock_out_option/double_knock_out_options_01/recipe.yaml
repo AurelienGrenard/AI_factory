@@ -13,13 +13,17 @@ time_convention:
   unit: "business_day"
   days_per_year: 252
 parameters:
-  strike: "Strike in normalized spot units."
-  lower_barrier: "Lower knock-out level."
-  upper_barrier: "Upper knock-out level."
+  strike: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
+  lower_barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
+  upper_barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   maturity: "Maturity in business days."
 payoff:
   expression: "max(side * (S_T - K), 0) while S remains between both barriers; side = +1 call / -1 put"
-  scaling_rule: "V(s, K) = s * V(1, K / s)"
+  payoff_homogeneity: "Scaling the entire spot path and all strike/barrier levels by c scales the payoff by c."
+  spot_level_quote:
+    unit: "ratio_to_central_spot"
+    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
+    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 core-stress construction"
   row_order:

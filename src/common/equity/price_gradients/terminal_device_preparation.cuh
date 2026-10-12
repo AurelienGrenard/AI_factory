@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/equity/price_gradients/device_preparation.cuh"
+#include "common/equity/spot_relative_product.hpp"
 #include "common/equity/price_gradients/terminal_scenario.cuh"
 #include "common/price_gradients/sensitivity_parameter.cuh"
 #include "common/simulation/calendar.hpp"
@@ -106,6 +107,45 @@ struct ScenarioDevicePreparation {
         static_cast<std::uint8_t>(ModelPreparation::parameter_names.size());
     static constexpr std::uint8_t product_parameter_count =
         static_cast<std::uint8_t>(ProductPreparation::parameter_names.size());
+
+    template<std::size_t Index>
+    static constexpr bool kQuotedProductCoordinate =
+        equity::spot_relative::is_quoted_coordinate<Product>(
+            ProductPreparation::parameter_names[Index]
+        );
+
+    template<std::size_t Index = 0U>
+    __host__ __device__ static bool quoted_product_coordinate(
+        std::uint8_t index
+    ) {
+        if constexpr (Index == product_parameter_count) {
+            return false;
+        } else {
+            if (index == Index) {
+                if constexpr (kQuotedProductCoordinate<Index>) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+            return quoted_product_coordinate<Index + 1U>(index);
+        }
+    }
+
+    // Chain-rule factor d(absolute level)/d(quoted ratio). The central spot
+    // stays frozen even when the model.spot node is bumped.
+    __host__ __device__ static float coordinate_scale(
+        Parameter parameter, const Scenario& central
+    ) {
+        if (parameter.code >= model_parameter_count
+            && parameter.code < model_parameter_count + product_parameter_count
+            && quoted_product_coordinate(
+                parameter.code - model_parameter_count
+            )) {
+            return central.model.spot;
+        }
+        return 1.0f;
+    }
 
     static pg::SensitivityParameter resolve_parameter(std::string_view name) {
         bool found = false;

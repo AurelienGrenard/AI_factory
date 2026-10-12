@@ -150,8 +150,8 @@ std::size_t bates_lookback_option_node_graph_workspace_bytes(
         product::LookbackOptionPathPolicy,
         LookbackOptionGradientSchedule,
         13U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_bates_lookback_option_node_graph_sensitivities_cuda(
         product::LookbackOptionPathPolicy,
         LookbackOptionGradientSchedule,
         13U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

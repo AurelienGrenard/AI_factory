@@ -129,7 +129,7 @@ GeneratedRows generate_rows(
         {"core_share", 0.9},
         {"stress_share", 0.1},
         {"valuation_time", "issuance"},
-        {"reference_spot", 1.0},
+        {"spot_quote_convention", "Observation bounds apply to S(t)/S(0) for each paired model."},
         {"nominal", 1.0},
         {"sampling", {
             {

@@ -28,7 +28,7 @@ int main() {
         0.2f
     );
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "asset_or_nothing_options_01",
         "Asset-or-Nothing Options",
         dataset_path,

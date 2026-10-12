@@ -150,8 +150,8 @@ std::size_t schobel_zhu_up_no_touch_node_graph_workspace_bytes(
         product::UpNoTouchPathPolicy,
         UpNoTouchGradientSchedule,
         11U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_schobel_zhu_up_no_touch_node_graph_sensitivities_cuda(
         product::UpNoTouchPathPolicy,
         UpNoTouchGradientSchedule,
         11U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U)
     >(
         host,
         device,

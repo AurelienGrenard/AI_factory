@@ -21,6 +21,7 @@ struct AthenaAutocallPathPolicy {
         std::uint32_t observation_count;
         float autocall_barrier;
         float protection_barrier;
+        float reference_spot;
         float gain_per_observation;
         float discount_per_observation;
     };
@@ -29,6 +30,7 @@ struct AthenaAutocallPathPolicy {
         std::uint32_t observation_count;
         float autocall_barrier;
         float protection_barrier;
+        float reference_spot;
         float gain_per_observation;
         float discount_per_observation;
         float discount = 1.0f;
@@ -53,7 +55,8 @@ struct AthenaAutocallPathPolicy {
             if (maturity) {
                 const float redemption = spot >= autocall_barrier
                     ? 1.0f + accumulated_gain
-                    : (spot >= protection_barrier ? 1.0f : spot);
+                    : (spot >= protection_barrier
+                        ? 1.0f : spot / reference_spot);
                 discounted_payoff = discount * redemption;
                 return false;
             }
@@ -85,6 +88,7 @@ struct AthenaAutocallPathPolicy {
             observation_count,
             product.autocall_barrier,
             product.protection_barrier,
+            product.reference_spot,
             product.annual_coupon_rate * observation_years,
             expf(-model.risk_free_rate * observation_years),
         };
@@ -97,6 +101,7 @@ struct AthenaAutocallPathPolicy {
             product.observation_count,
             product.autocall_barrier,
             product.protection_barrier,
+            product.reference_spot,
             product.gain_per_observation,
             product.discount_per_observation,
         };

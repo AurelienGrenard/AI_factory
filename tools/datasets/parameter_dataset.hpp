@@ -41,4 +41,16 @@ void write_product_dataset(
     const GeneratedRows& generated
 );
 
+// Equity strike and absolute-barrier fields are quoted as S0 ratios.
+void write_spot_relative_equity_product_dataset(
+    const std::string& database_id,
+    const std::string& product_family,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const nlohmann::ordered_json& parameter_descriptions,
+    const nlohmann::ordered_json& payoff,
+    const GeneratedRows& generated
+);
+
 }  // namespace ai_factory::workbench::datasets

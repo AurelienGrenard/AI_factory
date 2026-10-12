@@ -146,8 +146,8 @@ std::size_t heston_asset_or_nothing_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         epg::TerminalProductSensitivityPolicy<product::AssetOrNothingOptionPathPolicy<Side>>,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 4U : 4U),
+        (Orders == pg::SensitivityOrders::first ? 8U : 8U)
     >(host, configuration);
 }
 
@@ -187,8 +187,8 @@ void launch_heston_asset_or_nothing_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         epg::TerminalProductSensitivityPolicy<product::AssetOrNothingOptionPathPolicy<Side>>,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 4U : 4U),
+        (Orders == pg::SensitivityOrders::first ? 8U : 8U)
     >(
         host,
         device,

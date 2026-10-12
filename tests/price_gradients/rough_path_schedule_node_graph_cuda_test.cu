@@ -283,7 +283,7 @@ int main() {
         });
     run<rb::AthenaAutocallNodeGraph<
             pg::SensitivityOrders::first_and_second,1U>>(
-        product::AthenaAutocallParameters{63U,21U,1.01f,.75f,.10f},
+        product::AthenaAutocallParameters{63U,21U,1.01f,.75f,.10f, 1.0f},
         rb::prepare_rough_bergomi_athena_autocall_sensitivities,
         [](auto dm,auto dp,auto steps,auto paths,auto ws,auto bytes,
            auto seed,auto price,auto error){

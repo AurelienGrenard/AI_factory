@@ -31,6 +31,8 @@ properties:
     enum:
       - frozen_exercise_time
       - frozen_regression_policy
+  sensitivity_strategy:
+    enum: [mono, node_graph]
   output:
     type: object
     required: [path, format]

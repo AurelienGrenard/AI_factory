@@ -11,6 +11,9 @@
 # Local disposable generation campaigns and experiments.
 /work/
 
+# Personal PPTI notebooks and delivery bundles stay outside GitHub.
+/notebook/
+
 # Full generated datasets live locally or on external storage.
 /datasets/
 
@@ -45,6 +48,7 @@ htmlcov/
 
 # Private PPTI access and machine setup scripts.
 /sync-ppti-gpu-4.sh
+/sync-ppti-gpu-1.sh
 
 # The local website and validation workspace are not published.
 /AI_factory_website/

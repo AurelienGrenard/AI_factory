@@ -12,6 +12,7 @@ struct AthenaAutocallParameters {
     float autocall_barrier;
     float protection_barrier;
     float annual_coupon_rate;
+    float reference_spot; // Frozen S0 for unit-notional loss redemption.
 };
 
 static_assert(std::is_trivially_copyable_v<AthenaAutocallParameters>);

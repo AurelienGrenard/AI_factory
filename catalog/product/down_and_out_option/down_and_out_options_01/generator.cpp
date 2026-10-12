@@ -37,7 +37,7 @@ int main() {
         );
     }
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "down_and_out_options_01",
         "Down-and-Out Options",
         dataset_path,
@@ -50,7 +50,7 @@ int main() {
         },
         {
             {"expression", "max(side * (S_T - K), 0) if min(S_[0,T]) > barrier; side = +1 call / -1 put"},
-            {"scaling_rule", "V(s, K) = s * V(1, K / s)"},
+            {"payoff_homogeneity", "Scaling the entire spot path and all strike/barrier levels by c scales the payoff by c."},
         },
         rows
     );

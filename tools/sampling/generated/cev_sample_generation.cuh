@@ -26,7 +26,7 @@ inline std::vector<ModelParameters> generate_core_parameters(
     std::size_t proposal = 0U;
     while (parameters.size() < parameter_count) {
         HostUniformSequence uniforms(seed, proposal++);
-        const float spot = uniform({1.0f, 1.0f}, uniforms);
+        const float spot = uniform({0.25f, 4.0f}, uniforms);
         const float risk_free_rate = uniform({0.001f, 0.08f}, uniforms);
         const float dividend_yield = uniform({0.0f, 0.06f}, uniforms);
         const float sigma = uniform({0.08f, 0.45f}, uniforms);
@@ -73,7 +73,7 @@ inline datasets::ModelSampleRecipe recipe(
             {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
             {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "sigma", "beta"}},
             {"latent_uniform_bounds", {
-                {"spot", {1.0f, 1.0f}},
+                {"spot", {0.25f, 4.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
                 {"dividend_yield", {0.0f, 0.06f}},
                 {"sigma", {0.08f, 0.45f}},

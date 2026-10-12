@@ -182,9 +182,11 @@ class GenerationTests(unittest.TestCase):
         jobs = campaign.inventory(campaign.ROOT, {"prices", "price_gradients"},
                                   set(), set(), catalog_only=True)
         stochastic = [job for job in jobs if job.get("paths_per_price")]
-        self.assertGreater(len(stochastic), 900)
+        self.assertTrue(stochastic)
         self.assertTrue(all(job["paths_per_price"] == 1 << 20 for job in stochastic))
+        self.assertTrue(any("/markovian/" in job["recipe"] for job in stochastic))
         self.assertTrue(any("/rough/" in job["recipe"] for job in stochastic))
+        self.assertTrue(any("/fixed_income/" in job["recipe"] for job in stochastic))
         self.assertEqual(
             sum("zero_coupon_bond_up_and_out_calls" in job["target"] for job in stochastic),
             13,

@@ -306,6 +306,7 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                 recipe.configuration.sensitivities[coordinate].parameter;
             const auto& stencil =
                 result.stencils[row * sensitivity_count + coordinate];
+            const float execution_width = stencil.second - stencil.first;
             if (!std::isfinite(stencil.central)
                 || !std::isfinite(stencil.first)
                 || !std::isfinite(stencil.second)
@@ -314,11 +315,46 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                 || !std::isfinite(stencil.first_weight)
                 || !std::isfinite(stencil.second_weight)
                 || !std::isfinite(stencil.represented_width)
-                || stencil.first == stencil.second
-                || stencil.represented_width
-                    != stencil.second - stencil.first) {
+                || stencil.represented_width == 0.0f
+                || !std::isfinite(execution_width)
+                || execution_width == 0.0f) {
                 throw std::invalid_argument(
                     "Invalid represented gradient stencil."
+                );
+            }
+            // Spot-relative equity product quotes have absolute execution
+            // nodes but finite-difference weights in quoted ratio units.
+            const bool quoted_level =
+                stencil.represented_width != execution_width;
+            if (quoted_level && name.rfind("product.", 0U) != 0U) {
+                throw std::invalid_argument(
+                    "A non-product stencil mixes coordinate units."
+                );
+            }
+            const double coordinate_scale = quoted_level
+                ? static_cast<double>(execution_width)
+                    / stencil.represented_width
+                : 1.0;
+            const auto quote_node = [coordinate_scale](float value) {
+                return static_cast<float>(
+                    static_cast<double>(value) / coordinate_scale
+                );
+            };
+            const float central = quote_node(stencil.central);
+            const float first = quote_node(stencil.first);
+            const float second = quote_node(stencil.second);
+            const float represented_width = second - first;
+            if (!std::isfinite(coordinate_scale)
+                || !(coordinate_scale > 0.0)
+                || !std::isfinite(central)
+                || !std::isfinite(first)
+                || !std::isfinite(second)
+                || represented_width == 0.0f
+                || std::abs(static_cast<double>(represented_width)
+                        - stencil.represented_width)
+                    > 2e-5 * std::abs(stencil.represented_width)) {
+                throw std::invalid_argument(
+                    "Represented quote endpoints disagree with gradient weights."
                 );
             }
             const bool centered =
@@ -344,14 +380,19 @@ void write_dataset(const Recipe& recipe, const Results& result) {
             stencils[name] = {
                 {"kind", centered
                     ? "centered" : forward ? "forward" : "backward"},
-                {"central", stencil.central},
-                {"first", stencil.first},
-                {"second", stencil.second},
+                {"central", central},
+                {"first", first},
+                {"second", second},
                 {"displacement", stencil.displacement},
-                {"represented_width", stencil.represented_width},
+                {"represented_width", represented_width},
                 {"first_weight", stencil.first_weight},
                 {"second_weight", stencil.second_weight},
             };
+            if (quoted_level) {
+                stencils[name]["execution_coordinate_scale"] = coordinate_scale;
+                stencils[name]["calculation_width"] =
+                    stencil.represented_width;
+            }
 
             if (pg::has_coordinate_use(
                     graph.coordinate_uses[coordinate],
@@ -387,7 +428,7 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                 stencils[name]["node_count"] = diagonal.node_count;
                 if (diagonal.node_count == 4U) {
                     stencils[name]["third"] =
-                        diagonal.parameter_values[3U];
+                        quote_node(diagonal.parameter_values[3U]);
                 }
                 auto weights = nlohmann::ordered_json::array();
                 for (unsigned int node = 0U;
@@ -577,9 +618,16 @@ void write_dataset(const Recipe& recipe, const Results& result) {
     if (curve_rows != nullptr) {
         metadata["curve_dataset"] = reference(curves);
     }
+    if (recipe.exact_schedule_transition && !recipe.exact_transition) {
+        throw std::invalid_argument(
+            "Exact schedule transition requires an exact model transition."
+        );
+    }
     if (recipe.exact_transition) {
         metadata["time_representation"] = {
-            {"kind", "exact_terminal_transition"},
+            {"kind", recipe.exact_schedule_transition
+                ? "exact_schedule_transition"
+                : "exact_terminal_transition"},
             {"contractual_days_per_year",
                 steps_per_year / recipe.time.simulation_steps_per_day},
             {"maturity_bump_steps_per_year", steps_per_year},

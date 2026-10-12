@@ -13,8 +13,9 @@ int main(int argc, char** argv) {
             PriceConstruction::$construction, {{
         $selections
             }}, {1.0f/504.0f, 2U}, $exact_transition,
-            pg::SensitivityOrders::first_and_second};
+            pg::SensitivityOrders::first_and_second};$exact_schedule_assignment
         recipe.sensitivity_strategy =
+            argc == 1 ? pg::SensitivityStrategy::$sensitivity_strategy :
             offline::pricing::price_gradients::
                 sensitivity_strategy_from_arguments(argc, argv);
         const auto models = model::equity::$model::load_models(recipe.model_input);

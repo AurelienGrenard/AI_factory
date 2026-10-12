@@ -70,7 +70,7 @@ void validate_terminal_diagonal_sensitivity_launch(
     const pg::LaunchConfiguration& launch,
     pg::SensitivityOutputs outputs
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     const auto rows = host.result_count;
     const auto selected = host.sensitivity_count();
     const auto sensitivity_count = rows * selected;
@@ -94,13 +94,15 @@ void validate_terminal_diagonal_sensitivity_launch(
             );
         }
     }
-    if (selected != 0U
-        && (outputs.diagonal_hessians == nullptr
-            || outputs.diagonal_hessian_standard_errors == nullptr
-            || outputs.sensitivity_capacity < sensitivity_count)) {
-        throw std::invalid_argument(
-            "Insufficient terminal diagonal-Hessian outputs."
-        );
+    if constexpr (pg::requests_second_v<Orders>) {
+        if (selected != 0U
+            && (outputs.diagonal_hessians == nullptr
+                || outputs.diagonal_hessian_standard_errors == nullptr
+                || outputs.sensitivity_capacity < sensitivity_count)) {
+            throw std::invalid_argument(
+                "Insufficient terminal diagonal-Hessian outputs."
+            );
+        }
     }
     std::vector<pg::BufferRange> output_ranges{
         pg::checked_buffer_range(outputs.prices, rows, sizeof(float)),
@@ -120,15 +122,17 @@ void validate_terminal_diagonal_sensitivity_launch(
             ));
         }
     }
-    if (selected != 0U) {
-        output_ranges.push_back(pg::checked_buffer_range(
-            outputs.diagonal_hessians, sensitivity_count, sizeof(float)
-        ));
-        output_ranges.push_back(pg::checked_buffer_range(
-            outputs.diagonal_hessian_standard_errors,
-            sensitivity_count,
-            sizeof(float)
-        ));
+    if constexpr (pg::requests_second_v<Orders>) {
+        if (selected != 0U) {
+            output_ranges.push_back(pg::checked_buffer_range(
+                outputs.diagonal_hessians, sensitivity_count, sizeof(float)
+            ));
+            output_ranges.push_back(pg::checked_buffer_range(
+                outputs.diagonal_hessian_standard_errors,
+                sensitivity_count,
+                sizeof(float)
+            ));
+        }
     }
     mcpg::validate_device_prepared_launch(
         device,

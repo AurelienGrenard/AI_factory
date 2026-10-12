@@ -111,8 +111,12 @@ int execute_prepared_dataset(
         const auto k = prepared.sensitivity_count();
         constexpr bool first_requested = pg::requests_first_v<Orders>;
         constexpr bool second_requested = pg::requests_second_v<Orders>;
-        constexpr std::size_t node_capacity =
-            pg::SensitivityTraits<Orders>::node_capacity;
+        constexpr std::size_t node_capacity = [] {
+            if constexpr (requires { ExecutionPolicy::kStencilNodeCapacity; })
+                return ExecutionPolicy::kStencilNodeCapacity;
+            else
+                return pg::SensitivityTraits<Orders>::node_capacity;
+        }();
         const auto plan = cuda_tuning::make_price_gradient_launch_plan(
             identity,
             rows,
@@ -263,9 +267,40 @@ int execute_prepared_dataset(
                             execution,
                             represented_stencils.size()
                         );
-                    prepare_stencils(
-                        prepared, inputs, stencil_outputs, 0U, resumed
-                    );
+                    if constexpr (std::is_same_v<
+                        StencilPreparation, std::nullptr_t>) {
+                        auto stencil_configuration =
+                            make_configuration(0U, resumed);
+                        stencil_configuration.paths_per_price = 2U;
+                        const pg::SensitivityOutputs replay_outputs{
+                            execution.prices(), execution.standard_errors(),
+                            gradients.data(), gradient_errors.data(),
+                            nullptr, nullptr, rows, rows*k
+                        };
+                        if constexpr (requires {
+                            execution_policy.prepare_stencils(
+                                prepared, inputs, stencil_outputs,
+                                stencil_configuration, replay_outputs,
+                                execution.workspace(), execution.workspace_bytes()
+                            );
+                        }) {
+                            execution_policy.prepare_stencils(
+                                prepared, inputs, stencil_outputs,
+                                stencil_configuration, replay_outputs,
+                                execution.workspace(), execution.workspace_bytes()
+                            );
+                        } else {
+                            execution_policy.prepare_stencils(
+                                prepared, stencil_outputs,
+                                stencil_configuration, replay_outputs,
+                                execution.workspace(), execution.workspace_bytes()
+                            );
+                        }
+                    } else {
+                        prepare_stencils(
+                            prepared, inputs, stencil_outputs, 0U, resumed
+                        );
+                    }
                 }
                 }
                 for (std::size_t offset = resumed; offset < rows;) {
@@ -422,14 +457,27 @@ int execute_prepared_dataset(
             return false;
         }();
         result.execution = uses_node_graph
-            ? cuda_tuning::diagonal_node_graph_launch_metadata(plan, k)
+            ? (second_requested
+                ? cuda_tuning::diagonal_node_graph_launch_metadata(plan, k)
+                : cuda_tuning::first_node_graph_launch_metadata(plan, k))
             : cuda_tuning::device_prepared_price_gradient_launch_metadata(
                 plan, k
             );
         result.execution["monte_carlo_paths_per_price"] =
             plan.paths_per_price;
         result.execution["seed"] = seed;
-        result.execution["preparation"] = "device_per_row_sensitivity";
+        if constexpr (requires(
+            const typename Plan::Preparation::Model& model
+        ) { model.spot; }) {
+            result.execution["product_spot_levels"] =
+                "quote ratio times central model spot; frozen for model "
+                "sensitivities; product derivatives in ratio units";
+        }
+        if constexpr (requires { execution_policy.preparation_name(); })
+            result.execution["preparation"] =
+                execution_policy.preparation_name();
+        else
+            result.execution["preparation"] = "device_per_row_sensitivity";
         datasets::price_gradients::append_exercise_replay_metadata(
             recipe, result.execution
         );
@@ -534,6 +582,44 @@ int execute_dataset(const datasets::price_gradients::Recipe& recipe, cuda_tuning
         std::move(prepare_stencils),
         paths_per_price,
         launch_limits
+    );
+}
+
+template<
+    typename Models,
+    typename Products,
+    typename Prepare,
+    typename GraphWorkspaceBytes,
+    typename GraphLaunch>
+int execute_first_node_graph_dataset(
+    const datasets::price_gradients::Recipe& recipe,
+    cuda_tuning::PricingIdentity identity,
+    std::uint64_t seed,
+    const Models& models,
+    const Products& products,
+    Prepare prepare,
+    GraphWorkspaceBytes graph_workspace_bytes,
+    GraphLaunch graph_launch,
+    std::size_t paths_per_price,
+    cuda_tuning::PricingLaunchLimits launch_limits = {}
+) {
+    constexpr auto orders = pg::SensitivityOrders::first;
+    if (recipe.orders != orders
+        || recipe.sensitivity_strategy != pg::SensitivityStrategy::node_graph) {
+        std::cerr << "First-order graph recipe and compiled strategy differ.\n";
+        return 1;
+    }
+    const auto prepared = prepare(
+        models, products, recipe.construction, recipe.time,
+        recipe.configuration
+    );
+    static_assert(decltype(prepared)::kDevicePreparedSensitivities);
+    return execute_prepared_dataset<true, orders>(
+        recipe, identity, seed, prepared,
+        first_node_graph_sensitivity_execution(
+            std::move(graph_workspace_bytes), std::move(graph_launch)
+        ),
+        nullptr, paths_per_price, launch_limits
     );
 }
 

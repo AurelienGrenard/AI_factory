@@ -46,7 +46,7 @@ int main() {
         {"rule", "trigger_strike * exp(0.05 * sqrt((T / 252) / 3))"},
     };
 
-    write_product_dataset(
+    write_spot_relative_equity_product_dataset(
         "gap_put_options_01",
         "Gap Puts",
         dataset_path,

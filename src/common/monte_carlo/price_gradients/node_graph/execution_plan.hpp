@@ -82,7 +82,7 @@ NodeGraphExecutionPlan make_node_graph_execution_plan(
     const pg::LaunchConfiguration& launch,
     bool preserve_complete_path_reduction = false
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     static_assert(tuning::valid_node_profile_v<Tuning>);
     constexpr auto node_capacity =
         terminal_node_graph_node_capacity<MaximumSensitivities>();

@@ -146,8 +146,8 @@ std::size_t ${model}_${product}_node_graph_workspace_bytes(
         ${sensitivity_policy},
         ${product_type}GradientSchedule,
         ${maximum}U,
-        ${graph_group_size}U,
-        ${graph_nodes_per_worker}U
+        (Orders == pg::SensitivityOrders::first ? ${first_graph_group_size}U : ${graph_group_size}U),
+        (Orders == pg::SensitivityOrders::first ? ${first_graph_nodes_per_worker}U : ${graph_nodes_per_worker}U)
     >(host, configuration);
 }
 
@@ -186,8 +186,8 @@ ${price_only_time_arguments}            configuration.threads_per_block,
         ${sensitivity_policy},
         ${product_type}GradientSchedule,
         ${maximum}U,
-        ${graph_group_size}U,
-        ${graph_nodes_per_worker}U
+        (Orders == pg::SensitivityOrders::first ? ${first_graph_group_size}U : ${graph_group_size}U),
+        (Orders == pg::SensitivityOrders::first ? ${first_graph_nodes_per_worker}U : ${graph_nodes_per_worker}U)
     >(
         host,
         device,

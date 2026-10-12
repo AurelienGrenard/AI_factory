@@ -150,8 +150,8 @@ std::size_t sabr_down_and_in_option_node_graph_workspace_bytes(
         product::DownAndInOptionPathPolicy<Side>,
         DownAndInOptionGradientSchedule,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(host, configuration);
 }
 
@@ -192,8 +192,8 @@ void launch_sabr_down_and_in_option_node_graph_sensitivities_cuda(
         product::DownAndInOptionPathPolicy<Side>,
         DownAndInOptionGradientSchedule,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U),
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U)
     >(
         host,
         device,

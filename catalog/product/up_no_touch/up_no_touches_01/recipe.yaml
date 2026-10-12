@@ -13,12 +13,16 @@ time_convention:
   unit: "business_day"
   days_per_year: 252
 parameters:
-  barrier: "Upper no-touch level in normalized spot units."
+  barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   cash_payoff: "Cash amount paid at maturity without a touch."
   maturity: "Maturity in business days."
 payoff:
   expression: "cash_payoff if max(S_[0,T]) < barrier; otherwise 0"
   payment_time: "maturity"
+  spot_level_quote:
+    unit: "ratio_to_central_spot"
+    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
+    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 core-stress construction"
   row_order:

@@ -141,4 +141,42 @@ void write_product_dataset(
     );
 }
 
+
+void write_spot_relative_equity_product_dataset(
+    const std::string& database_id,
+    const std::string& product_family,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const nlohmann::ordered_json& parameter_descriptions,
+    const nlohmann::ordered_json& payoff,
+    const GeneratedRows& generated
+) {
+    auto descriptions = parameter_descriptions;
+    for (const char* name : {
+            "strike", "trigger_strike", "payoff_strike", "barrier",
+            "lower_barrier", "upper_barrier", "autocall_barrier",
+            "coupon_barrier", "protection_barrier"
+        }) {
+        if (descriptions.contains(name)) {
+            descriptions[name] =
+                "Dimensionless ratio of the quoted spot level to the "
+                "central model spot S0; 1.0 means 100% of S0.";
+        }
+    }
+    auto resolved_payoff = payoff;
+    resolved_payoff["spot_level_quote"] = {
+        {"unit", "ratio_to_central_spot"},
+        {"resolution", "Each quoted strike/barrier is multiplied by the "
+            "unbumped model S0 once for each model-product pair."},
+        {"sensitivity", "S0 reference and resolved contract levels remain "
+            "fixed when model.spot is bumped; product-level derivatives "
+            "are with respect to the quoted ratio."},
+    };
+    write_product_dataset(
+        database_id, product_family, dataset_path, catalog_path, url,
+        descriptions, resolved_payoff, generated
+    );
+}
+
 }  // namespace ai_factory::workbench::datasets

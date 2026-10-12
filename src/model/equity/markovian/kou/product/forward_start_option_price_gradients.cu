@@ -152,8 +152,8 @@ std::size_t kou_forward_start_option_node_graph_workspace_bytes(
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -195,8 +195,8 @@ void launch_kou_forward_start_option_node_graph_sensitivities_cuda(
         product::ForwardStartOptionPathPolicy<Side>,
         ForwardStartOptionGradientSchedule,
         10U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

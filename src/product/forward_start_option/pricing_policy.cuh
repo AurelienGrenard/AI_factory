@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/equity/concepts.cuh"
+#include "common/option_side.cuh"
 #include "common/equity/path_product_monte_carlo_policy.cuh"
 #include "common/equity/path_product_policy.cuh"
 #include "common/simulation/schedule.cuh"

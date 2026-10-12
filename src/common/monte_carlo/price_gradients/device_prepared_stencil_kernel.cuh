@@ -20,15 +20,13 @@ namespace preparation =
 
 namespace stencil_detail {
 
-template<pg::SensitivityOrders Orders, typename Inputs>
+template<pg::SensitivityOrders Orders, std::size_t RepresentedCapacity, typename Inputs>
 __global__ void prepare_stencils_kernel(
     Inputs inputs,
     DevicePreparedPlan plan,
     std::size_t result_offset,
     std::size_t result_count,
-    DevicePreparedStencilOutputs<
-        pg::SensitivityTraits<Orders>::node_capacity
-    > outputs
+    DevicePreparedStencilOutputs<RepresentedCapacity> outputs
 ) {
     using Preparation = typename Inputs::PreparationPolicy;
     constexpr std::size_t node_capacity =
@@ -66,7 +64,17 @@ __global__ void prepare_stencils_kernel(
         if (valid_row) {
             outputs.stencils[
                 row * plan.sensitivity_count + sensitivity_index
-            ] = sensitivity_task.stencil;
+            ] = [&] {
+                if constexpr (RepresentedCapacity == node_capacity) {
+                    return sensitivity_task.stencil;
+                } else {
+                    static_assert(Orders == pg::SensitivityOrders::first
+                        && RepresentedCapacity == 4U);
+                    return pg::promote_first_sensitivity_stencil(
+                        sensitivity_task.stencil
+                    );
+                }
+            }();
         } else {
             preparation::record_error(
                 outputs.error,
@@ -80,15 +88,17 @@ __global__ void prepare_stencils_kernel(
 
 }  // namespace stencil_detail
 
-template<pg::SensitivityOrders Orders, typename Inputs>
+template<
+    pg::SensitivityOrders Orders,
+    typename Inputs,
+    std::size_t RepresentedCapacity =
+        pg::SensitivityTraits<Orders>::node_capacity>
 void launch_device_prepared_stencils(
     Inputs inputs,
     DevicePreparedPlan plan,
     std::size_t result_offset,
     std::size_t result_count,
-    DevicePreparedStencilOutputs<
-        pg::SensitivityTraits<Orders>::node_capacity
-    > outputs,
+    DevicePreparedStencilOutputs<RepresentedCapacity> outputs,
     const char* kernel_name
 ) {
     if (result_count == 0U || plan.sensitivity_count == 0U) return;
@@ -106,6 +116,7 @@ void launch_device_prepared_stencils(
     ));
     const auto function = stencil_detail::prepare_stencils_kernel<
         Orders,
+        RepresentedCapacity,
         Inputs
     >;
     report_cuda_kernel_launch_if_enabled(

@@ -64,7 +64,7 @@ TerminalNodeGraphExecutionPlan make_terminal_node_graph_execution_plan(
     const HostPlan& host,
     const pg::LaunchConfiguration& launch
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     static_assert(mcpg::tuning::valid_node_profile_v<Tuning>);
     constexpr auto node_capacity =
         mcpg::terminal_node_graph_node_capacity<MaximumSensitivities>();
@@ -192,7 +192,7 @@ void launch_terminal_node_graph_sensitivities(
     const char* kernel_name,
     const char* variant
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     validate_terminal_diagonal_sensitivity_launch<Orders>(
         host, device, stencil_outputs, configuration, outputs
     );

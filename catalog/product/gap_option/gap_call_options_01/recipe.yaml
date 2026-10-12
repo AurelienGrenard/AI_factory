@@ -13,11 +13,15 @@ time_convention:
   unit: "business_day"
   days_per_year: 252
 parameters:
-  trigger_strike: "Strike that activates the terminal payoff."
-  payoff_strike: "Strike subtracted from the terminal spot."
+  trigger_strike: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
+  payoff_strike: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   maturity: "Maturity in business days."
 payoff:
   expression: "(S_T - payoff_strike) * 1{S_T > trigger_strike}"
+  spot_level_quote:
+    unit: "ratio_to_central_spot"
+    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
+    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 core-stress construction"
   row_order:

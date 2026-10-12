@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
             lspg::ExerciseReplayStrategy::$exercise_replay;
         recipe.exercise_replay = exercise_replay;
         recipe.sensitivity_strategy =
+            argc == 1 ? pg::SensitivityStrategy::$sensitivity_strategy :
             offline::pricing::price_gradients::
                 sensitivity_strategy_from_arguments(argc, argv);
         const auto models = model::equity::$model::load_models(recipe.model_input);

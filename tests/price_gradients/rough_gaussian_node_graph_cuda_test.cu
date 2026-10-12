@@ -1,6 +1,7 @@
 // Gaussian rough FFT graph: shared spectra, CRN and central pricing parity.
 #include "common/check_cuda.cuh"
 #include "common/volterra/hybrid_fft_workspace.cuh"
+#include "tools/pricing/price_gradients/rough_generation.cuh"
 #ifndef ROUGH_GAUSSIAN_TEST_MODEL
 #define ROUGH_GAUSSIAN_TEST_MODEL 0
 #endif
@@ -104,7 +105,7 @@ int main() {
         {"product.strike", {.01f, pg::BumpScale::relative}},
         {"product.maturity_years", {1.0f / 504.0f, pg::BumpScale::absolute}}
     }};
-    const auto prepare_host = [&] {
+    const auto prepare_host = [&]<pg::SensitivityOrders Orders>() {
 #if ROUGH_GAUSSIAN_TEST_MODEL == 0
         return rb::prepare_rough_bergomi_european_option_sensitivities(
 #elif ROUGH_GAUSSIAN_TEST_MODEL == 1
@@ -116,15 +117,16 @@ int main() {
 #endif
             models, products, PriceConstruction::CartesianProduct,
             {1.0f / 504.0f, 2U}, selection,
-            {pg::SensitivityOrders::first_and_second}
+            {Orders}
         );
     };
-    const auto host = prepare_host();
+    const auto host = prepare_host.template operator()<
+        pg::SensitivityOrders::first_and_second>();
     const pg::LaunchConfiguration launch{
         pg::PricingMethod::monte_carlo, 0U, 2U, paths, 256U, 2U, seed
     };
     using Graph = rb::EuropeanOptionNodeGraph<
-        OptionSide::call, pg::SensitivityOrders::first_and_second, 4U
+        OptionSide::call, pg::SensitivityOrders::first_and_second, 8U
     >;
     Graph::Cache cache;
     const auto execution = Graph::plan(host, cache, launch);
@@ -132,7 +134,7 @@ int main() {
             "Spot and strike bumps duplicated a Gaussian kernel spectrum.");
     const auto row = volterra::price_gradients::
         prepare_gaussian_fft_graph_row<
-            pg::SensitivityOrders::first_and_second, 4U
+            pg::SensitivityOrders::first_and_second, 8U
         >(host, 1U, cache);
     require(row.kernel_indices[0U] == row.kernel_indices[1U]
             && row.kernel_indices[0U] == row.kernel_indices[5U],
@@ -164,6 +166,99 @@ int main() {
                 "Gaussian graph price moments are invalid.");
     for (float value : graph_gradients)
         require(std::isfinite(value), "Gaussian graph gradient is invalid.");
+
+    // Exercise first-order generation with a larger template capacity than
+    // the selected sensitivity count. This also checks its active workspace
+    // stride and the equality of its central and gradient moments.
+    const auto first_host = prepare_host.template operator()<
+        pg::SensitivityOrders::first>();
+    using FirstGraph = rb::EuropeanOptionNodeGraph<
+        OptionSide::call, pg::SensitivityOrders::first, 8U
+    >;
+    FirstGraph::Cache first_cache;
+    const auto first_execution = FirstGraph::plan(
+        first_host, first_cache, launch);
+    DeviceBuffer<unsigned char> first_workspace(first_execution.bytes);
+    DeviceBuffer<float> first_prices(2U), first_errors(2U),
+        first_gradients(8U), first_gradient_errors(8U);
+    DeviceBuffer<pg::SensitivityStencil<4U>> first_stencils(8U);
+    pg::SensitivityOutputs first_outputs{
+        first_prices.value, first_errors.value,
+        first_gradients.value, first_gradient_errors.value,
+        nullptr, nullptr, 2U, 8U
+    };
+    mcpg::DevicePreparedStencilOutputs<4U> first_stencil_outputs{
+        first_stencils.value, 8U, nullptr
+    };
+    FirstGraph::launch(
+        first_host, first_cache, launch, first_outputs,
+        first_stencil_outputs, first_execution,
+        first_workspace.value, first_execution.bytes);
+    check_cuda(cudaDeviceSynchronize(), "Gaussian first-order graph sync");
+    float first_price_values[2]{}, first_error_values[2]{},
+        first_gradient_values[8]{};
+    first_prices.download(first_price_values, 2U);
+    first_errors.download(first_error_values, 2U);
+    first_gradients.download(first_gradient_values, 8U);
+    for (std::size_t index = 0U; index < 2U; ++index) {
+        require(first_price_values[index] == graph_prices[index]
+                && first_error_values[index] == graph_errors[index],
+                "Gaussian first-order graph changed central price moments.");
+    }
+    for (std::size_t index = 0U; index < 8U; ++index)
+        require(first_gradient_values[index] == graph_gradients[index],
+                "Gaussian first-order graph changed gradient moments.");
+
+    // The offline writer plans for one row and then launches every aligned
+    // row separately. Distinct Hurst parameters require distinct FFT spectra.
+    auto aligned_models = models;
+    aligned_models.push_back(models.front());
+    aligned_models.back().hurst_exponent = .20f;
+#if ROUGH_GAUSSIAN_TEST_MODEL == 0
+    const auto aligned_host = rb::prepare_rough_bergomi_european_option_sensitivities(
+#elif ROUGH_GAUSSIAN_TEST_MODEL == 1
+    const auto aligned_host = rb::prepare_rough_sabr_european_option_sensitivities(
+#elif ROUGH_GAUSSIAN_TEST_MODEL == 2
+    const auto aligned_host = rb::prepare_rough_stein_stein_european_option_sensitivities(
+#else
+    const auto aligned_host = rb::prepare_log_modulated_rough_bergomi_european_option_sensitivities(
+#endif
+        aligned_models, products, PriceConstruction::Aligned,
+        {1.0f / 504.0f, 2U}, selection,
+        {pg::SensitivityOrders::first}
+    );
+    offline::pricing::price_gradients::RoughGraphExecution<FirstGraph>
+        offline_execution(1.0f, 1.0f / 504.0f);
+    auto single_row = launch;
+    single_row.result_count = 1U;
+    const auto offline_bytes = offline_execution.workspace_bytes(
+        aligned_host, single_row);
+    DeviceBuffer<unsigned char> offline_workspace(offline_bytes);
+    const pg::Outputs offline_outputs{
+        first_prices.value, first_errors.value,
+        first_gradients.value, first_gradient_errors.value, 2U, 8U
+    };
+    for (std::size_t row_index = 0U; row_index < 2U; ++row_index) {
+        single_row.result_offset = row_index;
+        offline_execution.launch(
+            aligned_host, nullptr, first_stencil_outputs,
+            single_row, offline_outputs,
+            offline_workspace.value, offline_bytes);
+    }
+    check_cuda(cudaDeviceSynchronize(), "Gaussian offline rows sync");
+    first_prices.download(first_price_values, 2U);
+    first_errors.download(first_error_values, 2U);
+    first_gradients.download(first_gradient_values, 8U);
+    require(first_price_values[0] == graph_prices[0],
+            "Offline first row changed the central price.");
+    for (std::size_t index = 0U; index < 2U; ++index)
+        require(std::isfinite(first_price_values[index])
+                && std::isfinite(first_error_values[index])
+                && first_error_values[index] > 0.0f,
+                "Offline aligned FFT row moments are invalid.");
+    for (float value : first_gradient_values)
+        require(std::isfinite(value),
+                "Offline aligned FFT row gradient is invalid.");
 
     DeviceBuffer<rb::ModelParameters> device_models(1U);
     DeviceBuffer<product::EuropeanOptionParameters> device_products(2U);

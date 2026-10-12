@@ -148,8 +148,8 @@ std::size_t variance_gamma_european_option_node_graph_workspace_bytes(
         mpg::CoupledDynamics,
         product::EuropeanOptionGradientPathPolicy<Side>,
         8U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -190,8 +190,8 @@ void launch_variance_gamma_european_option_node_graph_sensitivities_cuda(
         mpg::CoupledDynamics,
         product::EuropeanOptionGradientPathPolicy<Side>,
         8U,
-        16U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 16U : 16U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

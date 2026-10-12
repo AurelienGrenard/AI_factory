@@ -152,8 +152,8 @@ std::size_t merton_phoenix_memory_autocall_node_graph_workspace_bytes(
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
         12U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(host, configuration);
 }
 
@@ -195,8 +195,8 @@ void launch_merton_phoenix_memory_autocall_node_graph_sensitivities_cuda(
         product::PhoenixMemoryAutocallPathPolicy,
         PhoenixMemoryAutocallGradientSchedule,
         12U,
-        32U,
-        2U
+        (Orders == pg::SensitivityOrders::first ? 32U : 32U),
+        (Orders == pg::SensitivityOrders::first ? 2U : 2U)
     >(
         host,
         device,

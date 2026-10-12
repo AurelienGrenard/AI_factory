@@ -75,7 +75,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
     DevicePreparedStencilOutputs<4U> stencil_outputs,
     std::uint64_t base_seed
 ) {
-    static_assert(pg::requests_second_v<Orders>);
+    static_assert(Orders != pg::SensitivityOrders::none);
     static_assert(tuning::valid_profile_v<Tuning>);
     static_assert(Tuning::kThreadsPerBlock % GroupSize == 0U);
     constexpr std::size_t node_capacity =

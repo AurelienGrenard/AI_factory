@@ -535,6 +535,28 @@ def compose_datasets(price_datasets, bindings):
         if dataset.dataset_kind == "prices"
         and dataset.asset_class == "equity"
         and (dataset.model, dataset.product) in supported)
+    rough_models = {
+        "rough_heston", "quadratic_rough_heston", "rough_bergomi",
+        "log_modulated_rough_bergomi", "rough_stein_stein", "rough_sabr",
+    }
+    rough = tuple(replace(dataset,
+        dataset_id=dataset.dataset_id + "_price_gradient",
+        dataset_kind="price_gradients",
+        generator_path=dataset.generator_path.replace(
+            "/prices/", "/price_gradients/"
+        ).replace(
+            "/" + dataset.dataset_id + "/",
+            "/" + dataset.dataset_id + "_price_gradient/",
+        ),
+        template="catalog/pricing/price_gradients/rough_node_graph_first_generator.cpp.tpl",
+        numerical_profile="selected_gradients_production_paths",
+        layout="row_major_selected_gradients",
+        sensitivity_orders=("first",))
+        for dataset in price_datasets
+        if dataset.dataset_kind == "prices"
+        and dataset.asset_class == "equity"
+        and dataset.model in rough_models
+        and dataset.construction == "aligned")
     spot = tuple(replace(
         dataset,
         dataset_id=(
@@ -592,6 +614,19 @@ def compose_datasets(price_datasets, bindings):
                 and spec.pricing.product == dataset.product
                 and spec.pricing.curve == dataset.curve
                 for spec in bindings))
+    frozen_policy_first = tuple(
+        replace(
+            dataset,
+            dataset_id=dataset.dataset_id + "_frozen_policy",
+            generator_path=dataset.generator_path.replace(
+                "/" + dataset.dataset_id + "/",
+                "/" + dataset.dataset_id + "_frozen_policy/",
+            ),
+            exercise_replay="frozen_regression_policy",
+        )
+        for dataset in (*equity, *fixed_income)
+        if dataset.product in {"american_option", "bermudan_swaption"}
+    )
     diagonal = tuple(replace(dataset,
         dataset_id=dataset.dataset_id + "_diagonal_hessian",
         generator_path=dataset.generator_path.replace(
@@ -644,7 +679,9 @@ def compose_datasets(price_datasets, bindings):
     return (
         *spot,
         *equity,
+        *rough,
         *fixed_income,
+        *frozen_policy_first,
         *diagonal,
         *frozen_policy_diagonal,
         *full_hessian,
@@ -655,6 +692,7 @@ def default_sensitivities(
     model,
     product="european_option",
     curve=None,
+    include_all_model_parameters=False,
 ):
     """Initial recipes select useful coordinates without inferring inclusion from zero values."""
     coordinates = {
@@ -700,6 +738,69 @@ def default_sensitivities(
                            ("model.sigma", .005, "relative"),
                            ("model.nu", .005, "relative"),
                            ("model.theta", .002, "absolute")),
+        "rough_heston": (
+            ("model.spot", .005, "relative"),
+            ("model.risk_free_rate", .0005, "absolute"),
+            ("model.dividend_yield", .0005, "absolute"),
+            ("model.initial_variance", .001, "absolute"),
+            ("model.mean_reversion", .005, "relative"),
+            ("model.variance_drift", .001, "absolute"),
+            ("model.volatility_of_variance", .005, "relative"),
+            ("model.hurst_exponent", .001, "absolute"),
+            ("model.rho", .002, "absolute"),
+        ),
+        "quadratic_rough_heston": (
+            ("model.spot", .005, "relative"),
+            ("model.risk_free_rate", .0005, "absolute"),
+            ("model.dividend_yield", .0005, "absolute"),
+            ("model.initial_feedback", .002, "absolute"),
+            ("model.quadratic_scale", .005, "relative"),
+            ("model.quadratic_shift", .002, "absolute"),
+            ("model.variance_floor", .0005, "absolute"),
+            ("model.feedback_rate", .005, "relative"),
+            ("model.feedback_volatility", .005, "relative"),
+            ("model.hurst_exponent", .001, "absolute"),
+        ),
+        "rough_bergomi": (
+            ("model.spot", .005, "relative"),
+            ("model.risk_free_rate", .0005, "absolute"),
+            ("model.dividend_yield", .0005, "absolute"),
+            ("model.xi_0", .001, "absolute"),
+            ("model.eta", .005, "relative"),
+            ("model.hurst_exponent", .001, "absolute"),
+            ("model.rho", .002, "absolute"),
+        ),
+        "log_modulated_rough_bergomi": (
+            ("model.spot", .005, "relative"),
+            ("model.risk_free_rate", .0005, "absolute"),
+            ("model.dividend_yield", .0005, "absolute"),
+            ("model.xi_0", .001, "absolute"),
+            ("model.eta", .005, "relative"),
+            ("model.hurst_exponent", .001, "absolute"),
+            ("model.rho", .002, "absolute"),
+            ("model.log_modulation_scale", .005, "relative"),
+            ("model.log_modulation_power", .005, "relative"),
+        ),
+        "rough_stein_stein": (
+            ("model.spot", .005, "relative"),
+            ("model.risk_free_rate", .0005, "absolute"),
+            ("model.dividend_yield", .0005, "absolute"),
+            ("model.volatility_level", .005, "relative"),
+            ("model.mean_reversion", .005, "relative"),
+            ("model.volatility_of_volatility", .005, "relative"),
+            ("model.hurst_exponent", .001, "absolute"),
+            ("model.rho", .002, "absolute"),
+        ),
+        "rough_sabr": (
+            ("model.spot", .005, "relative"),
+            ("model.risk_free_rate", .0005, "absolute"),
+            ("model.dividend_yield", .0005, "absolute"),
+            ("model.xi_0", .001, "absolute"),
+            ("model.eta", .005, "relative"),
+            ("model.hurst_exponent", .001, "absolute"),
+            ("model.rho", .002, "absolute"),
+            ("model.beta", .002, "absolute"),
+        ),
         "cir": (("model.mean_reversion", .005, "relative"),
                 ("model.long_term_mean", .005, "relative"),
                 ("model.volatility", .005, "relative"),
@@ -732,6 +833,78 @@ def default_sensitivities(
                     ("model.volatility", .005, "relative"),
                     ("model.initial_state", .0005, "absolute")),
     }[model]
+    if include_all_model_parameters:
+        extra_model_coordinates = {
+            "bates": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.kappa", .005, "relative"),
+                ("model.theta", .001, "absolute"),
+                ("model.gamma", .005, "relative"),
+                ("model.jump_log_volatility", .005, "relative"),
+            ),
+            "black_scholes": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+            ),
+            "cev": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+            ),
+            "heston": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.kappa", .005, "relative"),
+                ("model.theta", .001, "absolute"),
+                ("model.gamma", .005, "relative"),
+            ),
+            "heston_3_2": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.mean_reversion", .005, "relative"),
+                ("model.long_run_variance", .001, "absolute"),
+                ("model.volatility_of_variance", .005, "relative"),
+            ),
+            "kou": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.positive_jump_rate", .005, "relative"),
+                ("model.negative_jump_rate", .005, "relative"),
+            ),
+            "merton": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.jump_intensity", .05, "absolute"),
+                ("model.jump_log_volatility", .005, "relative"),
+            ),
+            "normal_inverse_gaussian": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+            ),
+            "sabr": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.volatility_of_volatility", .005, "relative"),
+            ),
+            "schobel_zhu": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.mean_reversion", .005, "relative"),
+                ("model.long_run_volatility", .005, "relative"),
+                ("model.volatility_of_volatility", .005, "relative"),
+            ),
+            "stein_stein": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+                ("model.mean_reversion", .005, "relative"),
+                ("model.volatility_of_volatility", .005, "relative"),
+            ),
+            "variance_gamma": (
+                ("model.risk_free_rate", .0005, "absolute"),
+                ("model.dividend_yield", .0005, "absolute"),
+            ),
+        }
+        coordinates = (*coordinates, *extra_model_coordinates[model])
     curves = {
         None: (),
         "flat": (
