@@ -14,6 +14,19 @@ int main() {
         require(defaults.tasks_per_price() == 10U
                 && defaults.profile.threads_per_block == 256U,
             "Default MC gradient geometry changed.");
+        const tuning::PricingIdentity rough_fft{
+            tuning::PricingFamily::rough_fft, "rough_bergomi", "european_option", ""
+        };
+        const auto rough_aligned = tuning::make_price_gradient_launch_plan(
+            rough_fft, 1000U, 9U
+        );
+        const auto rough_cartesian = tuning::make_price_gradient_launch_plan(
+            rough_fft, 1000000U, 9U
+        );
+        require(rough_aligned.prices_per_launch == 1U
+                && rough_cartesian.prices_per_launch == 16U
+                && rough_cartesian.price_count_at(999984U) == 16U,
+                "Rough FFT gradient checkpoint grouping changed.");
         const auto device_metadata =
             tuning::device_prepared_price_gradient_launch_metadata(
                 defaults, 10U

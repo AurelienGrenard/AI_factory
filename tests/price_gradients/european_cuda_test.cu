@@ -3,6 +3,7 @@
 #include "model/equity/markovian/black_scholes/product/european_option_price_delta.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_delta.cuh"
+#include "common/equity/spot_relative_product.hpp"
 #include "cuda_test_support.cuh"
 #include "diagonal_cuda_test_support.cuh"
 #include "closed_form_mixed_cuda_test_support.cuh"
@@ -36,7 +37,9 @@ DiagonalResults execute_heston_diagonal(
 
 template<OptionSide Side> void black_scholes() {
     const std::vector<bs::ModelParameters> models{{.75f,.03f,.01f,.2f},{1.2f,0.f,0.f,.3f},{1.4f,.04f,.02f,.25f}};
-    const std::vector<product::EuropeanOptionParameters> products{{1.f,252U},{1.2f,126U},{1.1f,63U}};
+    const std::vector<product::EuropeanOptionParameters> products{
+        {1.f/.75f,252U}, {1.2f/1.2f,126U}, {1.1f/1.4f,63U}
+    };
     const pg::Sensitivity spot{"model.spot", {.005f}};
     const auto prepare = [&](const pg::PriceGradientConfiguration& selected) {
         return bs::prepare_black_scholes_european_option_price_gradients(models, products, PriceConstruction::Aligned, {}, selected);
@@ -44,8 +47,15 @@ template<OptionSide Side> void black_scholes() {
     auto launcher = bs::launch_black_scholes_european_option_price_gradients_cuda<Side>;
     pg::LaunchConfiguration launch{pg::PricingMethod::closed_form, 0U, 3U, bs_paths, 128U, 1U, 719U};
     const auto solo = execute(prepare({{spot}}), launch, launcher, true);
+    // Historical price/delta launchers expect absolute strikes, while the
+    // selected-gradient plan takes quoted strike ratios.
+    const auto absolute_products = equity::spot_relative::resolve_rows(
+        models, products, PriceConstruction::Aligned
+    ).products;
     DeviceArray<bs::ModelParameters> device_models(models);
-    DeviceArray<product::EuropeanOptionParameters> device_products(products);
+    DeviceArray<product::EuropeanOptionParameters> device_products(
+        absolute_products
+    );
     DeviceArray<float> legacy(6U);
     bs::launch_black_scholes_european_option_price_delta_cuda<Side>(models.data(), device_models.data, 3U,
         device_products.data, 3U, PriceConstruction::Aligned, 3U, 0U, 3U, 1.f/252.f, 128U, 1U, {.01f}, legacy.data, legacy.data+3U);
@@ -65,14 +75,15 @@ template<OptionSide Side> void black_scholes() {
         same(analytical.price[row], solo.price[row], "Adding gradients changed closed-form price");
         same(analytical.gradient[row*6U], solo.gradient[row], "Adding gradients changed closed-form delta");
         const auto& m = models[row];
-        const double t = products[row].maturity_days/252.0, strike = products[row].strike;
+        const double t = products[row].maturity_days/252.0;
+        const double strike = absolute_products[row].strike;
         const double d1 = (std::log(m.spot/strike)+(m.risk_free_rate-m.dividend_yield+.5*m.volatility*m.volatility)*t)/(m.volatility*std::sqrt(t));
         const double d2 = d1-m.volatility*std::sqrt(t);
         const auto cdf = [](double x) { return .5*std::erfc(-x/std::sqrt(2.0)); };
         const double dq = std::exp(-m.dividend_yield*t), dr = std::exp(-m.risk_free_rate*t);
         const double density = std::exp(-.5*d1*d1)/std::sqrt(2.0*std::acos(-1.0));
         const double expected[6]{sign*dq*cdf(sign*d1), m.spot*dq*density*std::sqrt(t),
-            -sign*dr*cdf(sign*d2), sign*strike*t*dr*cdf(sign*d2), -sign*m.spot*t*dq*cdf(sign*d1),
+            -sign*m.spot*dr*cdf(sign*d2), sign*strike*t*dr*cdf(sign*d2), -sign*m.spot*t*dq*cdf(sign*d1),
             m.spot*dq*density*m.volatility/(2*std::sqrt(t))
                 + sign*m.risk_free_rate*strike*dr*cdf(sign*d2)-sign*m.dividend_yield*m.spot*dq*cdf(sign*d1)};
         for (unsigned int i = 0; i < 6; ++i)
@@ -113,7 +124,7 @@ template<OptionSide Side> void black_scholes_diagonal() {
         {.75f,.03f,.01f,.2f}, {1.2f,0.f,0.f,.3f}, {1.4f,.04f,.02f,.25f}
     };
     const std::vector<product::EuropeanOptionParameters> products{
-        {1.f,252U}, {1.2f,126U}, {1.1f,63U}
+        {1.f/.75f,252U}, {1.2f/1.2f,126U}, {1.1f/1.4f,63U}
     };
     const pg::PriceGradientConfiguration selection{{
         {"model.spot", {.005f}},
@@ -238,8 +249,10 @@ template<OptionSide Side> void black_scholes_diagonal() {
              "Black-Scholes sensitivity order changed price");
         const double maturity = products[row].maturity_days / 252.0;
         const auto& model = models[row];
+        const double absolute_strike =
+            equity::spot_relative::resolve_product(products[row],model.spot).strike;
         const double d1 = (
-            std::log(model.spot/products[row].strike)
+            std::log(model.spot/absolute_strike)
             + (model.risk_free_rate-model.dividend_yield
                + .5*model.volatility*model.volatility)*maturity
         ) / (model.volatility*std::sqrt(maturity));
@@ -269,14 +282,23 @@ template<OptionSide Side> void black_scholes_diagonal() {
 
 template<OptionSide Side> void heston() {
     const std::vector<hs::ModelParameters> models{{.75f,.03f,.01f,.04f,1.5f,.04f,.3f,-.7f},{1.2f,0.f,0.f,.06f,.8f,.04f,.4f,-.3f},{1.4f,.01f,0.f,0.f,1.f,.04f,.3f,1.f}};
-    const std::vector<product::EuropeanOptionParameters> products{{.8f,16U},{1.2f,12U},{1.1f,8U}};
+    // Quote ratios chosen to preserve the independently checked absolute
+    // strikes 0.8, 1.2, and 1.1 from the original Heston fixture.
+    const std::vector<product::EuropeanOptionParameters> products{
+        {.8f/.75f,16U}, {1.2f/1.2f,12U}, {1.1f/1.4f,8U}
+    };
     auto prepare = [&](const pg::PriceGradientConfiguration& selection) {
         return hs::prepare_heston_european_option_price_gradients(models, products, PriceConstruction::Aligned, {}, selection);
     };
     const pg::Sensitivity spot{"model.spot", {.005f}};
     auto launcher = hs::launch_heston_european_option_price_gradients_cuda<Side>;
+    const auto absolute_products = equity::spot_relative::resolve_rows(
+        models, products, PriceConstruction::Aligned
+    ).products;
     DeviceArray<hs::ModelParameters> device_models(models);
-    DeviceArray<product::EuropeanOptionParameters> device_products(products);
+    DeviceArray<product::EuropeanOptionParameters> device_products(
+        absolute_products
+    );
     for (unsigned int threads : {64U, 128U, 256U}) {
         pg::LaunchConfiguration launch{pg::PricingMethod::monte_carlo,0U,3U,heston_paths,threads,1U,713U};
         const auto solo = execute(prepare({{spot}}), launch, launcher, true);
@@ -309,7 +331,7 @@ template<OptionSide Side> void heston() {
         }
         DeviceArray<float> old(12U);
         hs::launch_heston_european_option_price_delta_cuda<Side>(models.data(),device_models.data,3U,
-            products.data(),device_products.data,3U,PriceConstruction::Aligned,3U,0U,3U,heston_paths,1.f/504.f,2U,
+            absolute_products.data(),device_products.data,3U,PriceConstruction::Aligned,3U,0U,3U,heston_paths,1.f/504.f,2U,
             threads,1U,713U,{.01f},old.data,old.data+3U,old.data+6U,old.data+9U);
         const auto reference = old.read();
         for (unsigned int row = 0; row < 3; ++row) {

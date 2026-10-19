@@ -12,11 +12,11 @@ int main() {
     try {
         datasets::price_gradients::Recipe recipe{
             "$model_input", "$product_input", "$dataset", "$catalog",
-            "$url", "$source_recipe", PriceConstruction::$construction,
+            "$source_recipe", PriceConstruction::$construction,
             {{
         $selections
             }}, {1.0f / 504.0f, 2U}, true
-        };
+        };$option_side_assignment
         constexpr auto exercise_replay =
             lspg::ExerciseReplayStrategy::$exercise_replay;
         recipe.exercise_replay = exercise_replay;

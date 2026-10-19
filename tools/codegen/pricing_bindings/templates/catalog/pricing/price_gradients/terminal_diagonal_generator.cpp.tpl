@@ -8,12 +8,12 @@ int main() {
     using namespace ai_factory::workbench;
     namespace pg = price_gradients;
     try {
-        ${recipe_const}datasets::price_gradients::Recipe recipe{
-            "$model_input", "$product_input", "$dataset", "$catalog", "$url", "$source_recipe",
+        datasets::price_gradients::Recipe recipe{
+            "$model_input", "$product_input", "$dataset", "$catalog", "$source_recipe",
             PriceConstruction::$construction, {{
         $selections
             }}, {1.0f/504.0f, 2U}, $exact_transition,
-            pg::SensitivityOrders::first_and_second};$exact_schedule_assignment
+            pg::SensitivityOrders::first_and_second};$exact_schedule_assignment$option_side_assignment
         const auto models = model::equity::$model::load_models(recipe.model_input);
         const auto products = $product_loader_expression;
         const auto prepare = [](const auto& model_rows, const auto& product_rows,

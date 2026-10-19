@@ -1,0 +1,83 @@
+// Generated hull_white Bermudan-swaption selected-gradient recipe.
+#include "model/fixed_income/hull_white/product/flat/bermudan_swaption_price_gradients.cuh"
+#include "model/fixed_income/hull_white/dataset.hpp"
+#include "curve/flat/dataset.hpp"
+#include "product/bermudan_swaption/dataset.hpp"
+#include "tools/pricing/price_gradients/generation.cuh"
+
+int main() {
+    using namespace ai_factory::workbench;
+    namespace lspg = longstaff_schwartz::price_gradients;
+    namespace pg = price_gradients;
+    namespace model_namespace = model::fixed_income::hull_white::flat;
+    try {
+        datasets::price_gradients::Recipe recipe{
+            "datasets/model/fixed_income/hull_white/parameters/hull_white_01.json", "datasets/product/bermudan_swaption/bermudan_swaptions_01.json", "datasets/model/fixed_income/hull_white/price_gradients/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy.json", "catalog/model/fixed_income/hull_white/price_gradients/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generation.yaml",
+            "catalog/model/fixed_income/hull_white/prices/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01/recipe.yaml", PriceConstruction::Aligned,
+            {{
+        {"model.mean_reversion", {0.005, pg::BumpScale::relative}},
+        {"model.volatility", {0.005, pg::BumpScale::relative}},
+        {"curve.rate", {0.0005, pg::BumpScale::absolute}},
+        {"product.strike", {3.125e-05, pg::BumpScale::absolute}}
+            }}, {1.0f / 504.0f, 2U}, true
+        };
+        recipe.option_side = "payer";
+        constexpr auto exercise_replay =
+            lspg::ExerciseReplayStrategy::frozen_regression_policy;
+        recipe.exercise_replay = exercise_replay;
+        recipe.curve_input = "datasets/curve/flat/flat_01.json";
+        const auto models =
+            model::fixed_income::hull_white::load_models(recipe.model_input);
+        const auto curves = curve::flat::load_curves(recipe.curve_input);
+        const auto products =
+            product::load_bermudan_swaptions(recipe.product_input);
+        const auto prepare = [](
+            const auto& model_rows,
+            const auto& curve_rows, const auto& product_rows,
+            PriceConstruction construction,
+            pg::TimeConfiguration time,
+            const pg::PriceGradientConfiguration& configuration
+        ) {
+            return model_namespace::
+                prepare_hull_white_flat_bermudan_swaption_price_gradients(
+                    model_rows, curve_rows, product_rows,
+                    construction, time, configuration
+                );
+        };
+        const auto launch = [exercise_replay](
+            const auto& plan,
+            auto inputs,
+            auto stencils,
+            const auto& configuration,
+            auto outputs
+        ) {
+            return model_namespace::
+                launch_hull_white_flat_bermudan_swaption_price_gradients_with_replay_cuda<
+                    SwaptionSide::payer
+                >(plan, inputs, stencils, configuration, outputs, exercise_replay);
+        };
+        return offline::pricing::price_gradients::execute_curve_dataset<
+            true,
+            pg::SensitivityOrders::first
+        >(
+            recipe,
+            {
+                offline::cuda_tuning::PricingFamily::gaussian_rate_lsm,
+                "hull_white",
+                "bermudan_swaption",
+                "flat",
+            },
+            11668829237267136512ULL,
+            models,
+            curves, products,
+            prepare,
+            launch,
+            offline::cuda_tuning::kProductionPathsPerPrice,
+            model_namespace::
+                prepare_bermudan_swaption_price_gradient_stencils_cuda
+        );
+    } catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return 1;
+    }
+}

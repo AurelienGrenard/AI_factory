@@ -63,17 +63,12 @@ void write_analytical_price_dataset_impl(
     // Reference source identifiers without duplicating their parameters.
     nlohmann::ordered_json rows = nlohmann::ordered_json::array();
     for (std::size_t index = 0U; index < row_count; ++index) {
-        std::size_t model_index = index;
-        std::size_t curve_index = index;
-        std::size_t product_index = index;
-        if (is_cartesian(construction)) {
-            const std::size_t curve_product_count =
-                curve_rows.size() * product_rows.size();
-            model_index = index / curve_product_count;
-            const std::size_t remainder = index % curve_product_count;
-            curve_index = remainder / product_rows.size();
-            product_index = remainder % product_rows.size();
-        }
+        const auto indices = decode_model_curve_product_result_index(
+            index, curve_rows.size(), product_rows.size(), construction
+        );
+        const auto model_index = indices.model_index;
+        const auto curve_index = indices.curve_index;
+        const auto product_index = indices.product_index;
         rows.push_back({
             {"id", format_row_id(index)},
             {"model_id", model_rows.at(model_index).at("id")},
@@ -92,7 +87,7 @@ void write_analytical_price_dataset_impl(
             {"url", document.at("url")},
         };
     };
-    const nlohmann::ordered_json json_document = {
+    nlohmann::ordered_json json_document = {
         {"database_id", database_id},
         {"catalog", catalog_path.parent_path().generic_string()},
         {"url", url},
@@ -107,6 +102,18 @@ void write_analytical_price_dataset_impl(
         }},
         {"results", rows},
     };
+    if (construction == PriceConstruction::SampledCurveCartesianProduct) {
+        json_document["price_construction"] = {
+            {"method", "Cartesian product"},
+            {"order", "model, product"},
+            {"curve_assignment", {
+                {"method", "splitmix64_modulo"},
+                {"seed", kSampledCurveSeed},
+                {"sampling", "with_replacement"},
+                {"key", "zero_based_result_index"},
+            }},
+        };
+    }
     write_json_file(dataset_path, json_document);
 
     if (!cuda_execution.is_object() || cuda_execution.empty()) {
@@ -287,7 +294,18 @@ void write_monte_carlo_price_dataset_impl(
         );
     }
     nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
-    if (is_cartesian(construction)) {
+    if (construction == PriceConstruction::SampledCurveCartesianProduct) {
+        price_construction = {
+            {"method", "Cartesian product"},
+            {"order", "model, product"},
+            {"curve_assignment", {
+                {"method", "splitmix64_modulo"},
+                {"seed", kSampledCurveSeed},
+                {"sampling", "with_replacement"},
+                {"key", "zero_based_result_index"},
+            }},
+        };
+    } else if (is_cartesian(construction)) {
         price_construction = {
             {"method", "Cartesian product"},
             {"order", has_curve ? "model, curve, product" : "model, product"},
@@ -300,22 +318,20 @@ void write_monte_carlo_price_dataset_impl(
         std::size_t model_index = index;
         std::size_t curve_index = index;
         std::size_t product_index = index;
-        if (is_cartesian(construction)) {
-            if (has_curve) {
-                const std::size_t curve_product_count =
-                    curve_document.at("curves").size() * product_rows.size();
-                model_index = index / curve_product_count;
-                const std::size_t remainder = index % curve_product_count;
-                curve_index = remainder / product_rows.size();
-                product_index = remainder % product_rows.size();
-            } else {
-                const ModelProductIndices source =
-                    decode_model_product_result_index(
-                    index, product_rows.size(), construction
-                );
-                model_index = source.model_index;
-                product_index = source.product_index;
-            }
+        if (has_curve) {
+            const auto source = decode_model_curve_product_result_index(
+                index, curve_document.at("curves").size(),
+                product_rows.size(), construction
+            );
+            model_index = source.model_index;
+            curve_index = source.curve_index;
+            product_index = source.product_index;
+        } else {
+            const auto source = decode_model_product_result_index(
+                index, product_rows.size(), construction
+            );
+            model_index = source.model_index;
+            product_index = source.product_index;
         }
         nlohmann::ordered_json row = {
             {"id", format_row_id(index)},

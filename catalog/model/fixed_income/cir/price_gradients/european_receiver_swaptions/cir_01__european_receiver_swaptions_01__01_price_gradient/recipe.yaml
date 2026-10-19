@@ -12,7 +12,6 @@
     "format": "json"
   },
   "generation_output": "catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient/generation.yaml",
-  "url": "https://datasets.ai-factory.example/v1/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient.json",
   "row_count": 1000,
   "paths_per_price": 0,
   "sensitivity": {
@@ -55,8 +54,10 @@
         "boundary": "central_then_one_sided_order2"
       }
     ],
+    "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/recipe.yaml"
   },
+  "option_side": "receiver",
   "time_representation": {
     "kind": "exact_terminal_transition",
     "contractual_days_per_year": 252,

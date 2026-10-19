@@ -12,6 +12,8 @@ import re
 import sys
 from string import Template
 
+import yaml
+
 from manifest import (
     AMERICAN_RECIPE_SPECS,
     BINDINGS,
@@ -29,6 +31,7 @@ from manifest import (
 from capability_manifest import (
     AVAILABLE_DATASET_SPECS,
     CAPABILITY_EXCEPTIONS,
+    CURVE_ASSIGNMENT,
     CURVE_BY_NAME,
     CURVE_SPECS,
     DEFERRED_DATASET_SPECS,
@@ -50,6 +53,7 @@ from capability_manifest import (
     PRICE_GRADIENT_BINDING_SPECS,
     GENERATED_PRICE_GRADIENT_BINDING_PATHS,
     PRICE_GRADIENT_DATASET_SPECS,
+    ALL_PRICE_GRADIENT_DATASET_SPECS,
     PRICE_GRADIENT_SOURCE_BY_GENERATOR,
     GENERATED_PRICE_DELTA_BINDING_PATHS,
     GENERATED_CLOSED_FORM_POLICY_PATHS,
@@ -1197,7 +1201,9 @@ def _fixed_income_recipe_values(dataset) -> dict[str, str]:
             else "exact joint Gaussian factor and stochastic rate-integral transitions"
         ),
         "construction": (
-            "CartesianProduct"
+            "SampledCurveCartesianProduct"
+            if dataset.construction == "cartesian" and dataset.curve is not None
+            else "CartesianProduct"
             if dataset.construction == "cartesian" else "Aligned"
         ),
         "launch_identity": pricing_identity_expression(dataset),
@@ -1295,9 +1301,9 @@ def generate_fixed_income_catalog_recipes(output_root: Path) -> list[Path]:
             dataset.template,
             _fixed_income_recipe_values(dataset),
         )
-        if dataset.construction == "cartesian":
+        if dataset.construction == "cartesian" and dataset.dataset_id not in rendered:
             rendered = rendered.replace(
-                dataset.dataset_id.removesuffix("_cartesian"),
+                dataset.dataset_id.split("_cartesian", 1)[0],
                 dataset.dataset_id,
             )
         _write_generated(destination, rendered)
@@ -1602,6 +1608,8 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         ),
         "paths_per_price": 1_048_576 if stochastic else 0,
     }
+    if dataset.construction == "cartesian" and dataset.curve is not None:
+        metadata["curve_assignment"] = CURVE_ASSIGNMENT
     if dataset.engine.startswith("equity_lsm_") or dataset.engine == "fixed_income_lsm":
         metadata["standard_error_scope"] = (
             "in-sample discounted cashflow dispersion / sqrt(paths); "
@@ -1823,6 +1831,7 @@ def codegen_source_fingerprint() -> str:
         SCRIPT_DIR / "sample_manifest.py",
         SCRIPT_DIR / "generate.py",
         *sorted((SCRIPT_DIR / "price_gradients").glob("*.py")),
+        *sorted((SCRIPT_DIR / "price_gradients").glob("*.json")),
         *sorted(TEMPLATE_DIR.rglob("*.tpl")),
     ]
     digest = hashlib.sha256()
@@ -1986,7 +1995,7 @@ def _expected_generated_paths() -> set[str]:
     paths.update(GENERATED_PRICE_GRADIENT_BINDING_PATHS)
     paths.update(GENERATED_CLOSED_FORM_POLICY_PATHS)
     paths.update(layout_relative(str(Path(dataset.generator_path).with_name("recipe.yaml")))
-                 for dataset in PRICE_GRADIENT_DATASET_SPECS)
+                 for dataset in ALL_PRICE_GRADIENT_DATASET_SPECS)
     paths.update(layout_relative(dataset.recipe_yaml_path) for dataset in AVAILABLE_DATASET_SPECS
                  if dataset.dataset_kind in {"prices", "samples"})
     paths.update(
@@ -2060,6 +2069,52 @@ def compare(
     return mismatch_count
 
 
+def apply_product_shard_inputs(output_root: Path) -> None:
+    """Bind every stochastic Cartesian recipe to its 100-row product shard.
+
+    Only work-catalogue Cartesian outputs are modified. The underlying pricing
+    bindings and kernels continue to use the ordinary Cartesian construction.
+    """
+    for spec in AVAILABLE_DATASET_SPECS:
+        if (spec.dataset_kind not in {"prices", "price_gradients"}
+                or spec.product_shard is None):
+            continue
+        generator = output_root / layout_relative(spec.generator_path)
+        recipe = output_root / layout_relative(spec.recipe_yaml_path)
+        if not generator.is_file() or not recipe.is_file():
+            continue
+        source = generator.read_text()
+        inputs = sorted(set(re.findall(
+            r"datasets/product/[a-z0-9_/]+\.json", source
+        )))
+        if len(inputs) != 1:
+            raise ValueError(
+                f"Expected one product input in {spec.generator_path}: {inputs}"
+            )
+        original = inputs[0]
+        selected = original.removesuffix(".json") + (
+            f"_shard{spec.product_shard:02d}.json"
+        )
+        _write_generated(generator, source.replace(original, selected))
+        metadata = yaml.safe_load(recipe.read_text())
+        if metadata["inputs"]["product"] != original:
+            raise ValueError(
+                f"Product input mismatch in {spec.recipe_yaml_path}"
+            )
+        metadata["inputs"]["product"] = selected
+        metadata["product_shard"] = {
+            "index": spec.product_shard,
+            "total_shards": 10,
+            "source_dataset": original,
+            "selection": "one seeded permutation position per contiguous ten-row block",
+            "core_products": 90,
+            "stress_products": 10,
+        }
+        _write_generated(recipe, yaml.safe_dump(
+            metadata, sort_keys=False, allow_unicode=True
+        ))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -2091,7 +2146,7 @@ def main() -> int:
     if arguments.family in ("catalog", "all"):
         generated.extend(render_price_gradient_recipes(
             arguments.output,
-            PRICE_GRADIENT_DATASET_SPECS,
+            ALL_PRICE_GRADIENT_DATASET_SPECS,
             PRICE_GRADIENT_SOURCE_BY_GENERATOR,
             PRODUCT_BINDING_SPECS,
             MODEL_BY_NAME,
@@ -2104,6 +2159,7 @@ def main() -> int:
             arguments.output
         ))
         generated.extend(generate_price_recipe_metadata(arguments.output))
+        apply_product_shard_inputs(arguments.output)
     if arguments.family in ("samples", "all"):
         generated.extend(generate_samples(arguments.output))
     if arguments.family == "all":

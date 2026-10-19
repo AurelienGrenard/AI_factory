@@ -1,29 +1,16 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/cir_plus_plus/prices/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01/recipe.yaml
-  sha256: 5a22f6c735b805bfdb9859bc84a78a258fc3adbb44c9c5eb3c1420c760bd0855
 artifact:
   row_count: 1000
-  sha256: 75bc0f4558d50d48fa97ce3b68adfeedf03dd166df9fa5e586dd13a0e65f2be1
-inputs:
-  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
-  models: 9dbb9f803ad0e887565621f777ba38c35909ba110916dd93eb294dcf4b403d1c
-  products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+  sha256: 4585ac140376708d77513a0c5cdd20f035bdbe66ab761b34994a43668b26184b
 execution:
-  binary_sha256: 0b7f96e9c786f5d234c4595783dd80a36866538d59de8c77f8dc6cad1f8da336
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: caplets
-    construction: aligned
-    has_curve: true
+  block_count: 4
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: closed_form
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cir_plus_plus
     product: rate_option
     curve: svensson
@@ -39,40 +26,50 @@ execution:
     block_count: 4
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 7d139fbf0fc7078f11834e7b962f16e495acd02227d66c44a16a2374f942354c
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: 6c27f8600cad7b25f580e0fea879d2b82cd706280383397644246b565177f595
+  generator_sha256: a1fdee4064c0640f4d7cb8ec2b7d54b35e4e3aa3864f63e81b18a0a0508f0816
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: caplets
+    construction: aligned
+    has_curve: true
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.130488945
-  kernel_seconds: 0.000173056
+  wall_seconds: 0.555292561
+  kernel_seconds: 0.0001730560064315796
+recipe:
+  path: catalog/model/fixed_income/cir_plus_plus/prices/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01/recipe.yaml
+  sha256: c04e2a1d83ac3833e31785dc4012dc3b7e29f22bd6ef7cd38c25b8aa1914feb7
+inputs:
+  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+  models: 330618ffe9405302fdaeb520101fdf44f0426c39acc9fbf58096a4757e96b950
+  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307148.177273
+    unix_time: 1791411395.785321
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 85, 101.59 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 76, 56.14 W, [N/A], 2310 MHz, 9001 MHz
 
       '
     stderr: ''
+  generator: catalog/model/fixed_income/cir_plus_plus/prices/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
   input_files:
     datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
-    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915
-    datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
-  generator: catalog/model/fixed_income/cir_plus_plus/prices/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: cee9454dfb9f56e3331a1a41e67a7a96a969967e11313d4ce533e9c24f025d1b
-  record_sha256: fce45ef8a535b67e21cd4b62db07a7e3a566b5f3980cb67e873b8198d34537d5
-record_sha256: 5e10818dd7b23eac7d87bf901c1655db3c67acf0fcbfdcc13a6242cd27f60704
+    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
+    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+record_sha256: 57dc8e5c715952497947c1aae1c87b8f8451fe080664a553100a0f0bc92496b0

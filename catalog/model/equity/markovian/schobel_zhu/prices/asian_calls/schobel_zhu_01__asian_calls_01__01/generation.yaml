@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/schobel_zhu/prices/asian_calls/schobel_zhu_01__asian_calls_01__01/recipe.yaml
-  sha256: c951d480ef2cae7ef74c89cfaa41150358f6a57ae08f0b2cd7e2c9681055835b
 artifact:
   row_count: 1000
-  sha256: 2da4d803a2249964d071a7d291f772fe55d30eb18af8bfd971df76a2c9b3ce53
-inputs:
-  models: a86b0eea5fb8591fe9a56e3a1cf62869c90db8c2642db4af175525ec35610082
-  products: cf39f012d5200a82195b5201d0a257e6a1aa30fbd012479582d67ed2207f9cfd
+  sha256: f033dfb9c213987ba939e80d239c7b00c1854df26e3c885815506906358287ed
 execution:
-  binary_sha256: 53a8f68242b493ab535047990e97ab199bf20c54c1615fdee2c9b67b2315c4e4
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: asian_calls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: schobel_zhu
     product: asian_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 5c52a013bac36cd59fc79c3da9129ac44739f05575b420dab52327e4e67eac11
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 840043773f84859ef294f286365892a7942079a716d248ecf92b61af637b72b0
+  generator_sha256: 5bb0fbae2b109f63d09ced5428f66163c1ceaddc765a7b9bd26e26a8522ec545
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: asian_calls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 52.496787184
-  kernel_seconds: 54.67678125
+  wall_seconds: 20.444879615
+  kernel_seconds: 19.141369140625
+recipe:
+  path: catalog/model/equity/markovian/schobel_zhu/prices/asian_calls/schobel_zhu_01__asian_calls_01__01/recipe.yaml
+  sha256: cd62e71f42359a89c7985e665092cb203edb8424260969bd7a760e107b5d6b54
+inputs:
+  models: 9789d87eb17d12e33f419308f895838538aa4f7dc61ea28c7c695b02a9712915
+  products: 49f7522cff95ffaa9d74764fe01eda57f057e395ed092a02aabc6efb754cbbf5
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789327237.7043755
+    unix_time: 1791496505.1059911
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 81, 91.56 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 76, 47.79 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json: ced5967808def3ae1910749c9d3c8c4447fb02cfe98664ab9a72ec745ad1c8c0
-    datasets/product/asian_option/asian_options_01.json: ae09796e37edac8ce763fdd66fde05401e39ec89820e3da89cc94576c6280005
   generator: catalog/model/equity/markovian/schobel_zhu/prices/asian_calls/schobel_zhu_01__asian_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 7b4ea28d892147739206aa9dc5446445d7de12b2bcd6ee2119f46d16943d3fe9
-  record_sha256: b0adc0bb36bc0a55e1e431c790bb0d1a5c857e8c1372fdbb68477cc60fd855d3
-record_sha256: eb29f71e48aae6277d118aa55a9150291ebaf1e983e0f9c0a1ffc7653ddd645a
+  input_files:
+    datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json: ce5e1fcdf335209213a172753a9084ff198e041bac9768a9c60677d84691eb63
+    datasets/product/asian_option/asian_options_01.json: 8a51c15a49afbac2f6dd07a7802c8f34d199002e8e7eb5f2a2b01ff7a47f373e
+record_sha256: 1b7eeb80b9e745d91583056a668086a5129ef447312e30243c76b608f2fddff8

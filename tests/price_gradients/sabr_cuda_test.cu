@@ -1,6 +1,7 @@
 // SABR terminal sensitivities reuse the canonical transition and Philox path.
 #include "model/equity/markovian/sabr/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/sabr/product/european_option.cuh"
+#include "common/equity/spot_relative_product.hpp"
 #include "cuda_test_support.cuh"
 #include "diagonal_cuda_test_support.cuh"
 
@@ -97,12 +98,18 @@ void check(std::size_t paths) {
             Side, pg::SensitivityOrders::first_and_second
         >
     );
+    // The legacy price launcher consumes absolute strike levels.
+    const auto absolute_products = equity::spot_relative::resolve_rows(
+        models, products, PriceConstruction::Aligned
+    ).products;
     DeviceArray<sabr::ModelParameters> device_models(models);
-    DeviceArray<product::EuropeanOptionParameters> device_products(products);
+    DeviceArray<product::EuropeanOptionParameters> device_products(
+        absolute_products
+    );
     DeviceArray<float> canonical_prices(models.size());
     DeviceArray<float> canonical_errors(models.size());
     sabr::launch_sabr_european_option_cuda<Side>(
-        device_models.data, models.size(), products.data(),
+        device_models.data, models.size(), absolute_products.data(),
         device_products.data, products.size(), PriceConstruction::Aligned,
         models.size(), 0U, models.size(), paths, 1.0f/504.0f, 2U,
         128U, models.size(), 1709U, canonical_prices.data,

@@ -1,29 +1,16 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/recipe.yaml
-  sha256: 057cdb24c80f490f16ba338987bf0c48be74c844fd40e8d87537985098cebe5c
 artifact:
   row_count: 1000
-  sha256: 9913a2580478e61ea9b34e945347dea50efed4c6505fe3f3845061c48c16cd61
-inputs:
-  curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
-  models: 9dbb9f803ad0e887565621f777ba38c35909ba110916dd93eb294dcf4b403d1c
-  products: 95f07b18283d7d9bc4b33e23d3dd44f25d64559902f46eb4b197a5172a4c8a20
+  sha256: 1f0e2184fa4451b7c76956978beb02347fa45ee2540e2a225c2b8f10c865f101
 execution:
-  binary_sha256: 3cf10a81a227deb27ef3d431d4a066d8fb124008aacf2d6571c89a9892198a67
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: zero_coupon_bond_calls
-    construction: aligned
-    has_curve: true
+  block_count: 4
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: closed_form
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cir_plus_plus
     product: zero_coupon_bond_option
     curve: nelson_siegel
@@ -39,40 +26,50 @@ execution:
     block_count: 4
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: a51c0ff8684bf8626359c117d3173b282905765459370b04e07318f9c9c01ced
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: 235abbe4546ed338e13731a752b953fe7f4d1502bdec981a7b499cbe9c8dce7e
+  generator_sha256: 367fc135f7cd97249b9ba4c7a692743b24878542d3194b3d65807ecae007c196
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: zero_coupon_bond_calls
+    construction: aligned
+    has_curve: true
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.169343342
-  kernel_seconds: 0.000288768
+  wall_seconds: 0.409655666
+  kernel_seconds: 0.0002396160066127777
+recipe:
+  path: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/recipe.yaml
+  sha256: 8fa857fb71cfe0cc46ba0d96d13f9a5ebb864cc9a85a80fba75669b9819650d5
+inputs:
+  curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
+  models: 330618ffe9405302fdaeb520101fdf44f0426c39acc9fbf58096a4757e96b950
+  products: 1ae2fe789191ffa1fd563c2617c38c3538d913f213948331961684cbd8d6fbd7
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307097.111379
+    unix_time: 1791411375.2083104
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 87, 109.96 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 69, 48.69 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
+  generator: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
   input_files:
     datasets/curve/nelson_siegel/nelson_siegel_01.json: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
-    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915
-    datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 1f34b2a7c6e74e139663868978a9df8cbf8c02da34829cce2e1d00f14927c769
-  generator: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 17349b51b92e49326ab503ca5e45a7a96e7006492212137d56b9a8cbac05377b
-  record_sha256: 35fcfa18de9aa0f89a852d7bf9bc7160235304dc34594328b24d8ef07b6f488b
-record_sha256: 9aa22e0832aa61692f102da9671fa594cca9d529bf85b66801ac8c5c5a3820c6
+    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
+    datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 775a85dbbbc1c78878bb5cfccdda6e93790130ea47b8fb21da19132d4a557eaa
+record_sha256: b974a0ffef4eb24590eb3db02c475afcbeee2dc2e27593aa7cda2ca0c7d18347

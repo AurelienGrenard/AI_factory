@@ -30,9 +30,9 @@ inline std::vector<ModelParameters> generate_core_parameters(
         const float risk_free_rate = uniform({0.001f, 0.08f}, uniforms);
         const float dividend_yield = uniform({0.0f, 0.06f}, uniforms);
         const float initial_volatility = uniform({0.08f, 0.5f}, uniforms);
-        const float volatility_of_volatility = uniform({0.1f, 2.0f}, uniforms);
-        const float rho = uniform({-0.9f, 0.2f}, uniforms);
-        const float beta = uniform({0.3f, 1.0f}, uniforms);
+        const float volatility_of_volatility = uniform({0.1f, 1.5f}, uniforms);
+        const float rho = uniform({-0.9f, -0.2f}, uniforms);
+        const float beta = uniform({0.5f, 0.95f}, uniforms);
         if (!(true)) continue;
         parameters.push_back({spot, risk_free_rate, dividend_yield, initial_volatility, volatility_of_volatility, rho, beta});
     }
@@ -81,9 +81,9 @@ inline datasets::ModelSampleRecipe recipe(
                 {"risk_free_rate", {0.001f, 0.08f}},
                 {"dividend_yield", {0.0f, 0.06f}},
                 {"initial_volatility", {0.08f, 0.5f}},
-                {"volatility_of_volatility", {0.1f, 2.0f}},
-                {"rho", {-0.9f, 0.2f}},
-                {"beta", {0.3f, 1.0f}}
+                {"volatility_of_volatility", {0.1f, 1.5f}},
+                {"rho", {-0.9f, -0.2f}},
+                {"beta", {0.5f, 0.95f}}
             }},
             {"acceptance", "true"}
         },

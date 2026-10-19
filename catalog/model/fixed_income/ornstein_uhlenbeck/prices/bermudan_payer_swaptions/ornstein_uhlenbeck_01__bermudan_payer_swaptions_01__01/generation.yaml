@@ -1,28 +1,21 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/recipe.yaml
-  sha256: 94876965d666117f7350fa4c4ff28c7ee1425d80547b0b151beeff95d0428ed7
 artifact:
   row_count: 1000
-  sha256: e2887a43fc39afae3594759fdd6c8cbc0896d019c69e0332a47283a0039c4970
-inputs:
-  models: f1ca902513bb0b5e722e7c227cbe433246bcf33200bc3790f5b411bcc6fd342c
-  products: 81b382bc7a40260bb4f831e474473d10665424531db352fce9a8db2c757ada6f
+  sha256: 67b092419c334ea438c08c5d90fb6bf99ab0f4fdcf28735e1c5a70cff22dd0b5
 execution:
-  binary_sha256: fd9bdb92aa9ea55ef225d1a3b25026ac01e3859c90e6fd80e86dc42c7d85dcc1
-  declared_method:
-    engine: fixed_income_lsm
-    profile: longstaff_schwartz_price_profile
-    variant: bermudan_payer_swaptions
-    construction: aligned
-    has_curve: false
+  threads_per_block: 128
+  blocks_per_price: 64
+  batch_count: 4
+  kernel_launch_count: 124
+  workspace_bytes: 14153918736
+  maximum_prices_per_batch: 263
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: gaussian_rate_lsm
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: ornstein_uhlenbeck
     product: bermudan_swaption
     curve: ''
@@ -38,48 +31,54 @@ execution:
     blocks_per_price: 64
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 22ef2bfc8b0d7bc9c67f3222f877c2af556dc32e70802b5c547378753a996499
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  threads_per_block: 128
-  blocks_per_price: 64
-  batch_count: 4
-  kernel_launch_count: 130
-  workspace_bytes: 14153918736
-  maximum_prices_per_batch: 263
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: fixed_income_early_exercise
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
   time_day_fraction: 1 / 252
+  paths_per_price: 1048576
+  binary_sha256: 046541d7606b3eb8643c62322a3e4d54e954d1115dab9573d7894f8b7702039e
+  generator_sha256: 22ef2bfc8b0d7bc9c67f3222f877c2af556dc32e70802b5c547378753a996499
+  declared_method:
+    engine: fixed_income_lsm
+    profile: longstaff_schwartz_price_profile
+    variant: bermudan_payer_swaptions
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 7.295722932
-  kernel_seconds: 7.311542297
+  wall_seconds: 2.98791152
+  kernel_seconds: 1.5208970336914063
+recipe:
+  path: catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/recipe.yaml
+  sha256: 455da3e218604fb5ecfdcac2a0882b08231282f1cc2ff7bf4da31139f3631cbd
+inputs:
+  models: 8cbefc6ea8976f41355f3c7e80411855d23856c94c2e7a5f8f6dcfb25cc3c1d6
+  products: 0722965bd90bfd491381e95e549d64eaf53fa86b657ad9cbfc48d8f8a6562c04
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307867.3315725
+    unix_time: 1791411651.0555983
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 84, 106.50 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 77, 51.20 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json: 1966f6147218ec57ac8e90dead97464944c0d037ed064d7fc522ba46e779571e
-    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c
   generator: catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 2a6b02b94e8fcb339f08d1b57121a01b33d189e360cacf49faaa730eb47d5f0f
-  record_sha256: fadac9ad397cb9cc64f1ebc94cd5f86515c88cfb6ed8252b9217bdb901f5c981
-record_sha256: 6e14f4abd6194a4977eee23d452268d63d5633812fe1ae8ee3580a68892397cc
+  input_files:
+    datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json: 659eef441992948fde9ffd367cc297f73b79059a7ecf642d57db8ec01429c624
+    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
+record_sha256: 1ab26aaec63482299f5f23bbe43961db1a5e2de16f331231e0d7500f0bb304d3

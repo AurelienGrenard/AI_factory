@@ -1,5 +1,6 @@
 // Gaussian rough Asian graph: cached FFT, path payoff, CRN and price parity.
 #include "common/check_cuda.cuh"
+#include "common/equity/spot_relative_product.hpp"
 #include "common/volterra/hybrid_fft_workspace.cuh"
 #ifndef ROUGH_GAUSSIAN_PATH_TEST_MODEL
 #define ROUGH_GAUSSIAN_PATH_TEST_MODEL 0
@@ -69,7 +70,7 @@ int main() {
     }};
 #elif ROUGH_GAUSSIAN_PATH_TEST_MODEL == 1
     const std::vector<rb::ModelParameters> models{{
-        1.0f,.02f,.01f,.04f,.8f,.10f,-.7f,.85f
+        1.7f,.02f,.01f,.04f,.8f,.10f,-.7f,.85f
     }};
 #elif ROUGH_GAUSSIAN_PATH_TEST_MODEL == 2
     const std::vector<rb::ModelParameters> models{{
@@ -167,7 +168,12 @@ int main() {
     Buffer<product::AsianOptionParameters> dp(1);
     Buffer<float> reference_prices(1),reference_errors(1);
     dm.upload(models.data(),1);
-    dp.upload(products.data(),1);
+    // Historical FFT pricers consume an absolute strike; graph plans consume
+    // the quoted ratio and freeze the resolved strike for spot bumps.
+    const auto absolute_product = equity::spot_relative::resolve_product(
+        products[0U], models[0U].spot
+    );
+    dp.upload(&absolute_product,1);
 #if ROUGH_GAUSSIAN_PATH_TEST_MODEL == 0
     rb::launch_rough_bergomi_asian_option_cuda<OptionSide::call>(
 #elif ROUGH_GAUSSIAN_PATH_TEST_MODEL == 1
@@ -207,7 +213,7 @@ int main() {
         check_cuda(cudaDeviceSynchronize(),"FFT Asian CRN reference sync");
         reference_prices.download(&endpoint_prices[endpoint],1);
     }
-    const float oracle_delta=(endpoint_prices[1]-endpoint_prices[0])/.02f;
+    const float oracle_delta=(endpoint_prices[1]-endpoint_prices[0])/(.02f*models[0U].spot);
     require(std::abs(graph_gradients[0]-oracle_delta)<3.0e-3f,
             "FFT Asian graph spot delta differs from paired FFT prices.");
 }

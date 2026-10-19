@@ -9,7 +9,6 @@ required:
   - generator
   - output
   - generation_output
-  - url
   - row_count
 properties:
   schema_version:
@@ -49,10 +48,21 @@ properties:
   url:
     type: string
     pattern: "^https://[^\\s]+\\.json$"
+  option_side:
+    enum: [call, put, payer, receiver]
 allOf:
   - not:
       anyOf:
         - required: [rng_mapping_version]
         - required: [launch_profile]
         - required: [sensitivity_execution]
+  - if:
+      properties:
+        kind:
+          const: price_gradients
+    then:
+      not:
+        required: [url]
+    else:
+      required: [url]
 additionalProperties: true

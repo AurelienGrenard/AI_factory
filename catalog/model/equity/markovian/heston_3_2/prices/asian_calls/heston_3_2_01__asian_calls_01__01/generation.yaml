@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/heston_3_2/prices/asian_calls/heston_3_2_01__asian_calls_01__01/recipe.yaml
-  sha256: 6054cfd5206df4176faebcd49e2c546c19acac36f4d31f9df627bdbe072446f7
 artifact:
   row_count: 1000
-  sha256: 68282057a5c6615e67454f8bb61ccc3bba223cbabbf3b3ad315213b186a0ee46
-inputs:
-  models: b95076f3e22bc5b7f9fc98b0b5e57e46ccd356dfcc45d0edd2c3981b5c5ec012
-  products: cf39f012d5200a82195b5201d0a257e6a1aa30fbd012479582d67ed2207f9cfd
+  sha256: 173a3af54b25a71a609d348990355647b8ebc247e5186aa07413236ba6965458
 execution:
-  binary_sha256: 8ff0501c1d0b148909bb1a3c3fda0013fe1518a5240f0ec089e1bc7ec01e43b6
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: asian_calls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: heston_3_2
     product: asian_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: ada1f670c708be5c5e2c6fb38c80d53545a7185ddced03b5dcf566045c6ec69e
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 15f5f4ddfd59295104c119d9dc80262ab9b382ce7873f500edcc7561e53c8af8
+  generator_sha256: 39665f1ec745565e16c93b50469bf7b49ac704dd7ee1a50c80fb068d6c3ff207
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: asian_calls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 50.982002252
-  kernel_seconds: 53.508695313
+  wall_seconds: 16.792874045
+  kernel_seconds: 15.784296875
+recipe:
+  path: catalog/model/equity/markovian/heston_3_2/prices/asian_calls/heston_3_2_01__asian_calls_01__01/recipe.yaml
+  sha256: e13a7a728f4f25a1459f6036986b356735b6c1e830d9adfb6f6ecf20b1e95c83
+inputs:
+  models: eb7f2e6b4dcc701bb0c4f0331af6d13774f6bdf3f09e91e98aae661269e022ac
+  products: 49f7522cff95ffaa9d74764fe01eda57f057e395ed092a02aabc6efb754cbbf5
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789320607.8148193
+    unix_time: 1791494224.7264752
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 79, 95.28 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 72, 46.20 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json: 29510fff54ed2cb19954b9e0ebbd0547f29e52e1632fbdb4bbb82caa5a60009a
-    datasets/product/asian_option/asian_options_01.json: ae09796e37edac8ce763fdd66fde05401e39ec89820e3da89cc94576c6280005
   generator: catalog/model/equity/markovian/heston_3_2/prices/asian_calls/heston_3_2_01__asian_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 06e820041572a9027ad3f1fdb60ef2a95f05e2351fc73bbb45233b8089c3c685
-  record_sha256: f563b2fe5ac26cb959514fd853317faebb88e5f15ee026b1e45c5cb3aca70a07
-record_sha256: 45f236b295c2abc2c7d4791b0f6c91856431e36a86510d1930fb4d92d8695f89
+  input_files:
+    datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json: 1819fc3517ab94bdf6fe209806946ac97a844e2ddfb574be70e1e28fcdca6fcb
+    datasets/product/asian_option/asian_options_01.json: 8a51c15a49afbac2f6dd07a7802c8f34d199002e8e7eb5f2a2b01ff7a47f373e
+record_sha256: 5c30aae252e86f749f4b6653ad2b6bb3074ebeba5bcdc1249d4d3d1a51ab2d8c

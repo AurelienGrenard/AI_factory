@@ -177,7 +177,7 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python3 maintainer/tests/price_gradient
 ```
 
 Les preuves locales sont dans
-`artifacts/price_gradients/2026-09-15-cev-cf/` : trois campagnes de chaque sonde,
+`project_journal/evidence/price_gradients/2026-09-15-cev-cf/` : trois campagnes de chaque sonde,
 diagnostics et inventaires compilés, résultats/stencils bruts, références aux
 deux résolutions, comparaison de contrôle des taux, logs de tests et de
 sanitizers, checkpoint temporaire, scripts, binaires et empreintes de sources.

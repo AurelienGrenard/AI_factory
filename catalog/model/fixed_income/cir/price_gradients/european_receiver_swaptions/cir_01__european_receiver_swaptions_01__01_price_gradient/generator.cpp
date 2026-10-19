@@ -11,7 +11,7 @@ int main() {
     try {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/fixed_income/cir/parameters/cir_01.json", "datasets/product/european_swaption/european_swaptions_01.json", "datasets/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient.json", "catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient/generation.yaml",
-            "https://datasets.ai-factory.example/v1/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient.json", "catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/recipe.yaml", PriceConstruction::Aligned,
+            "catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/recipe.yaml", PriceConstruction::Aligned,
             {{
         {"model.mean_reversion", {0.005, pg::BumpScale::relative}},
         {"model.long_term_mean", {0.005, pg::BumpScale::relative}},
@@ -21,6 +21,7 @@ int main() {
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f / 504.0f, 2U}, true
         };
+        recipe.option_side = "receiver";
         const auto models =
             model::fixed_income::cir::load_models(recipe.model_input);
         const auto product_dataset =

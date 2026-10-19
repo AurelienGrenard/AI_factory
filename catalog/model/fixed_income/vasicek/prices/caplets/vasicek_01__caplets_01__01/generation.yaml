@@ -1,28 +1,16 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01/recipe.yaml
-  sha256: 57e63eda28555497dc33aea5f16f0df649f816ac723ea716a3ef93caff27232d
 artifact:
   row_count: 1000
-  sha256: 25dca3f37f0dcb5931a4d4a5a00b1b529ec25f5edd4ca39bd097d66de86f895e
-inputs:
-  models: 359e723991c28fb574048f7a53b5874f216a7c717fe53afa8b9f456fac744f5f
-  products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+  sha256: 3b42d97b252079a3238f514f7046f51a70ee262c333b032944f3f9b789a88592
 execution:
-  binary_sha256: 7e1c04cb7870067521358e4937af09af7f5fc87370b1244a4214d4c02ded1ad9
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: caplets
-    construction: aligned
-    has_curve: false
+  block_count: 4
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: closed_form
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: vasicek
     product: rate_option
     curve: ''
@@ -38,39 +26,48 @@ execution:
     block_count: 4
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 338761e1f6370cf28f9263c6c16f9ab44bb64a8f7a741b05c4223ffa1cd6014c
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: 12f6866b094f77349ed6b45c9fd3f0239b412bb5329bed2c54415ad0b2c8cdb1
+  generator_sha256: 1c63900467426d605555e1a07e3a1cadd23f991d08ad596f4b1dde740e82451b
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: caplets
+    construction: aligned
+    has_curve: false
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.149812557
-  kernel_seconds: 7.168e-06
+  wall_seconds: 0.468995067
+  kernel_seconds: 2.7712000533938408e-05
+recipe:
+  path: catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01/recipe.yaml
+  sha256: fca7bfc56023043036d0c2b9d05edc46ca60c3fe410e884552e7c4314cd7ec19
+inputs:
+  models: 3adedad4abc03bf55952fcd04b67551a85d8ef4cf779bbdbb67ad8f1340aa247
+  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307882.9491284
+    unix_time: 1791411658.435017
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 83, 103.53 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 79, 58.72 W, [N/A], 2310 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/fixed_income/vasicek/parameters/vasicek_01.json: eab5ace90615ad43f784ea285d802323f2219d7b426c44fcd8565da0b4473479
-    datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
   generator: catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: b24dca14004207877c35463320a4ef4ebf67d36feaa2e35179c355fc8e212454
-  record_sha256: 62b0882be7c4eb65b51ee48f7965140553be0c74da0a7f14863d8d6fb6b9f62b
-record_sha256: 2e0963a7a2d036ce9246fac9597d21563c2127917ffb10908f3a42e647e0de6f
+  input_files:
+    datasets/model/fixed_income/vasicek/parameters/vasicek_01.json: 229dc48a8d8d698a366b624d1dab7521487dda6a81ceb874609e36de2eb751d9
+    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+record_sha256: 14fc987552551c45eeb12aaccdb9a3ce9e9ffe693343c4712ac63145c91674bc

@@ -47,7 +47,7 @@ pas certifiées par cette nouvelle release.
 Le rough Bergomi standard a désormais `ρ<−0,20` dans les lignes stress et
 `η≤4` ; le Bergomi log modulé a `ρ<−0,20`, `η≤3,5` et borne également
 `ξ₀`, `H`, l'échelle et la puissance de modulation stress. Le
-[scan candidat](../../artifacts/audit/aligned-mc-domain-2026-10-07/bergomi_european_candidate_scan.json)
+[scan candidat](../../project_journal/evidence/audit/aligned-mc-domain-2026-10-07/bergomi_european_candidate_scan.json)
 provient de **deux générateurs de modèles et quatre générateurs de prix**
 réellement exécutés à 2²⁰ chemins par prix sur le build isolé courant, avec
 les produits européens inchangés. Pour chacun des deux modèles : 1 000 paires,
@@ -60,12 +60,12 @@ autres payoffs de chaque modèle ni les anciennes queues stress NUM-030.
 Le générateur candidat réduit les coefficients de feedback quadratique. Le
 maximum réalisé de `a` est 0,1771, de `λ` 1,1909 et de `η` 0,7878 ;
 l'ancienne recette montait à 2, 6 et 4 sur les lignes stress. Les **1 000
-paires européennes** de la [preuve candidate](../../artifacts/audit/aligned-mc-domain-2026-10-07/qrh_candidate_quality.json)
+paires européennes** de la [preuve candidate](../../project_journal/evidence/audit/aligned-mc-domain-2026-10-07/qrh_candidate_quality.json)
 ont 0 signal de parité, `|z|` maximal 3,203 et 0 prix >0,01 avec
-`SE/prix >25 %`. Sur la ligne 984, [18 replays](../../artifacts/audit/aligned-mc-domain-2026-10-07/qrh_grid_factor_replays.json)
+`SE/prix >25 %`. Sur la ligne 984, [18 replays](../../project_journal/evidence/audit/aligned-mc-domain-2026-10-07/qrh_grid_factor_replays.json)
 à deux graines, 1/2/4 pas par jour et 2/3/7 facteurs donnent un moment
 actualisé entre 99,958 % et 100,073 % du forward, avec `|z|≤1,224`.
-Sur le lookback 770, [neuf replays](../../artifacts/audit/aligned-mc-domain-2026-10-07/qrh_lookback_tail_grid_replays.json)
+Sur le lookback 770, [neuf replays](../../project_journal/evidence/audit/aligned-mc-domain-2026-10-07/qrh_lookback_tail_grid_replays.json)
 à trois graines et trois grilles donnent une moyenne entre 0,2171 et 0,2202 ;
 les cent plus grands payoffs portent au plus 0,196 % de la moyenne. Aucun
 chemin de ces essais n'a un spot nul ou une sortie non finie.

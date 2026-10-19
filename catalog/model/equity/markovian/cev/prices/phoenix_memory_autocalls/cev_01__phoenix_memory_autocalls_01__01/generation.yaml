@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01/recipe.yaml
-  sha256: b6fa4d9092c420983e9df91e1ccf083c63be2afc464522466196e5c3fa58c83c
 artifact:
   row_count: 1000
-  sha256: ec72f9e1442aa9a1b88cdcb81945980938466e57c855da1a3e48ec239e13cf6b
-inputs:
-  models: 376887d6eac22ed958967a1ee94d460d57ca4c2f365f0e07b012e82ee4154c0a
-  products: 14b753ccf732d1b3d66a20ee30bb8ca746a1106fc211d5e659b0cf1fd8f5865d
+  sha256: 3c0c6359b0eb8b3fb96616eb8809b6d6991d31638a3836edd1ba2e30586cdc6a
 execution:
-  binary_sha256: 0d95f2be14244e63010f250e11ecf08fde2c3a6a5c8f412b1578cac0399f5816
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: phoenix_memory_autocalls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cev
     product: phoenix_memory_autocall
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 5feaabc07b35d6e90b9a153d8d3c77f036fac772b50a731d41fd9beec6396c33
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: a2ad09d1695983d888e88cb801e5b206b84c650dec94aae2c85b409bf6be5215
+  generator_sha256: f15d5b25d6f7404c4b97f4225d0ce6fb713c0eceab0e1c52c38ecedeb903c226
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: phoenix_memory_autocalls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 76.649124554
-  kernel_seconds: 73.246453125
+  wall_seconds: 26.682721744
+  kernel_seconds: 23.0699453125
+recipe:
+  path: catalog/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01/recipe.yaml
+  sha256: c4f0a27f47724488801828d8d727f3644d36e16696ff4f57d10d43cd4684f35a
+inputs:
+  models: 04b7665649c74852e002d8a2b97b3851ffaec866968fcf2cb85ff47ffae18940
+  products: f54086b4f266e54a851a4dfd1288efe31297fc369f46e51e6165b6961041753d
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789317181.837843
+    unix_time: 1791493114.2285373
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 79, 81.85 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 74, 56.11 W, [N/A], 2310 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/cev/parameters/cev_01.json: 9263907ec998c2ce5ec4ac04ff300fe35ab146dd84b2b62147e7eacb1dff7945
-    datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json: f138eca849694b8d0659390a1523828a16759c56f3c733823c908070d5a926a5
   generator: catalog/model/equity/markovian/cev/prices/phoenix_memory_autocalls/cev_01__phoenix_memory_autocalls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 132213b2e96a7a3d16f4be2635f6b7962c7ab22c43460855d4ae683c3c26a708
-  record_sha256: 921ebf9d905d51b8cebdf6767364be5ce1ba8f9c48ed143714d6fd8277924cec
-record_sha256: ce1b3995bf6ed0fec9dfcde1ec2f3016624261ba65cc602452597cebc428253c
+  input_files:
+    datasets/model/equity/markovian/cev/parameters/cev_01.json: 5b7da83275dcc111b394543b8cff5a92b131b81b54f9c5aaea4531c464ca64a7
+    datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json: ae25558206a866109259ede09adafe2d9004b6902ef4fffd4b07d0d491fbcddc
+record_sha256: 6c31f24440da3ac5e502fc393b2aa3a302f4bd333f9797936da6889096c81545

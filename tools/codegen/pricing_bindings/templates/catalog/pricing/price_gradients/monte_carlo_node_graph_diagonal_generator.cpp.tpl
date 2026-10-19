@@ -9,11 +9,11 @@ int main(int argc, char** argv) {
     namespace pg = price_gradients;
     try {
         datasets::price_gradients::Recipe recipe{
-            "$model_input", "$product_input", "$dataset", "$catalog", "$url", "$source_recipe",
+            "$model_input", "$product_input", "$dataset", "$catalog", "$source_recipe",
             PriceConstruction::$construction, {{
         $selections
             }}, {1.0f/504.0f, 2U}, $exact_transition,
-            pg::SensitivityOrders::first_and_second};$exact_schedule_assignment
+            pg::SensitivityOrders::first_and_second};$exact_schedule_assignment$option_side_assignment
         recipe.sensitivity_strategy =
             argc == 1 ? pg::SensitivityStrategy::$sensitivity_strategy :
             offline::pricing::price_gradients::

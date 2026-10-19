@@ -267,39 +267,49 @@ int execute_prepared_dataset(
                             execution,
                             represented_stencils.size()
                         );
-                    if constexpr (std::is_same_v<
-                        StencilPreparation, std::nullptr_t>) {
-                        auto stencil_configuration =
-                            make_configuration(0U, resumed);
-                        stencil_configuration.paths_per_price = 2U;
-                        const pg::SensitivityOutputs replay_outputs{
-                            execution.prices(), execution.standard_errors(),
-                            gradients.data(), gradient_errors.data(),
-                            nullptr, nullptr, rows, rows*k
-                        };
-                        if constexpr (requires {
-                            execution_policy.prepare_stencils(
-                                prepared, inputs, stencil_outputs,
-                                stencil_configuration, replay_outputs,
-                                execution.workspace(), execution.workspace_bytes()
+                    const pg::SensitivityOutputs replay_outputs{
+                        execution.prices(), execution.standard_errors(),
+                        gradients.data(), gradient_errors.data(),
+                        nullptr, nullptr, rows, rows*k
+                    };
+                    for (std::size_t replay_offset = 0U;
+                         replay_offset < resumed;) {
+                        const auto replay_count = std::min(
+                            plan.price_count_at(replay_offset),
+                            resumed - replay_offset
+                        );
+                        if constexpr (std::is_same_v<
+                            StencilPreparation, std::nullptr_t>) {
+                            auto stencil_configuration = make_configuration(
+                                replay_offset, replay_count
                             );
-                        }) {
-                            execution_policy.prepare_stencils(
-                                prepared, inputs, stencil_outputs,
-                                stencil_configuration, replay_outputs,
-                                execution.workspace(), execution.workspace_bytes()
-                            );
+                            stencil_configuration.paths_per_price = 2U;
+                            if constexpr (requires {
+                                execution_policy.prepare_stencils(
+                                    prepared, inputs, stencil_outputs,
+                                    stencil_configuration, replay_outputs,
+                                    execution.workspace(), execution.workspace_bytes()
+                                );
+                            }) {
+                                execution_policy.prepare_stencils(
+                                    prepared, inputs, stencil_outputs,
+                                    stencil_configuration, replay_outputs,
+                                    execution.workspace(), execution.workspace_bytes()
+                                );
+                            } else {
+                                execution_policy.prepare_stencils(
+                                    prepared, stencil_outputs,
+                                    stencil_configuration, replay_outputs,
+                                    execution.workspace(), execution.workspace_bytes()
+                                );
+                            }
                         } else {
-                            execution_policy.prepare_stencils(
-                                prepared, stencil_outputs,
-                                stencil_configuration, replay_outputs,
-                                execution.workspace(), execution.workspace_bytes()
+                            prepare_stencils(
+                                prepared, inputs, stencil_outputs,
+                                replay_offset, replay_count
                             );
                         }
-                    } else {
-                        prepare_stencils(
-                            prepared, inputs, stencil_outputs, 0U, resumed
-                        );
+                        replay_offset += replay_count;
                     }
                 }
                 }

@@ -105,6 +105,11 @@ inline void validate_model_product_construction(
             "logical workload; split a larger construction before launch."
         );
     }
+    if (construction == PriceConstruction::SampledCurveCartesianProduct) {
+        throw std::invalid_argument(
+            "Sampled-curve construction requires a curve dataset."
+        );
+    }
     if (construction == PriceConstruction::Aligned) {
         if (model_count != product_count || result_count != model_count) {
             throw std::invalid_argument(
@@ -148,6 +153,35 @@ inline void validate_model_curve_product_construction(
             || result_count != model_count) {
             throw std::invalid_argument(
                 "Aligned construction requires equal model, curve, product, and result counts."
+            );
+        }
+        return;
+    }
+    if (construction == PriceConstruction::SampledCurveCartesianProduct) {
+        if (model_count > std::numeric_limits<std::size_t>::max()
+                / product_count) {
+            throw std::overflow_error("Cartesian result count exceeds size_t.");
+        }
+        if (result_count != model_count * product_count) {
+            throw std::invalid_argument(
+                "Sampled-curve result count must equal model_count * product_count."
+            );
+        }
+        return;
+    }
+    if (construction == PriceConstruction::PairedModelCurveCartesianProduct) {
+        if (model_count != curve_count) {
+            throw std::invalid_argument(
+                "Paired model-curve construction requires equal model and curve counts."
+            );
+        }
+        if (model_count > std::numeric_limits<std::size_t>::max()
+                / product_count) {
+            throw std::overflow_error("Cartesian result count exceeds size_t.");
+        }
+        if (result_count != model_count * product_count) {
+            throw std::invalid_argument(
+                "Paired model-curve result count must equal model_count * product_count."
             );
         }
         return;

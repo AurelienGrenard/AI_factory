@@ -38,7 +38,8 @@ pg::LaunchConfiguration launch_configuration(std::size_t rows) {
 auto execute(
     const std::vector<model::fixed_income::cir_plus_plus::ModelParameters>& models,
     const std::vector<curve::flat::FlatCurveParameters>& curves,
-    const std::vector<product::RateOptionParameters>& products
+    const std::vector<product::RateOptionParameters>& products,
+    PriceConstruction construction = PriceConstruction::Aligned
 ) {
     const pg::PriceGradientConfiguration selection{{
         {"curve.rate", {0.0005f, pg::BumpScale::absolute}},
@@ -48,7 +49,7 @@ auto execute(
         models,
         curves,
         products,
-        PriceConstruction::Aligned,
+        construction,
         {1.0f / 504.0f, 2U},
         selection,
         {kOrders}
@@ -150,6 +151,82 @@ int main() {
     for (const auto row : selected_rows) {
         check_row(packed, row, models[row], curves[row], products[row]);
     }
+    const std::vector<model::fixed_income::cir_plus_plus::ModelParameters>
+        paired_models(models.begin(), models.begin() + 2U);
+    const std::vector<curve::flat::FlatCurveParameters>
+        paired_curves(curves.begin(), curves.begin() + 2U);
+    const std::vector<product::RateOptionParameters>
+        paired_products(products.begin(), products.begin() + 3U);
+    std::vector<model::fixed_income::cir_plus_plus::ModelParameters>
+        expanded_models;
+    std::vector<curve::flat::FlatCurveParameters> expanded_curves;
+    std::vector<product::RateOptionParameters> expanded_products;
+    for (std::size_t model_row = 0U; model_row < paired_models.size();
+         ++model_row) {
+        for (const auto& product : paired_products) {
+            expanded_models.push_back(paired_models[model_row]);
+            expanded_curves.push_back(paired_curves[model_row]);
+            expanded_products.push_back(product);
+        }
+    }
+    const auto paired = execute(
+        paired_models, paired_curves, paired_products,
+        PriceConstruction::PairedModelCurveCartesianProduct
+    );
+    const auto reference = execute(
+        expanded_models, expanded_curves, expanded_products
+    );
+    price_gradient_test::require_same_bits(
+        paired.price, reference.price, "Paired curve prices"
+    );
+    price_gradient_test::require_same_bits(
+        paired.gradient, reference.gradient, "Paired curve gradients"
+    );
+    price_gradient_test::require_same_bits(
+        paired.diagonal_hessian, reference.diagonal_hessian,
+        "Paired curve diagonal Hessian"
+    );
+    price_gradient_test::require_same_stencils(
+        paired.stencils, reference.stencils, "Paired curve stencils"
+    );
+    const std::vector<curve::flat::FlatCurveParameters> sampled_curves(
+        curves.begin(), curves.begin() + 5U
+    );
+    expanded_models.clear();
+    expanded_curves.clear();
+    expanded_products.clear();
+    for (std::size_t row = 0U;
+         row < paired_models.size() * paired_products.size(); ++row) {
+        const auto indices = decode_model_curve_product_result_index(
+            row, sampled_curves.size(), paired_products.size(),
+            PriceConstruction::SampledCurveCartesianProduct
+        );
+        expanded_models.push_back(paired_models[indices.model_index]);
+        expanded_curves.push_back(sampled_curves[indices.curve_index]);
+        expanded_products.push_back(paired_products[indices.product_index]);
+    }
+    const auto sampled = execute(
+        paired_models, sampled_curves, paired_products,
+        PriceConstruction::SampledCurveCartesianProduct
+    );
+    const auto sampled_reference = execute(
+        expanded_models, expanded_curves, expanded_products
+    );
+    price_gradient_test::require_same_bits(
+        sampled.price, sampled_reference.price, "Sampled curve prices"
+    );
+    price_gradient_test::require_same_bits(
+        sampled.gradient, sampled_reference.gradient,
+        "Sampled curve gradients"
+    );
+    price_gradient_test::require_same_bits(
+        sampled.diagonal_hessian, sampled_reference.diagonal_hessian,
+        "Sampled curve diagonal Hessian"
+    );
+    price_gradient_test::require_same_stencils(
+        sampled.stencils, sampled_reference.stencils,
+        "Sampled curve stencils"
+    );
     std::cout << "Flat scalar bindings preserve isolated results across warp boundaries\n";
     return 0;
 }

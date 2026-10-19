@@ -1,11 +1,6 @@
-"""Reject sensitivity artifacts that contradict frozen outputs or stencils."""
+"""Validate compact price-gradient rows against their frozen recipe and launch plan."""
 
 import math
-import struct
-
-
-def fp32(value):
-    return struct.unpack("f", struct.pack("f", value))[0]
 
 
 def _mixed_pairs(sensitivity, names):
@@ -53,40 +48,79 @@ def _selected_names(sensitivity, key, names, requested):
     return declaration
 
 
-def _first_support(stencil):
-    if stencil["kind"] == "centered":
-        width = stencil["represented_width"]
-        return [1, 2], [fp32(-1.0 / width), fp32(1.0 / width)]
-    return (
-        [0, 1, 2],
-        [
-            fp32(-(stencil["first_weight"] + stencil["second_weight"])),
-            stencil["first_weight"],
-            stencil["second_weight"],
-        ],
-    )
-
-
-def _check_mixed_stencil(stencil, first_axis, second_axis):
-    first_nodes, first_weights = _first_support(first_axis)
-    second_nodes, second_weights = _first_support(second_axis)
-    expected_first = []
-    expected_second = []
-    expected_weights = []
-    for first_index, first_weight in zip(first_nodes, first_weights):
-        for second_index, second_weight in zip(
-            second_nodes, second_weights
-        ):
-            expected_first.append(first_index)
-            expected_second.append(second_index)
-            expected_weights.append(fp32(first_weight * second_weight))
-    if (
-        stencil.get("node_count") != len(expected_weights)
-        or stencil.get("first_local_nodes") != expected_first
-        or stencil.get("second_local_nodes") != expected_second
-        or stencil.get("weights") != expected_weights
-    ):
-        raise ValueError("Mixed stencil disagrees with its axis stencils")
+def _check_compact_outputs(document, first_names, diagonal_names,
+                           mixed_names, paths, has_curve, option_side):
+    header = {"database_id", "model_family", "product_family", "catalog", "row_count"}
+    if option_side is not None:
+        if option_side not in {"call", "put", "payer", "receiver"}:
+            raise ValueError("Invalid frozen option side")
+        header.add("option_side")
+    references = {"model_dataset", "product_dataset"}
+    if has_curve:
+        header.add("curve_family")
+        references.add("curve_dataset")
+    if (not isinstance(document, dict)
+            or set(document) != header | references | {"results"}):
+        raise ValueError("Gradient JSON must contain identity, input references and results only")
+    if any(not isinstance(document[key], str) or not document[key]
+           for key in header - {"row_count"}):
+        raise ValueError("Invalid gradient dataset identity")
+    if option_side is not None and document["option_side"] != option_side:
+        raise ValueError("Gradient option side contradicts frozen price variant")
+    for key in references:
+        reference = document[key]
+        if (not isinstance(reference, dict)
+                or set(reference) != {"id", "catalog"}
+                or any(not isinstance(value, str) or not value
+                       for value in reference.values())):
+            raise ValueError(f"Invalid gradient {key} reference")
+    if (type(document["row_count"]) is not int
+            or document["row_count"] < 1
+            or not isinstance(document["results"], list)
+            or len(document["results"]) != document["row_count"]):
+        raise ValueError("Gradient row count contradicts results")
+    columns = {
+        "gradients": first_names,
+        "diagonal_hessians": diagonal_names,
+        "mixed_hessians": mixed_names,
+    }
+    errors = {
+        "gradient_standard_errors": first_names,
+        "diagonal_hessian_standard_errors": diagonal_names,
+        "mixed_hessian_standard_errors": mixed_names,
+    }
+    expected = {"model_id", "product_id", "price"}
+    if has_curve:
+        expected.add("curve_id")
+    expected.update(key for key, names in columns.items() if names)
+    if paths:
+        expected.add("standard_error")
+        expected.update(key for key, names in errors.items() if names)
+    for index, row in enumerate(document["results"], 1):
+        if not isinstance(row, dict) or set(row) != expected:
+            raise ValueError(f"Invalid compact gradient columns at row {index}")
+        for key in ("model_id", "product_id", "curve_id"):
+            if key in expected and (not isinstance(row[key], str) or not row[key]):
+                raise ValueError(f"Invalid {key} at row {index}")
+        for key in ("price", "standard_error"):
+            if key in expected:
+                value = row[key]
+                if (type(value) not in (int, float)
+                        or not math.isfinite(value)
+                        or (key == "standard_error" and value < 0)):
+                    raise ValueError(f"Invalid {key} at row {index}")
+        for key, names in {**columns, **errors}.items():
+            if names:
+                if key not in expected:
+                    continue
+                values = row[key]
+                if not isinstance(values, dict) or list(values) != names:
+                    raise ValueError(f"Invalid {key} selection at row {index}")
+                if any(type(value) not in (int, float)
+                       or not math.isfinite(value)
+                       or (key in errors and value < 0)
+                       for value in values.values()):
+                    raise ValueError(f"Invalid {key} value at row {index}")
 
 
 def check_outputs(job, catalog, document):
@@ -124,15 +158,11 @@ def check_outputs(job, catalog, document):
         else []
     )
     mixed_names = [first + "|" + second for first, second in mixed_pairs]
-    axis_name_set = set(first_names) | set(diagonal_names)
-    for first, second in mixed_pairs:
-        axis_name_set.update((first, second))
-    axis_names = [name for name in names if name in axis_name_set]
     if len(set(names)) != len(names):
         raise ValueError("Duplicate selected gradient parameter")
 
     paths = job["launch_plan"]["paths_per_price"]
-    for artifact in (catalog, document):
+    for artifact in (catalog,):
         if (
             artifact.get("sensitivity") != job["sensitivity"]
             or artifact.get(job["time_key"]) != job["time_configuration"]
@@ -183,273 +213,8 @@ def check_outputs(job, catalog, document):
         ):
             raise ValueError("Gradient seed contradicts frozen CRN reservation")
 
-    for row in document["results"]:
-        outputs = row["outputs"]
-        stencils = row.get("stencils", {})
-        if (
-            (
-                first_requested
-                and list(outputs.get("gradients", {})) != first_names
-            )
-            or (not first_requested and "gradients" in outputs)
-            or (
-                second_requested
-                and list(outputs.get("diagonal_hessians", {}))
-                    != diagonal_names
-            )
-            or (
-                not second_requested
-                and "diagonal_hessians" in outputs
-            )
-            or (
-                mixed_requested
-                and list(outputs.get("mixed_hessians", {})) != mixed_names
-            )
-            or (not mixed_requested and "mixed_hessians" in outputs)
-            or list(stencils) != axis_names
-            or (
-                mixed_requested
-                and list(row.get("mixed_stencils", {})) != mixed_names
-            )
-            or (not mixed_requested and "mixed_stencils" in row)
-        ):
-            raise ValueError("Gradient columns disagree with selection order")
-
-        if paths:
-            requested_errors = (
-                (
-                    first_requested,
-                    "gradient_standard_errors",
-                    first_names,
-                ),
-                (
-                    second_requested,
-                    "diagonal_hessian_standard_errors",
-                    diagonal_names,
-                ),
-                (
-                    mixed_requested,
-                    "mixed_hessian_standard_errors",
-                    mixed_names,
-                ),
-            )
-            for requested, key, expected in requested_errors:
-                errors = outputs.get(key, {})
-                if (
-                    (requested and list(errors) != expected)
-                    or (not requested and key in outputs)
-                    or any(
-                        type(value) not in (int, float)
-                        or value < 0
-                        or not math.isfinite(value)
-                        for value in errors.values()
-                    )
-                ):
-                    raise ValueError(
-                        "Missing or invalid paired sensitivity errors"
-                    )
-        elif any(
-            key in outputs
-            for key in (
-                "gradient_standard_errors",
-                "diagonal_hessian_standard_errors",
-                "mixed_hessian_standard_errors",
-                "standard_error",
-            )
-        ):
-            raise ValueError(
-                "Closed-form gradients must not publish sampling errors"
-            )
-
-        for selection in parameters:
-            name = selection["parameter"]
-            for key, selected_names in (
-                ("gradients", first_names),
-                ("diagonal_hessians", diagonal_names),
-            ):
-                if name in selected_names:
-                    value = outputs[key][name]
-                    if (
-                        type(value) not in (int, float)
-                        or not math.isfinite(value)
-                    ):
-                        raise ValueError("Invalid sensitivity value")
-
-            if name not in axis_name_set:
-                continue
-            stencil = stencils[name]
-            x, first, second = (
-                stencil[key] for key in ("central", "first", "second")
-            )
-            if any(
-                type(value) not in (int, float) or not math.isfinite(value)
-                for value in (x, first, second)
-            ):
-                raise ValueError("Invalid stencil endpoints")
-            kind = stencil["kind"]
-            ordered = {
-                "centered": first < x < second,
-                "forward": x < first < second,
-                "backward": second < first < x,
-            }
-            if (
-                not ordered.get(kind, False)
-                or stencil["represented_width"] != fp32(second - first)
-            ):
-                raise ValueError(
-                    "Invalid represented stencil orientation/width"
-                )
-            requested = fp32(selection["displacement"])
-            if selection["scale"] == "relative":
-                requested = fp32(requested * abs(x))
-            elif selection["scale"] != "absolute":
-                raise ValueError("Unknown bump scale")
-            if requested <= 0 or stencil["displacement"] != requested:
-                raise ValueError(
-                    "Stencil displacement contradicts requested bump"
-                )
-            offsets = {
-                "centered": (-1, 1),
-                "forward": (1, 2),
-                "backward": (-1, -2),
-            }[kind]
-            if name == "product.maturity_years":
-                steps_per_year = (
-                    job["time_configuration"].get("steps_per_year")
-                    or job["time_configuration"].get(
-                        "maturity_bump_steps_per_year"
-                    )
-                )
-                dt = fp32(1 / steps_per_year)
-                steps = round(x / dt)
-                bump_steps = round(requested / dt)
-                if (
-                    bump_steps < 1
-                    or fp32(bump_steps * dt) != requested
-                    or fp32(steps * dt) != x
-                ):
-                    raise ValueError(
-                        "Maturity stencil is not on the declared integer grid"
-                    )
-                endpoints = tuple(
-                    fp32((steps + offset * bump_steps) * dt)
-                    for offset in offsets
-                )
-            else:
-                endpoints = tuple(
-                    fp32(x + offset * requested) for offset in offsets
-                )
-            if (first, second) != endpoints:
-                raise ValueError(
-                    "Stencil endpoints contradict requested displacement"
-                )
-            if (
-                selection["boundary"] == "central_only"
-                and kind != "centered"
-            ):
-                raise ValueError(
-                    "A centered-only sensitivity was silently shifted"
-                )
-            if kind == "centered":
-                expected_weights = (0.0, 0.0)
-            else:
-                first_offset, second_offset = first - x, second - x
-                expected_weights = (
-                    fp32(
-                        second_offset
-                        / (
-                            first_offset
-                            * (second_offset - first_offset)
-                        )
-                    ),
-                    fp32(
-                        -first_offset
-                        / (
-                            second_offset
-                            * (second_offset - first_offset)
-                        )
-                    ),
-                )
-            if (
-                stencil["first_weight"],
-                stencil["second_weight"],
-            ) != expected_weights:
-                raise ValueError(
-                    "Stencil weights disagree with represented spacing"
-                )
-
-            if name in diagonal_names:
-                node_count = 3 if kind == "centered" else 4
-                weights = stencil.get("second_weights")
-                if (
-                    stencil.get("node_count") != node_count
-                    or not isinstance(weights, list)
-                    or len(weights) != node_count
-                ):
-                    raise ValueError("Incomplete diagonal stencil")
-                nodes = [x, first, second]
-                if node_count == 4:
-                    third = stencil.get("third")
-                    if (
-                        type(third) not in (int, float)
-                        or not math.isfinite(third)
-                    ):
-                        raise ValueError("Invalid third diagonal node")
-                    if name == "product.maturity_years":
-                        expected_third = fp32(
-                            (
-                                steps
-                                + (
-                                    3 if kind == "forward" else -3
-                                )
-                                * bump_steps
-                            )
-                            * dt
-                        )
-                    else:
-                        expected_third = fp32(
-                            x
-                            + (3 if kind == "forward" else -3)
-                            * requested
-                        )
-                    if third != expected_third:
-                        raise ValueError(
-                            "Third diagonal node contradicts the bump"
-                        )
-                    nodes.append(third)
-                elif "third" in stencil:
-                    raise ValueError(
-                        "Centered diagonal stencil has a third node"
-                    )
-                if any(
-                    type(weight) not in (int, float)
-                    or not math.isfinite(weight)
-                    for weight in weights
-                ):
-                    raise ValueError("Invalid diagonal weights")
-                quadratic = sum(
-                    weight * (node - x) ** 2
-                    for weight, node in zip(weights, nodes)
-                )
-                if not math.isclose(
-                    quadratic, 2.0, rel_tol=0.01, abs_tol=0.01
-                ):
-                    raise ValueError(
-                        "Diagonal weights do not reconstruct a quadratic"
-                    )
-
-        if mixed_requested:
-            for label, (first_name, second_name) in zip(
-                mixed_names, mixed_pairs
-            ):
-                value = outputs["mixed_hessians"][label]
-                if (
-                    type(value) not in (int, float)
-                    or not math.isfinite(value)
-                ):
-                    raise ValueError("Invalid mixed sensitivity value")
-                _check_mixed_stencil(
-                    row["mixed_stencils"][label],
-                    stencils[first_name],
-                    stencils[second_name],
-                )
+    _check_compact_outputs(
+        document, first_names, diagonal_names, mixed_names, paths,
+        job.get("declared_method", {}).get("has_curve", False),
+        catalog.get("option_side"),
+    )

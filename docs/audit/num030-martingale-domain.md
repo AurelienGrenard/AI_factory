@@ -58,7 +58,7 @@ Build isolé Release SM89/CUDA 12.9.41 sous
 hashes des binaires, sources et entrées sont dans la
 [preuve brute](../../work/catalog/qualifications/num030-lmb-stress-20261007-v1/current_worktree_replays.json).
 Les deux binaires et le cache CMake ont été archivés localement sous
-`artifacts/audit/num030-2026-10-07/` avec empreintes dans le
+`project_journal/evidence/audit/num030-2026-10-07/` avec empreintes dans le
 [manifeste](../../work/catalog/qualifications/num030-lmb-stress-20261007-v1/manifest.json).
 
 | Ligne | ρ | Forward actualisé | Moments conditionnels actualisés, deux graines | Contrôle ρ=0 | Écart FFT/direct maximal |
@@ -108,7 +108,7 @@ Une graine qui ne voit pas l'événement peut pourtant publier une SE très
 petite et un prix sensiblement différent. La moyenne des seize graines
 reste dominée par quelques queues et ne certifie pas une limite stable.
 Les quantiles historiques sont dans la
-[preuve de 2026-10-06](../../artifacts/audit/rough-price-quality-2026-10-06/result.json).
+[preuve de 2026-10-06](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/result.json).
 
 ## Décision de publication et preuve manquante
 

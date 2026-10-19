@@ -1,28 +1,21 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01/recipe.yaml
-  sha256: 27b93dc8fe8c7bb0748adc4c85ad204bc40f99610475cdaa36ecb3dbac313b38
 artifact:
   row_count: 1000
-  sha256: ad61ba5d625424486e81d38f73e5fa43da893841937fc18acb33b4c60bf4bd72
-inputs:
-  models: 7df367a120df98017f4728c34388236aea8dad3d9e7ab4cce473df927178990a
-  products: 81b382bc7a40260bb4f831e474473d10665424531db352fce9a8db2c757ada6f
+  sha256: 3d674a1cc82659c6a41a903c21c9090a20206d4a5fe6518b5f26596b568b161e
 execution:
-  binary_sha256: b8c58d448bb1a3a6097aea539ad4d6d5d28dffaf4511fd58c27c2326d623240c
-  declared_method:
-    engine: fixed_income_lsm
-    profile: longstaff_schwartz_price_profile
-    variant: bermudan_receiver_swaptions
-    construction: aligned
-    has_curve: false
+  threads_per_block: 128
+  blocks_per_price: 64
+  batch_count: 3
+  kernel_launch_count: 93
+  workspace_bytes: 14160237480
+  maximum_prices_per_batch: 495
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: terminal_forward_lsm
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cir
     product: bermudan_swaption
     curve: ''
@@ -38,48 +31,54 @@ execution:
     blocks_per_price: 64
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: f061049c7f0279ab1b3dcc52e07336c50992cd4a118fe55b9d84a1ca09336375
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  threads_per_block: 128
-  blocks_per_price: 64
-  batch_count: 3
-  kernel_launch_count: 105
-  workspace_bytes: 14160237480
-  maximum_prices_per_batch: 495
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: fixed_income_early_exercise
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
   time_day_fraction: 1 / 252
+  paths_per_price: 1048576
+  binary_sha256: 1b780e5f1580c1959bc3618d27c80e1e7c85ca20d7825337edeab20c15d96de2
+  generator_sha256: f061049c7f0279ab1b3dcc52e07336c50992cd4a118fe55b9d84a1ca09336375
+  declared_method:
+    engine: fixed_income_lsm
+    profile: longstaff_schwartz_price_profile
+    variant: bermudan_receiver_swaptions
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 8.738468784
-  kernel_seconds: 9.11616626
+  wall_seconds: 2.672502535
+  kernel_seconds: 1.775784957885742
+recipe:
+  path: catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01/recipe.yaml
+  sha256: ab13acce54ea254e8ae1e7288877ba938cc19b9863ab8ea9c1cdd79ef6a13685
+inputs:
+  models: 6608068922a452c176fab5aa2b03668e83a1e9ad446d2f4ee61d85beb4c85749
+  products: 0722965bd90bfd491381e95e549d64eaf53fa86b657ad9cbfc48d8f8a6562c04
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307087.1368175
+    unix_time: 1791411367.4989896
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 86, 103.41 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 69, 54.31 W, [N/A], 2310 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/fixed_income/cir/parameters/cir_01.json: 4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1
-    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c
   generator: catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 08bafed6187b62f6fc18d88638270c3dddadb9d3116f825fb61847a28972d4ae
-  record_sha256: 9a3e86d5a7ce3214a118099be733853d112671f344a62410d53074dff6689352
-record_sha256: 8d7861a3fe45aae7ee687a78c9daa716e44b5324da21e9e24a7b1cadaf54e2b9
+  input_files:
+    datasets/model/fixed_income/cir/parameters/cir_01.json: 04f1027dcf994e9741ac058d9627efdd77df8a8f203f056f0c6f7fdc7fc1c0de
+    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
+record_sha256: c7381a3a5d33dc918123f47d6c9224511164cee2f553b1bf89b89adb925c3162

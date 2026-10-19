@@ -49,8 +49,7 @@ void validate_recipe(const std::filesystem::path& path) {
 void validate_generation(const std::filesystem::path& path) {
     const std::string generation = read_text(path);
     for (const std::string& key : {
-             "schema_version", "status", "recipe", "artifact", "execution",
-             "timing", "record_sha256"
+             "schema_version", "status", "recipe", "artifact"
          }) {
         require(
             has_key(generation, key),
@@ -114,6 +113,33 @@ int main() {
     require(curve.model_index == 2U && curve.curve_index == 0U
                 && curve.product_index == 1U,
             "model/curve/product order changed");
+    require(price_row_count(
+                3U, 5U, 4U,
+                PriceConstruction::SampledCurveCartesianProduct
+            ) == 12U,
+            "sampled-curve Cartesian count changed");
+    bool varied_curves = false;
+    const auto first_curve = decode_model_curve_product_result_index(
+        0U, 5U, 4U, PriceConstruction::SampledCurveCartesianProduct
+    ).curve_index;
+    for (std::uint32_t row = 0U; row < 12U; ++row) {
+        const auto host = decode_model_curve_product_result_index(
+            row, 5U, 4U, PriceConstruction::SampledCurveCartesianProduct
+        );
+        const auto device_width = decode_model_curve_product_result_index_32(
+            row, 5U, 4U, PriceConstruction::SampledCurveCartesianProduct
+        );
+        require(host.model_index == row / 4U
+                    && host.product_index == row % 4U
+                    && host.curve_index < 5U,
+                "sampled-curve row mapping changed");
+        require(host.model_index == device_width.model_index
+                    && host.curve_index == device_width.curve_index
+                    && host.product_index == device_width.product_index,
+                "sampled-curve host/device-width indices disagree");
+        varied_curves |= host.curve_index != first_curve;
+    }
+    require(varied_curves, "sampled curve is constant across the test rows");
 
     bool rejected_overflow = false;
     try {

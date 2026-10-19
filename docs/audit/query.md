@@ -57,7 +57,7 @@ L'audit principal couvre :
 - `cmake`, `CMakeLists.txt` et `CMakePresets.json` ;
 - la documentation maintenue ;
 - le build principal `build/`, les racines locales `work/`, `datasets/` et
-  `artifacts/` lorsqu'elles existent ;
+  `project_journal/evidence/` lorsqu'elles existent ;
 - tout autre dossier à la racine, dont la présence doit être expliquée.
 
 `validation/**` et `docs/validation/**` sont régis par le

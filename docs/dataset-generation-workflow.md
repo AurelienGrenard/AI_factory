@@ -32,29 +32,24 @@ python3 tools/datasets/generate_catalog.py \
 Results and their `generation.yaml` receipts remain under the chosen
 `work/generation/` run directory. Existing canonical JSON and receipts are not
 overwritten. The controller accepts both Ninja and Unix Makefiles builds;
-`--compile` updates only stale targets before freezing the campaign. When a
-source price and its gradient recipe are selected together, the controller
+`--compile` updates only stale targets before freezing the campaign and
+checks the native build graph afterward. If a parallel build leaves a few
+links older than their dependencies, it retries incrementally before generation.
+When a source price and its gradient recipe are selected together, the controller
 records exact matches, differing rows and the numerical budget
 `2e-6 + 2e-5 * max(abs(price_only), abs(gradient_central))`. This comparison
 is a qualification diagnostic, not a generation stop: scalar and cooperative
 FP32 Jamshidian kernels can round differently. Invalid native artifacts,
-changed frozen inputs and altered receipts still stop generation. Each gradient
-receipt cites the matching source dataset SHA256 and comparison result.
+changed frozen inputs and altered receipts still stop generation. The campaign journal retains the matching source dataset SHA256 and comparison result; the compact published receipt does not repeat this diagnostic.
 
-The fixed-income `-03` campaign stopped on the earlier bitwise comparator after
-127 jobs. Resume its unchanged binaries and inputs once with a recorded
-verifier amendment:
-
-```bash
-python3 tools/datasets/generate_catalog.py \
-  --run-dir work/generation/fixed-income-aligned-prices-gradients-03 \
-  --execute --resume --amend-verifier
-```
-
-The original controller files and source archive remain frozen; the amendment
-stores the new pilot and receipt-writer hashes separately and appears in
-subsequent receipts. Later
-resumes of the same campaign use `--execute --resume` without the amendment flag.
+The fixed-income `-03` campaign initially stopped on the earlier bitwise
+comparator after 127 jobs. It was resumed with a recorded verifier amendment
+and completed all 221 jobs in staging. Its original controller files and source
+archive remain frozen; the amendment hashes are recorded separately in later
+receipts. An independent row-wise comparison of all 104 price/gradient pairs
+found 88 exact pairs and 16 European Jamshidian pairs within the documented
+FP32 budget. The staged outputs have not been published or independently
+price-qualified.
 
 The campaign may take substantial GPU time: 34 gradient recipes and many
 price recipes use Monte Carlo. Every public Monte Carlo price and gradient
@@ -111,8 +106,9 @@ For published price gradients, build the separate `price_gradient_generators` ta
 and select `--kind price_gradients`. Building `price_generators` alone still builds
 only price-only recipes. Generated `recipe.yaml` describes planned settings;
 the native generator produces a minimal `generation.yaml` receipt during
-execution. The controller enriches that receipt with frozen hashes and
-provenance without copying recipe semantics into it.
+execution. The controller checks it against the frozen campaign and publishes a compact
+version-2 receipt with current input/output SHA256, observed hardware and
+available compiler versions. Campaign hashes remain in the work journal.
 The recipes reuse the price-only launch profile as a candidate, not as a
 gradient-specific performance qualification. See the [price-gradient contract](cuda/equity-price-gradients-contract.md)
 for CRN seed sharing, derivative errors, frozen LSM dates and bias limitations.
@@ -165,7 +161,7 @@ any existing artifact.
 
 The controller builds only the selected generators and the launch inspector in
 the configured CMake build directory. It then freezes the inputs and binaries. It runs one job at a time.
-It checks each dataset and publishes the immutable JSON first, then its
+It checks each dataset and publishes the JSON first, then its
 `generation.yaml` completion marker, to the declared `datasets/` and
 `catalog/` paths. A
 later job's failure does not roll back earlier published jobs. Resume the
@@ -368,9 +364,12 @@ records at once. Validation is deliberately separate and is never inferred from
 generation. Independent certification remains the responsibility of
 Premia/QuantLib validation tooling.
 
-Publication is immutable: an existing different destination is never replaced
-or backed up. Identical bytes make retry idempotent; changed content requires a
-new dataset ID. The JSON rename is atomic and the `generation.yaml` rename is
+The campaign publisher never replaces a different existing destination or
+backs it up. Identical bytes make retry idempotent. After campaign completion,
+a documented curation may update the JSON, recipe and technical receipt under
+the same dataset ID; refresh its current SHA256 with
+`tools/datasets/refresh_generation.py`. This does not rewrite frozen campaign
+checkpoints or claim a new native execution. The JSON rename is atomic and the `generation.yaml` rename is
 atomic, but the pair is completed through the publication journal. Consumers
 must require the receipt marker. A publishing campaign may be frozen only from
 a clean Git worktree so its revision identifies the exact recipe and code.
@@ -427,3 +426,51 @@ Keeping an already completed dataset is a separate decision from resuming a
 campaign. Follow the [dataset provenance and reuse contract](dataset-provenance-contract.md)
 for its read-only checker, legacy datasets and the evidence needed after a
 refactor. Codegen regeneration never updates old data or its generation history.
+
+## Equity Markovian aligned prices and diagonal sensitivities
+
+The public catalogue selects 364 price recipes and 380 price-gradient recipes
+across twelve Markovian equity models. Every gradient recipe requests first
+and diagonal second derivatives. American calls and puts have both
+`frozen_exercise_time` and `frozen_regression_policy` recipes, which accounts
+for the 16 extra gradient jobs. Existing current model and product parameter
+JSON files supply all inputs. Configure the local SM89 build and run the
+selected native generators in a new staging directory:
+
+```bash
+cmake --preset local-sm89
+python3 tools/datasets/generate_catalog.py \
+  --build builds/local-cuda12-9-0-sm89 \
+  --catalog-only --kind all --asset-class equity \
+  --model-family markovian --construction aligned \
+  --compile --compile-jobs 2 \
+  --run-dir work/generation/equity-markovian-aligned-prices-gradients-01 \
+  --execute
+```
+
+The controller builds the selected 744 generators and its launch inspector,
+freezes their binaries and inputs, and writes results only under the new
+`work/generation/` directory. It does not overwrite existing published price
+JSON files. 716 recipes require 2²⁰ MC paths per row; 28 are closed form.
+The comparison of central prices is recorded as a diagnostic when each
+gradient job finishes. Model-only samples are local, so `--catalog-only`
+excludes them.
+
+The equity campaign was preflighted against all 744 compiled launch plans and
+all 744 generator URLs. A native Black-Scholes geometric Asian pilot exposed
+and resolved an `exact_schedule_transition` receipt mismatch affecting 37
+gradient recipes. The corrected two-job pilot completed with bitwise equal
+central prices on 1,000 rows. A one-row Kou forward-start native pilot
+confirmed both receipts use 1,048,576 paths and the correct URLs and calendar.
+These pilots do not execute or validate the full 744-job campaign.
+
+A first full equity compilation stopped before campaign freezing on the
+Bates/gap gradient C++ header. The gap and straddle host/device finite checks
+and the no-side Black-Scholes diagonal generator template were corrected.
+All 380 equity Markovian gradient generators were checked with the configured
+C++ compiler; the two no-side failures found during that scan were rerun
+successfully after correction. Bates/gap and the two no-side targets were
+built natively, and a four-job Black-Scholes price/gradient pilot completed
+with identical central prices on both pairs. The main run directory was not
+created, so rerun the command above without `--resume`; `--compile` rebuilds
+only stale targets before freezing the campaign.

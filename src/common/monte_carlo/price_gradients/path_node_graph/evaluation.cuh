@@ -423,6 +423,12 @@ __device__ __forceinline__ void evaluate_nodes_body(
                  slot < NodesPerWorker;
                  ++slot) {
                 if (!owns[slot] || !active[slot]) continue;
+                if constexpr (VariableTerminal
+                    && Traits::kKind == PathScheduleKind::dense) {
+                    if (observation >= terminal.nodes[
+                            owned_nodes[slot]
+                        ].transition_count) continue;
+                }
                 const auto& state = simulates[slot]
                     ? states[slot]
                     : central_state;
@@ -485,6 +491,23 @@ __device__ __forceinline__ void evaluate_nodes_body(
                     }
                     observe(observation);
                 }
+            }
+        } else if constexpr (Traits::kKind == PathScheduleKind::dense) {
+            for (std::uint32_t observation = 0U;
+                 observation < terminal.maximum_transitions;
+                 ++observation) {
+                // Observe every grid point, and use the same per-step
+                // innovations as the scalar path evaluator.
+                transition_prepared(
+                    dynamics[0U],
+                    owned_dynamics[0U],
+                    [&](unsigned int slot) {
+                        return observation < terminal.nodes[
+                            owned_nodes[slot]
+                        ].transition_count;
+                    }
+                );
+                observe(observation);
             }
         } else {
             for (std::uint32_t observation = 0U;

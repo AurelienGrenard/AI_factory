@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01/recipe.yaml
-  sha256: 76f03e7d78401d9601ffba75d25315017b95fad428d21fede7b113dfbd89aa8c
 artifact:
   row_count: 1000
-  sha256: a76d05be4530c312c50a59fd829c127c2ef38d920c6eef4d1486a972e0bd5268
-inputs:
-  models: 489dd7b24c08558002a3cf225e11ab6b025330aab52f0819d162e6af3c77b4fc
-  products: 45c32854f3449624fe6b4a246015fb30efd3780d4d3d4a1f0c3086d7bdda99fc
+  sha256: 5731d3b346fcd729cd1d3a3037553be7115f3c74422f2af5c022042cc4a8a976
 execution:
-  binary_sha256: f044f1c8c82a361fa5887a80040853094b4e02975d3cdcd1d02014650977b40c
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: athena_autocalls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: sabr
     product: athena_autocall
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 90d83dcd913ed4bfa269a3c8eff2c81c694db92b27a79e641505d8b4416335f2
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 9dcb3f1870f50df058cad0da30303634e7f48141d4a6ec646a71257a9fcdf610
+  generator_sha256: d40b5612f0b37e2626a98596786774bc7ceef1316849a4fa7b5ec54ea428f7a6
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: athena_autocalls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 62.355724735
-  kernel_seconds: 56.361367188
+  wall_seconds: 19.538029053
+  kernel_seconds: 15.051039062500001
+recipe:
+  path: catalog/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01/recipe.yaml
+  sha256: 340e178d3e53a6f70323a79105db0445395a2055c9367b7f2f7e46fb021b9c12
+inputs:
+  models: 9ce8279b7b4e35b49273f14dab50d4e719cc9e6209e998c4a8df4d7579c5d27e
+  products: 2a647be70bcdb29d5e3c470e4aa2b07c93ea79b446977f2ecf1022eccc94ed61
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789325315.9082673
+    unix_time: 1791495944.1640034
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 79, 84.70 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 75, 47.67 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/sabr/parameters/sabr_01.json: c21e08d3818676b55b7a613677a57a6c2b6e763825e8989bc76229eed82e7842
-    datasets/product/athena_autocall/athena_autocalls_01.json: c65089f2861f61287d8649d4a706c5dc14817bd9c0462dd92e500480653e6613
   generator: catalog/model/equity/markovian/sabr/prices/athena_autocalls/sabr_01__athena_autocalls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: e2b034501076f4965d1d8c9b4c22ff4ac4ba6c82cdd0875b8464a335ed4ddcb9
-  record_sha256: a5443c6b425fd5abec8d5bae575344a1e3e79242c1500210aa9c6e98999c73cf
-record_sha256: 9a121fbe84e37c2fe343f51a1d85c33048de50c557fa1ff971d3d97101051662
+  input_files:
+    datasets/model/equity/markovian/sabr/parameters/sabr_01.json: 007b5cf9be3f65671449e2e68a9039c64791f9aa5c34d3f33373196cd0f8012e
+    datasets/product/athena_autocall/athena_autocalls_01.json: ef6d5d6477019f8a8f7cc4df7d2d92883fee8d5ad6929249a2dc01d0a12d9aec
+record_sha256: 9be5ae7cca3db174effd19f740132e4494485e9d6cdc2ff512e92531131cfd75

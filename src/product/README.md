@@ -19,6 +19,23 @@ The product path and file names identify the financial contract. Details that
 depend on a model or curve belong under
 `src/model/<asset-class>/<family>/<model>/product/[<curve>/]`.
 
+## Equity quote units at pricing boundaries
+
+Equity product datasets quote strikes and price barriers as ratios of the
+central model spot. The dataset pricing helpers resolve each quote once to an
+absolute level before calling a model-product price kernel. Public gradient
+preparation does the same before forming bumps: a spot bump keeps the original
+absolute contract level fixed, while a product-quote derivative is reported per
+unit of ratio. The common resolver is
+[`src/common/equity/spot_relative_product.hpp`](../common/equity/spot_relative_product.hpp).
+
+The low-level `launch_*_cuda` price and historical price-delta functions take
+product levels that are **already absolute**. A direct caller comparing those
+functions with gradient plans must resolve the same central contract first.
+This distinction applies to terminal and path-dependent payoffs; fields that
+are intrinsically ratios, such as forward-start moneyness and cliquet returns,
+keep their native units.
+
 ## Find a supported composition
 
 The authoritative model-product matrix is

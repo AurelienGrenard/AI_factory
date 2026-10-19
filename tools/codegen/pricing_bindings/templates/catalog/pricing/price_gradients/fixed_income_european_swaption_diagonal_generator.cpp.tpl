@@ -11,12 +11,12 @@ int main() {
     try {
         datasets::price_gradients::Recipe recipe{
             "$model_input", "$product_input", "$dataset", "$catalog",
-            "$url", "$source_recipe", PriceConstruction::$construction,
+            "$source_recipe", PriceConstruction::$construction,
             {{
         $selections
             }}, {1.0f / 504.0f, 2U}, true,
             pg::SensitivityOrders::first_and_second
-        };
+        };$option_side_assignment
 ${curve_recipe_assignment}        const auto models =
             model::fixed_income::${model}::load_models(recipe.model_input);
 ${curve_load}        const auto product_dataset =

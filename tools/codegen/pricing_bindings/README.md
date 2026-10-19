@@ -115,33 +115,46 @@ form, fixed-step MC, or exact-terminal MC templates. Heston American and CIR
 Jamshidian retain their explicit host-prepared strategies. The renderer rejects
 an undeclared strategy instead of falling back to a model-specific template.
 The binding manifest records derivative capabilities separately from public
-dataset recipes. First-order, spot-only, diagonal and full-Hessian variants
-remain available where the binding declares them. CIR standalone Jamshidian
-declares only `first`: its second-order API requests fail, and its four public
-recipes materialise `price_gradient` without a Hessian. Other catalogue
-bindings materialise `price_gradient_diagonal_hessian` with orders `first`
-and `diagonal_second`. Run
+dataset recipes. The public catalogue currently emits `price_gradient` recipes
+with first derivatives only for fixed income, Markovian equity and rough equity. Second-order
+variants remain available in reusable binding code for local qualification,
+but no Hessian recipe is published. CIR standalone Jamshidian declares only
+`first` even at the binding level. The public American selection uses
+`frozen_exercise_time`; fitted-rate Bermudan swaptions use
+`frozen_regression_policy`. Validated per-coordinate bump adjustments are
+recorded in `price_gradients/bump_overrides.json` and applied to both generated
+C++ and `recipe.yaml`.
+When a diagonal or full-Hessian variant is selected later, it uses the same
+compact price-gradient writer as first order. Its JSON contains identity and
+input references followed by per-row `price`, `gradients`,
+`diagonal_hessians` and, for full Hessians, `mixed_hessians`. Monte Carlo rows
+also contain the corresponding standard errors. Bump rules, selected orders
+and mixed pairs belong in `recipe.yaml`; execution and hardware provenance
+belong in the receipt created by the actual run. No stencil nodes or URL are
+repeated in the dataset JSON. These variants remain outside the public
+catalogue until explicitly selected for publication.
+Run
 `python3 tools/codegen/pricing_bindings/price_gradients/coverage.py` to inspect
 every Markovian pricing binding and the gradient orders currently exposed by
 its launcher. Coordinate-level exclusions remain in the model and product
 adapters; this is a coverage inventory, not numerical certification.
-Stochastic equity Markovian diagonal generators expose both `mono` and
+Stochastic equity Markovian gradient generators expose both `mono` and
 `node_graph` through `--sensitivity-strategy`. With no argument, each generator
 uses the strategy declared in its `recipe.yaml`, selected by the versioned
 `price_gradients/strategy_map.py`; the command-line argument overrides it for
-measurements. These diagonal recipes select every model and product coordinate
+measurements. These first-order recipes select every model and product coordinate
 supported by their adapters (Kmax). Closed-form Black–Scholes generators do
 not use an MC strategy. The node-graph workspace is sized by the generated
 binding and owned by the shared offline runner.
-Every price recipe has an aligned target and a distinct Cartesian target. Every
-published sensitivity selection has the same pair. Cartesian rows use
+Every public price and gradient recipe uses aligned rows. Experimental Cartesian
+recipes remain available in the local work catalogue; their rows use
 model-major/product-fastest order, or model-major/curve/product order for fitted
 rates. Use `tools/datasets/generate_catalog.py --construction cartesian` to
 compile, inspect, execute or resume either family.
 
 - Pricing bindings are written below each model's `product/` directory.
 - Model-sample bindings are written as `<model>/sample.cuh` and `sample.cu`.
-- Price and sample recipes are written below `catalog/model/**`.
+- Price, first-order gradient, and sample recipes are written below `catalog/model/**`.
 - Model, curve, product, binding, and recipe registration is written to
   `cmake/generated/CapabilityManifest.cmake`.
 - Output hashes are written to `PricingCapabilityManifest.json`.

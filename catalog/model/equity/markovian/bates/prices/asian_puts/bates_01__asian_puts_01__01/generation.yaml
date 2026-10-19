@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/bates/prices/asian_puts/bates_01__asian_puts_01__01/recipe.yaml
-  sha256: e117031d476e76b2e4f8eef66a1e77128003f34b4587a7db461eadb669ad5a53
 artifact:
   row_count: 1000
-  sha256: 4b963ff0fb1843705064425c7f47bad6d1e2e42e431789f573fc92508032974b
-inputs:
-  models: 8390ab62f307a3a26783911fbf252e49322e63232dd319d1e142b108a1f4d977
-  products: cf39f012d5200a82195b5201d0a257e6a1aa30fbd012479582d67ed2207f9cfd
+  sha256: 0148feb9d8d8da6e664419646fd275e74e75fd5a171cc7723d72e17d21faedc4
 execution:
-  binary_sha256: 1430622f893b2dfac7371d52aa707b2c98161ca4293efd85a400a872b01f51aa
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: asian_puts
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: bates
     product: asian_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 7f0f22b84aff2d81c0cca8fa4f9b3e59fbcf2458a011e3a6418888ba34d8a582
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 6fa2d1cac28c272b5e453ed1205853fa9786976b746931e1a09086e658d94798
+  generator_sha256: efd2953074395409c98dda4d9c61cfcf3519577390e9102f82df20018e643c5f
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: asian_puts
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 168.530688071
-  kernel_seconds: 181.10634375
+  wall_seconds: 42.154960695
+  kernel_seconds: 39.864554687500004
+recipe:
+  path: catalog/model/equity/markovian/bates/prices/asian_puts/bates_01__asian_puts_01__01/recipe.yaml
+  sha256: 6ab8caf45d0b06db53195b660d31064d5dba713eba1ea0b2b0e9adf6b47a32f9
+inputs:
+  models: 02f796243f35ac3cbe90aa3628ec044eaf9fca765c115bf9436fcfa1a414c7f2
+  products: 49f7522cff95ffaa9d74764fe01eda57f057e395ed092a02aabc6efb754cbbf5
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789311327.860061
+    unix_time: 1791490750.7330163
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 82, 78.38 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 74, 46.36 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/bates/parameters/bates_01.json: 5e50474e6fbffc847ea207cf630af11a0eeb80d40cf81acc174d0433ecd40fba
-    datasets/product/asian_option/asian_options_01.json: ae09796e37edac8ce763fdd66fde05401e39ec89820e3da89cc94576c6280005
   generator: catalog/model/equity/markovian/bates/prices/asian_puts/bates_01__asian_puts_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: d9407d13bc9a69c1768ece34064dc4eebc78baa591730119cc29f1945bb963b7
-  record_sha256: ab95bb132c923902951cdb3b60c0779002a0b14768dbce4e9a15751c03bbc4de
-record_sha256: c566dc738a35f006d6b48eb6325055ef2aa9d739d7bdbec3ef98381a5867c4b5
+  input_files:
+    datasets/model/equity/markovian/bates/parameters/bates_01.json: d7e9d93ea57e3d5c30ec48e3e75a651f02a60bb23f241d56c2c7c90e17e967d8
+    datasets/product/asian_option/asian_options_01.json: 8a51c15a49afbac2f6dd07a7802c8f34d199002e8e7eb5f2a2b01ff7a47f373e
+record_sha256: 68e57ed8211bda4d7b7eaefc5dc744353c09daac3c7a0bd26f470c25a7fde302

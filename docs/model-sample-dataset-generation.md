@@ -20,6 +20,15 @@ The recipes use independent parameter, maturity, and dynamics seeds. They use
 the same plausible core parameter law; the stress tail reserved for pricing
 datasets is excluded from training samples.
 
+Before training or comparing against prices, verify that each sample JSON has a
+matching `generation.yaml` execution receipt for the current recipe and
+generator. Parameter support alone is insufficient: a prior JSON can reflect
+a different proposal law even when all its values lie within the current
+bounds. If the model parameter generator changes, regenerate its parameter
+dataset and dependent price datasets before claiming that published samples
+and prices use the same law. Sample maturities cover 63–504 business days;
+price recipes can cover a wider calendar, so check the intended test domain.
+
 Each row is autonomous and contains:
 
 - the complete model parameters;

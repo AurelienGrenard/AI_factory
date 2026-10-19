@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/cev/prices/digital_calls/cev_01__digital_calls_01__01/recipe.yaml
-  sha256: ec7fc133a72bd94c4803f70c86e47e3db1704456f6acb614e8c4015c1c73ec85
 artifact:
   row_count: 1000
-  sha256: bbd2cb2a5fde7859979b82250c061d651cdd3afe4687d8e7de03e889e7d3c566
-inputs:
-  models: 376887d6eac22ed958967a1ee94d460d57ca4c2f365f0e07b012e82ee4154c0a
-  products: cbdcb0cc45fd8eedb79c69c01484d7694f356c8d0f70b48a69a9ed29f22c0e02
+  sha256: 3d5cd6eea6839dcffb14a48012808b377d8fc93daf95ffc285cd560fbdf77063
 execution:
-  binary_sha256: 356808af2e9cb065e011c2ce056d6fc6e219c8d2038d64454989d998ed34b22b
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: digital_calls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cev
     product: digital_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: d0279b5f4c7acada773f972b501973bafc26d2214acdce39d1f5564df3a90639
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: e529c811441fcd90124f6be13645a106791c68454ac429642d2dc7baeaf6e71f
+  generator_sha256: 83cb02fba993bdd0d3c42e0581d18f70cb7b4eb0ba0a873d42d2b2c710fa4566
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: digital_calls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 41.866084935
-  kernel_seconds: 45.350949219
+  wall_seconds: 14.413275176
+  kernel_seconds: 13.505521484375
+recipe:
+  path: catalog/model/equity/markovian/cev/prices/digital_calls/cev_01__digital_calls_01__01/recipe.yaml
+  sha256: d258f1a0ca97b76afd3c5289c0e436008fd41f17cc4492ba7b2bbef45c8f74b7
+inputs:
+  models: 04b7665649c74852e002d8a2b97b3851ffaec866968fcf2cb85ff47ffae18940
+  products: e8a541f13619273b5335ba00a65133f4a7fd0ef7c192b841d4060049be1d8b9b
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789316410.9628043
+    unix_time: 1791492851.4745188
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 82, 83.68 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 73, 46.65 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/cev/parameters/cev_01.json: 9263907ec998c2ce5ec4ac04ff300fe35ab146dd84b2b62147e7eacb1dff7945
-    datasets/product/digital_option/digital_options_01.json: 94f11e19391f8b06ae835fbfc61363687aeb3ce52645ef89d75271eb444dc746
   generator: catalog/model/equity/markovian/cev/prices/digital_calls/cev_01__digital_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: a34d609d13f6cc75b50576a41ca67afa2aff69b7cc1141f4bbcf4943132dc657
-  record_sha256: 1f9720d78d0854bfe8dd99552f3a63bfe19b33ea0a18f727fb8e8b959ee07ebe
-record_sha256: c28379a593ea5b1b14484871ce78c7d0d4d70f53b31d011eba6ce01c4a664d90
+  input_files:
+    datasets/model/equity/markovian/cev/parameters/cev_01.json: 5b7da83275dcc111b394543b8cff5a92b131b81b54f9c5aaea4531c464ca64a7
+    datasets/product/digital_option/digital_options_01.json: 021e80bb120c6a93d370b52b306790b67012752d2972153e4aa3b7e8abb04166
+record_sha256: 89d5ce8f1b99801707c9684db6dce99c5457be1173c2bff51dacf0115e376251

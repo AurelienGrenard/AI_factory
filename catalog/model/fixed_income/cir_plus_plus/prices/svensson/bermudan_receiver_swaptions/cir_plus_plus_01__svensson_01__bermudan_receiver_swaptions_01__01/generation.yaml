@@ -1,29 +1,21 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/recipe.yaml
-  sha256: ef9a5798c898d383c4f777f1dc768234d2beae6faf66d7e5b8bbd9a28ab99e80
 artifact:
   row_count: 1000
-  sha256: 0d6f194c7796c5e32e0d8e3bc41dcc9770e516692d639f2718dc62d4917f7f1d
-inputs:
-  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
-  models: 9dbb9f803ad0e887565621f777ba38c35909ba110916dd93eb294dcf4b403d1c
-  products: 81b382bc7a40260bb4f831e474473d10665424531db352fce9a8db2c757ada6f
+  sha256: 8114e45815b61d0545250553fed1c7b531a90b1e56259907486b67f8736a58bd
 execution:
-  binary_sha256: 5a933ccb28735d73aaf10d46698d8550f92674e74931846ed4ed71c1a3edfd70
-  declared_method:
-    engine: fixed_income_lsm
-    profile: longstaff_schwartz_price_profile
-    variant: bermudan_receiver_swaptions
-    construction: aligned
-    has_curve: true
+  threads_per_block: 128
+  blocks_per_price: 64
+  batch_count: 3
+  kernel_launch_count: 93
+  workspace_bytes: 14160249360
+  maximum_prices_per_batch: 495
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: terminal_forward_lsm
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cir_plus_plus
     product: bermudan_swaption
     curve: svensson
@@ -39,49 +31,56 @@ execution:
     blocks_per_price: 64
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: a0d69d6a3b85cd7f2bcc579a84b972f09cc22e03425d3a36d4994d15752e25db
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  threads_per_block: 128
-  blocks_per_price: 64
-  batch_count: 3
-  kernel_launch_count: 105
-  workspace_bytes: 14160249360
-  maximum_prices_per_batch: 495
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: fixed_income_early_exercise
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
   time_day_fraction: 1 / 252
+  paths_per_price: 1048576
+  binary_sha256: 4cdb4074010fddff8125fb8c43759c57b276b628fd402e01b60e50f1c36645d0
+  generator_sha256: a0d69d6a3b85cd7f2bcc579a84b972f09cc22e03425d3a36d4994d15752e25db
+  declared_method:
+    engine: fixed_income_lsm
+    profile: longstaff_schwartz_price_profile
+    variant: bermudan_receiver_swaptions
+    construction: aligned
+    has_curve: true
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 27.626259585
-  kernel_seconds: 29.635345215
+  wall_seconds: 8.183702958
+  kernel_seconds: 6.748260253906251
+recipe:
+  path: catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/recipe.yaml
+  sha256: 583f9c44e441b1e51568d679811124dcdbb188985f924a632d53ac4a449fd615
+inputs:
+  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+  models: 330618ffe9405302fdaeb520101fdf44f0426c39acc9fbf58096a4757e96b950
+  products: 0722965bd90bfd491381e95e549d64eaf53fa86b657ad9cbfc48d8f8a6562c04
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307180.9244976
+    unix_time: 1791411415.2379522
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 84, 99.95 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 80, 57.27 W, [N/A], 2310 MHz, 9001 MHz
 
       '
     stderr: ''
+  generator: catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
   input_files:
     datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
-    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915
-    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 4394b06a4d32a77af64c9299b68051474160d8ce5f79e4b076c20d5917f9966c
-  generator: catalog/model/fixed_income/cir_plus_plus/prices/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: cce74239ab3cc772f3cbd15cfcca11aa346d4ed21bfecd43b82ed2f263d37934
-  record_sha256: 5e093a1a12508e80e68775578b93ddd61249c3efbb1bf94484b0ee890015eea1
-record_sha256: 6e44a2ae5cd97b290dba62c2158dec2a42838f7614675b492992daefcc86fcee
+    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
+    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
+record_sha256: 206e397a395dcd3cc0fd5c01a906025caf08e4cf0c007de88e8833be231121c3

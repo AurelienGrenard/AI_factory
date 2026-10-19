@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import csv
+from datetime import datetime, timezone
 import hashlib
 import json
+import math
+import re
 from pathlib import Path
 import subprocess
 import tarfile
@@ -12,9 +16,6 @@ import yaml
 
 from tools.datasets.artifact_publication import contained_path, digest
 from tools.datasets.metadata_schemas import validate_document
-
-
-SCHEMA_VERSION = 1
 
 
 def fingerprint(value) -> str:
@@ -68,97 +69,226 @@ def snapshot_sources(root: Path, destination: Path) -> str:
     return digest(destination)
 
 
+SCHEMA_VERSION = 2
+
+
+def _version(command: list[str]) -> str:
+    try:
+        result = subprocess.run(command, capture_output=True, text=True,
+                                timeout=10, check=True)
+        lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        return next((line for line in lines if "release " in line), lines[0])
+    except (OSError, subprocess.SubprocessError, IndexError):
+        return "unavailable"
+
+
+def software_versions(build: Path) -> dict[str, str]:
+    """Record the tools actually named by this build; no build hash is a reuse gate."""
+    cache = {}
+    cache_file = build / "CMakeCache.txt"
+    if cache_file.is_file():
+        for line in cache_file.read_text().splitlines():
+            if "=" in line and ":" in line.split("=", 1)[0]:
+                key, value = line.split("=", 1)
+                cache[key.split(":", 1)[0]] = value
+    cxx = cache.get("CMAKE_CXX_COMPILER", "")
+    nvcc = cache.get("CMAKE_CUDA_COMPILER", "")
+    versions = {
+        "cmake": _version(["cmake", "--version"]),
+        "cxx_compiler": _version([cxx, "--version"]) if cxx else "unavailable",
+        "cuda_compiler": _version([nvcc, "--version"]) if nvcc else "unavailable",
+    }
+    json_config = Path(cache.get("nlohmann_json_DIR", "/nonexistent")) / "nlohmann_jsonConfigVersion.cmake"
+    if json_config.is_file():
+        match = re.search(r'PACKAGE_VERSION\s+"([^"]+)"', json_config.read_text())
+        if match:
+            versions["nlohmann_json"] = match.group(1)
+    mathdx = cache.get("AI_FACTORY_MATHDX_ROOT", "")
+    match = re.search(r'nvidia-mathdx-([0-9][^-]*)', mathdx)
+    if match:
+        versions["mathdx"] = match.group(1)
+    return versions
+
+
+def hardware_from_observation(observation: dict | None, *, cpu: bool = False) -> dict:
+    observation = observation or {}
+    if cpu:
+        return {"device": "cpu", "host": observation.get("hostname", "unavailable"),
+                "model": "unavailable"}
+    result = {"device": "gpu", "host": observation.get("hostname", "unavailable")}
+    visible = observation.get("cuda_visible_devices")
+    if visible is not None:
+        result["cuda_visible_devices"] = visible
+    rows = list(csv.DictReader((observation.get("stdout") or "").splitlines(), skipinitialspace=True))
+    if rows:
+        selected = (visible or "0").split(",")[0].strip()
+        row = next((row for row in rows
+                    if selected in {row.get("index", "").strip(),
+                                    row.get("uuid", "").strip()}), rows[0])
+        for source, target in (("index", "index"), ("name", "name"),
+                               ("uuid", "uuid"), ("compute_cap", "compute_capability"),
+                               ("driver_version", "driver_version")):
+            if row.get(source):
+                result[target] = row[source].strip()
+    if "name" not in result:
+        result["observation"] = "unavailable"
+    return result
+
+
+def generation_record(native: dict, recipe_path: str, dataset_path: str,
+                      input_paths: dict[str, str], input_root: Path,
+                      hardware: dict, software: dict) -> dict:
+    """Keep a small editable receipt for the currently published JSON."""
+    if not isinstance(native, dict) or native.get("status") != "complete":
+        raise ValueError("Native generation receipt is incomplete")
+    row_count = native.get("artifact", {}).get("row_count")
+    if type(row_count) is not int or row_count < 1:
+        raise ValueError("Native generation receipt lacks a valid row count")
+    record = {
+        "schema_version": SCHEMA_VERSION,
+        "status": "complete",
+        "recipe": {"path": recipe_path},
+        "artifact": {"path": dataset_path, "row_count": row_count,
+                     "sha256": digest(contained_path(input_root, dataset_path))},
+        "inputs": {role: {"path": relative,
+                          "sha256": digest(contained_path(input_root, relative))}
+                   for role, relative in input_paths.items()},
+        "environment": {"hardware": hardware, "software": software,
+                        "generated_at_utc": datetime.now(timezone.utc).isoformat()},
+    }
+    if isinstance(native.get("timing"), dict):
+        record["timing"] = {key: native["timing"][key]
+                            for key in ("wall_seconds", "kernel_seconds")
+                            if key in native["timing"]}
+    validate_document(record, "generation", recipe_path)
+    return record
+
+
 def attach_generation(work: Path, job: dict, state: dict) -> None:
-    """Complete a native receipt without copying the canonical recipe into it."""
+    """Replace a checked native receipt with the compact publication record."""
     path = contained_path(work, job["generation"])
-    record = yaml.safe_load(path.read_text())
-    if not isinstance(record, dict) or record.get("schema_version") != SCHEMA_VERSION:
-        raise ValueError("Native output contains an invalid generation receipt")
-    if any(key in record for key in ("recipe", "inputs", "provenance", "record_sha256")):
+    native = yaml.safe_load(path.read_text())
+    if not isinstance(native, dict) or native.get("schema_version") != 1:
+        raise ValueError("Expected the native version-one generation receipt")
+    if any(key in native for key in ("recipe", "inputs", "record_sha256")):
         raise ValueError("Native generation receipt unexpectedly contains provenance")
-    record["recipe"] = {
-        "path": job["recipe"],
-        "sha256": job["recipe_sha256"],
-    }
-    record.setdefault("artifact", {})["sha256"] = digest(
-        contained_path(work, job["dataset"])
+    recipe = yaml.safe_load(contained_path(work, job["recipe"]).read_text())
+    if not isinstance(recipe, dict):
+        raise ValueError("Invalid frozen recipe")
+    record = generation_record(
+        native, job["recipe"], job["dataset"], recipe.get("inputs", {}), work,
+        hardware_from_observation(
+            job.get("gpu_before"),
+            cpu=job["kind"] in {"model_parameters", "product_parameters", "curve_parameters"}),
+        software_versions(Path(state["build"])),
     )
-    record["inputs"] = job["semantic_inputs"]
-    record["execution"].update({
-        "binary_sha256": job["binary_sha256"],
-        "generator_sha256": job["generator_sha256"],
-        "declared_method": job["declared_method"],
-        "launch_plan": job.get("launch_plan"),
-        "build_hashes": state["build_hashes"],
-    })
-    if job.get("price_parity") is not None:
-        record["execution"]["central_price_parity"] = job["price_parity"]
-    record["provenance"] = {
-        "revision": state["revision"],
-        "source_archive_sha256": state["source_archive_sha256"],
-        "runtime_observation": job.get(
-            "gpu_before", {"unavailable": "not recorded"}
-        ),
-        "generator": job["generator"],
-        "input_files": {
-            name: state["input_hashes"][name] for name in job["inputs"]
-        },
-    }
-    if state.get("controller_amendments"):
-        record["provenance"]["controller_amendments"] = state["controller_amendments"]
-    record["record_sha256"] = fingerprint(record)
-    validate_document(record, "generation", path)
     path.write_text(yaml.safe_dump(record, sort_keys=False))
 
 
-def assess(
-    recipe: dict,
-    generation: dict,
-    dataset: Path,
-    candidate: dict | None,
-    recipe_sha256: str,
-) -> dict:
-    """Conservative reuse decision; no modification, automatic acceptance or regeneration."""
-    record = generation
-    def result(status, *reasons):
-        return {"status": status, "reasons": list(reasons), "certification": "not_assessed",
-                "generation_record_sha256": record.get("record_sha256") if isinstance(record, dict) else None,
-                "candidate_sha256": fingerprint(candidate) if candidate else None,
-                "candidate": candidate}
+def _check_published_json(recipe: dict, generation: dict, document: dict) -> None:
+    if not isinstance(document, dict):
+        raise ValueError("Dataset JSON must be an object")
+    rows = recipe.get("row_count")
+    if (type(rows) is not int or rows < 1
+            or document.get("row_count") != rows
+            or generation["artifact"].get("row_count") != rows
+            or document.get("database_id") != recipe.get("dataset_id")):
+        raise ValueError("Dataset identity or row count contradicts recipe")
+    kind = recipe.get("kind")
+    if kind == "price_gradients":
+        from tools.datasets.price_gradients.contract import (
+            _check_compact_outputs, _mixed_pairs, _selected_names)
+        sensitivity = recipe["sensitivity"]
+        names = [item["parameter"] for item in sensitivity["parameters"]]
+        if len(set(names)) != len(names):
+            raise ValueError("Duplicate gradient parameter in recipe")
+        orders = sensitivity.get("orders", ["first"])
+        if any(order not in {"first", "diagonal_second", "mixed_second"}
+               for order in orders) or len(set(orders)) != len(orders):
+            raise ValueError("Invalid derivative orders in recipe")
+        first = _selected_names(sensitivity, "first", names, "first" in orders)
+        diagonal = _selected_names(sensitivity, "diagonal_second", names,
+                                   "diagonal_second" in orders)
+        mixed = ([a + "|" + b for a, b in _mixed_pairs(sensitivity, names)]
+                 if "mixed_second" in orders else [])
+        _check_compact_outputs(document, first, diagonal, mixed,
+                               recipe.get("paths_per_price", 0),
+                               "curve" in recipe.get("inputs", {}),
+                               recipe.get("option_side"))
+    elif kind == "prices":
+        results = document.get("results")
+        if not isinstance(results, list) or len(results) != rows:
+            raise ValueError("Price result count contradicts recipe")
+        if recipe.get("url") is not None and document.get("url") != recipe["url"]:
+            raise ValueError("Price URL contradicts recipe")
+        for index, row in enumerate(results, 1):
+            if not isinstance(row, dict) or row.get("id") != f"{index:06d}":
+                raise ValueError(f"Invalid price result ID at row {index}")
+            outputs = row.get("outputs", {})
+            value = outputs.get("price") if isinstance(outputs, dict) else None
+            error = outputs.get("standard_error") if isinstance(outputs, dict) else None
+            if (type(value) not in (int, float) or not math.isfinite(value)
+                    or type(error) not in (int, float) or not math.isfinite(error)
+                    or error < 0):
+                raise ValueError(f"Invalid price or standard error at row {index}")
+    elif kind in {"model_parameters", "product_parameters", "curve_parameters"}:
+        role = {"model_parameters": "models", "product_parameters": "products",
+                "curve_parameters": "curves"}[kind]
+        if not isinstance(document.get(role), list) or len(document[role]) != rows:
+            raise ValueError("Parameter result count contradicts recipe")
 
-    if (not isinstance(record, dict) or type(record.get("schema_version")) is not int
-            or record["schema_version"] != SCHEMA_VERSION):
-        return result("review_required", "Missing or unsupported generation provenance; do not backfill from today's code")
-    for key, value in (
-        ("artifact.sha256", record.get("artifact", {}).get("sha256")),
-        ("recipe.sha256", record.get("recipe", {}).get("sha256")),
-        ("record_sha256", record.get("record_sha256")),
-    ):
-        if not isinstance(value, str) or len(value) != 64 or any(c not in "0123456789abcdef" for c in value):
-            return result("invalid", "Malformed generation checksum: " + key)
-    if any(not isinstance(record.get(key), dict) for key in ("artifact", "recipe", "inputs", "execution", "provenance")):
-        return result("invalid", "Incomplete generation record")
-    unsigned = {key: value for key, value in record.items() if key != "record_sha256"}
-    if record.get("record_sha256") != fingerprint(unsigned):
-        return result("invalid", "Generation record checksum mismatch")
-    if record["artifact"].get("sha256") != digest(dataset):
-        return result("invalid", "Dataset content missing or changed")
-    if record["recipe"].get("sha256") != recipe_sha256:
-        return result("regenerate", "Canonical recipe bytes changed")
-    if recipe.get("output", {}).get("path") is None:
-        return result("invalid", "Canonical recipe has no output path")
-    if candidate is None:
-        return {**result("review_required", "Current generation has not been inspected"),
-                "candidate_required": True}
-    if record["recipe"].get("sha256") != candidate["recipe_sha256"]:
-        return result("regenerate", "Dataset identity, shape, seeds or numerical recipe differs")
-    if record.get("inputs") != candidate["inputs"]:
-        return result("regenerate", "Ordered parameter content differs (paths and presentation are excluded)")
-    execution = record["execution"]
-    differences = [key for key in ("binary_sha256", "generator_sha256", "declared_method", "launch_plan", "build_hashes")
-                   if execution.get(key) != candidate["execution"].get(key)]
-    if differences:
-        return result("review_required", "Changed generation evidence: " + ", ".join(differences),
-                      "A refactor is not proof of changed mathematics; compare affected outputs before accepting reuse")
-    return result("compatible", "Recorded inputs, recipe, executable and build configuration match",
-                  "This is recipe compatibility, not bitwise portability or financial certification")
+
+def assess(recipe: dict, generation: dict, dataset: Path, root: Path | None = None) -> dict:
+    """Check current metadata and artifact, without freezing historical code bytes."""
+    def result(status: str, *reasons: str) -> dict:
+        return {"status": status, "reasons": list(reasons),
+                "certification": "not_assessed"}
+
+    if not isinstance(recipe, dict) or not isinstance(generation, dict):
+        return result("review_required", "Missing recipe or generation metadata")
+    if generation.get("schema_version") not in (1, 2):
+        return result("review_required", "Missing or unsupported generation metadata")
+    try:
+        validate_document(recipe, "recipe", dataset)
+        validate_document(generation, "generation", dataset)
+        artifact = generation["artifact"]
+        if artifact.get("sha256") != digest(dataset):
+            return result("invalid", "Published JSON SHA256 differs from generation.yaml")
+        if generation["recipe"].get("path") is None:
+            return result("invalid", "Generation receipt has no recipe path")
+        if generation["schema_version"] == 2:
+            if artifact["path"] != recipe.get("output", {}).get("path"):
+                return result("invalid", "Published JSON path contradicts recipe")
+            declared_inputs = recipe.get("inputs", {})
+            if {role: item["path"] for role, item in generation["inputs"].items()} != declared_inputs:
+                return result("invalid", "Input paths contradict recipe")
+            if root is not None:
+                for role, item in generation["inputs"].items():
+                    input_file = contained_path(root, item["path"])
+                    if input_file.is_file() and digest(input_file) != item["sha256"]:
+                        return result("review_required", f"Current {role} input differs from generation.yaml")
+        if recipe.get("kind") == "samples":
+            from tools.datasets.generate_catalog import check_samples
+            if artifact.get("row_count") != recipe.get("row_count"):
+                raise ValueError("Sample row count contradicts recipe")
+            check_samples(dataset, {"generation": recipe["generation_output"],
+                                    "rows": recipe["row_count"]}, recipe)
+            document = None
+        else:
+            document = json.loads(dataset.read_text())
+            _check_published_json(recipe, generation, document)
+        if root is not None and recipe.get("kind") in {"prices", "price_gradients"}:
+            for role, relative in recipe.get("inputs", {}).items():
+                input_file = contained_path(root, relative)
+                if not input_file.is_file():
+                    continue
+                source = json.loads(input_file.read_text())
+                reference = document.get(role + "_dataset")
+                if (not isinstance(reference, dict)
+                        or reference.get("id") != source.get("database_id")
+                        or reference.get("catalog") != source.get("catalog")):
+                    raise ValueError(f"{role} dataset reference contradicts recipe input")
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
+        return result("invalid", str(error))
+    return result("compatible", "Current recipe and generation metadata describe the published JSON",
+                  "This does not certify a numerical rerun or historical execution claims")

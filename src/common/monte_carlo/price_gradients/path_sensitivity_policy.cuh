@@ -368,7 +368,44 @@ __device__ __forceinline__ auto evaluate_path_nodes(
         }
     };
 
-    if constexpr (!Row::kVariableTerminal) {
+    if constexpr (Row::kVariableTerminal
+        && Traits::kKind == PathScheduleKind::dense) {
+        for (std::uint32_t observation = 0U;
+             observation < row.maximum_terminal_transitions;
+             ++observation) {
+            draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
+                random,
+                row.dynamics[0U],
+                row.node_count,
+                [&](unsigned int node, const auto& innovations) {
+                    if (simulates(node)
+                        && observation < row.input(node).step_count) {
+                        Dynamics::transition(
+                            row.dynamics[0U][node],
+                            innovations,
+                            nullptr,
+                            states[node]
+                        );
+                    }
+                }
+            );
+            #pragma unroll
+            for (unsigned int node = first_node;
+                 node < NodeCapacity;
+                 ++node) {
+                if (node >= row.node_count || !active[node]
+                    || observation >= row.input(node).step_count) continue;
+                const unsigned int state_node = row.input(node).reuse_central
+                    ? 0U : node;
+                active[node] = handlers[node].on_observation(
+                    observation,
+                    NodePolicy::coordinate(
+                        row.metadata[node], states[state_node]
+                    )
+                );
+            }
+        }
+    } else if constexpr (!Row::kVariableTerminal) {
         if constexpr (Traits::kKind == PathScheduleKind::dense) {
             for (std::uint32_t observation = 0U;
                  observation < row.schedule.observation_count;

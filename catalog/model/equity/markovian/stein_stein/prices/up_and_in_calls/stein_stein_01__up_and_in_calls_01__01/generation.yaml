@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01/recipe.yaml
-  sha256: d283bd2f6723fe75f7ba566b396bd1129ec2651badf45bab68f509dac25c5ed0
 artifact:
   row_count: 1000
-  sha256: 1fba22fb28a5c4544dba4386f77e79a33ba746541774dbeab10ef86eeae2b1c6
-inputs:
-  models: 29eb6dd66bb9284bcba495eb21db0310c5c4adef80990256afd148fd5e01c341
-  products: 125400160da1582ddf2624afa808b9ce5e0606990174b78adf0b7d58a470fb4e
+  sha256: 72590a2113cec47989daa5d074cfbb38009b0a8e0426b69cceb7f706757b1f36
 execution:
-  binary_sha256: c9cff754e0c1570fb4f80af722ebcb68e4cc76c2bc8115de67e3737f80671ddb
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: up_and_in_calls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: stein_stein
     product: up_and_in_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 51b66bb5671cb134498ca4a25e6e5024134f66cef6228e90d151c99df5d76807
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 62c3d99b77b3b49f9ed442b09706fea053dd837b7ccd648b8799c5e8ee30f1f7
+  generator_sha256: a883a25a95d09e874cce0f167e779023130ad235f83fc9f67c1795782552d144
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: up_and_in_calls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 58.019235312
-  kernel_seconds: 57.306988281
+  wall_seconds: 21.058461549
+  kernel_seconds: 19.6979140625
+recipe:
+  path: catalog/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01/recipe.yaml
+  sha256: 24b137b4685e33a8c8ab971a5f236fce1496ba27ab8504370cf46ed12dff9b78
+inputs:
+  models: 9cede842c4dbff2526678d0793a5208a2c1303b72401c94f3f379f4d51be8e23
+  products: a765632c155bcd0dc89f22040c461a0a3a24cac42f0c3ec21400c826e3eda0e8
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789330880.2689488
+    unix_time: 1791497858.3543146
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 82, 87.22 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 78, 48.82 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json: 7fcec0892f82d5b1153394c505e8579acae7ce5df1a688094780308e8632c36a
-    datasets/product/up_and_in_option/up_and_in_options_01.json: 1793c98d347f39c932fc10a0532bb0df16e8050c9b094f2de3eede11e29a4898
   generator: catalog/model/equity/markovian/stein_stein/prices/up_and_in_calls/stein_stein_01__up_and_in_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: fd2de97e842f3d7a09991af3822e3bf5ba0234c12253897611e5c2284d0b0c6b
-  record_sha256: 82be24eb2955e67bf50084d2ffe30c2fbdb43436bc3339ecd4f0fa8d88e795bb
-record_sha256: bc68e58709974749d28a26c9303944f2e75d2ac9fdb950bfddaea201f2f7955e
+  input_files:
+    datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json: 8ba72ec79276877077a6254bf8bc1879d9ebed1d7e9c533c1c22cdfad7aafbbe
+    datasets/product/up_and_in_option/up_and_in_options_01.json: 555de00ea102d9750d89b5f5620f557a50d8d3fe21cc4192d61091db56dc4739
+record_sha256: c9c091af266170d20b86453a9e557a2c6f8cc5976d731d16260dd1f3b579af48

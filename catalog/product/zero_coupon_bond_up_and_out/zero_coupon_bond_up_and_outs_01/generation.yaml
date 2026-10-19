@@ -1,0 +1,51 @@
+schema_version: 1
+status: complete
+artifact:
+  row_count: 1000
+  sha256: f9022ac72d24db8b0ae5e2afde3ce7c30185868d6806cad4178d571f14a456ea
+execution:
+  mode: native_parameter_generator
+  binary_sha256: c33109ede0bdeadc17e671c6bc4271378819a20e640cd073043212d0b74bdc96
+  generator_sha256: 0dcb0269fe2906a150156a43b7ee78eaf864b7bd0dda3396c0cccf00c0953cba
+  declared_method:
+    engine: product_parameters
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/generate_zero_coupon_bond_up_and_outs_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
+timing:
+  wall_seconds: 0.0
+  kernel_seconds: 0.0
+recipe:
+  path: catalog/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01/recipe.yaml
+  sha256: 738aa91852db498e6e8864a7cd77e02381ee4dbd88ab8131322a4e626c2e9114
+inputs: {}
+provenance:
+  generator: catalog/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01/generator.cpp
+  input_files: {}
+  hardware_used:
+    device: cpu
+    model: 13th Gen Intel(R) Core(TM) i9-13900HK
+    host: ALIENWAREAG
+  build_options:
+    cmake_generator: Unix Makefiles
+    build_type: Release
+    cxx_standard: 20
+    cuda_standard: 20
+    cuda_architectures: '89'
+    tuning_profile: sm89_cuda12_unqualified_v1
+    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
+    cxx_compiler: /usr/bin/g++-14
+    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
+    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
+    cuda_host_compiler: /usr/bin/g++-14
+    cxx_release_flags: -O3 -DNDEBUG
+    cuda_release_flags: -O3 -DNDEBUG
+    target_flags:
+      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
+      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
+    cuda_dependency_flags: {}
+    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
+  generated_at_utc: '2026-10-07T18:04:15.152811+00:00'
+record_sha256: 9e1fc4b9311a39179b5ea1972cd07293e17223faeb813cf86890e49295df69bb

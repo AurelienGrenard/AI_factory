@@ -2,19 +2,16 @@
 
 ## Périmètre actif
 
-Le manifeste contient 261 bindings equity markoviens `price_gradients` :
+Le manifeste de capacités déclare 658 recettes `price_gradients` alignées
+pour les dérivées premières : 380 couples equity markoviens, 174 couples rough
+et 104 couples fixed income. Les générateurs en cours de qualification restent
+sous `work/catalog` ; le catalogue public contient actuellement deux recettes
+CIR de premier ordre. Les anciennes recettes de Hessienne diagonale ont été
+retirées du catalogue public.
 
-- 55 bindings Monte Carlo terminaux, soit cinq produits
-  (`european_option`, `asset_or_nothing_option`, `digital_option`,
-  `gap_option`, `straddle`) sur onze modèles ;
-- 189 bindings Monte Carlo de chemin, selon les couples déjà exposés par le
-  catalogue de prix ;
-- huit bindings Black--Scholes en formule fermée, dont cinq terminaux et trois
-  produits de chemin analytiques ;
-- neuf bindings américains Longstaff--Schwartz à exercice central gelé.
-
-Tous publient les dérivées premières sélectionnées, la diagonale de
-Hessienne et les dérivées mixtes demandées. Les petites demandes d'ordre un ou
+Le moteur peut calculer des dérivées premières, secondes diagonales et mixtes
+sur demande ; la publication standard des datasets est limitée au prix et au
+gradient. Les petites demandes d'ordre un ou
 diagonal peuvent employer `mono` ou `node_graph` avec les mêmes
 `SensitivitySpec`, tâches, stencils, nœuds et sorties. Toute demande mixte
 emploie `mixed_node_graph` afin d'évaluer chaque nœud partagé une seule fois.
@@ -37,10 +34,9 @@ et deux diagonal. La maturité, les dates et l’intervalle d’exercice restent
 exclus. Les moteurs `price_delta` restent les références de migration jusqu’à
 la couverture rough et au retrait de leurs derniers consommateurs.
 
-Le catalogue equity contient 2 184 recettes permanentes issues des recettes
-de prix existantes : 728 d'ordre un, 728 d'ordre un plus Hessienne diagonale et
-728 de Hessienne complète. Cette couverture de génération ne certifie ni la
-taille des bumps, ni le biais de discrétisation ou de politique gelée.
+La présence d'une recette de premier ordre dans le manifeste de capacités
+ne certifie ni la taille des bumps, ni le biais de discrétisation ou de politique
+gelée. Elle n'implique pas sa publication dans le catalogue public.
 
 ## Sélection et préparation
 
@@ -223,9 +219,10 @@ prix, du delta et de leurs erreurs standards pour les cas couverts.
 
 Le manifeste général agrège ces déclarations. Les launchers et recettes sont
 régénérés par la commande habituelle `generate.py --family all --output .`.
-Le codegen conserve les variantes gradient seul, spot seul et Hessienne complète,
-mais le catalogue permanent ne publie que `price_gradient_diagonal_hessian`
-(`first` + `diagonal_second`) afin de garder une taxonomie compacte.
+Le codegen conserve les composants nécessaires aux autres ordres de
+sensibilité, mais le manifeste de génération des datasets ne sélectionne que
+`price_gradient` (`first`). Les requêtes d'ordre deux restent possibles dans
+le moteur sans faire partie de la publication standard.
 Le contrôleur `tools/datasets/generate_catalog.py` connaît `price_gradients`
 et réutilise la provenance, les checkpoints et la progression existants.
 Aucun dataset n'est certifié du seul fait de sa génération : la validation
@@ -418,7 +415,7 @@ même binaire, le même GPU, les mêmes données et les mêmes opérations regro
 cmake --build build --target price_gradients_performance_benchmarks -j2
 python3 maintainer/tools/performance/run_price_gradient_strategies.py \
   --build-dir build \
-  --output-dir artifacts/audit/price-gradients-strategies-sm89-<run> \
+  --output-dir project_journal/evidence/audit/price-gradients-strategies-sm89-<run> \
   --profile
 ```
 
@@ -434,6 +431,28 @@ Le manifeste permanent couvre aussi les neuf phases Heston American et les
 deux stratégies Jamshidian CIR. Le
 [rapport SM89 du 19 septembre 2026](../performance-reports/price-gradients-strategies-sm89-2026-09-19.md)
 conserve leurs temps agrégés, ressources, accès mémoire, branches et limites.
+
+### Mesure diagnostique des graphes de produits de chemin
+
+Le choix `node_graph` est un ordonnancement numérique, pas une garantie de
+vitesse. Sur RTX 4090 Laptop / CUDA 12.9.41, un pilote Asian call à 16 lignes
+et 2²⁰ chemins par ligne a donné, pour `mono` puis `node_graph`, 0,474 s puis
+0,599 s GPU sous Heston, 0,616 s puis 4,562 s sous Merton, 0,625 s puis
+5,165 s sous Kou, et 0,930 s puis 6,536 s sous Bates. Les lignes JSON étaient
+identiques. Le profil Bates attribue 99,9 % du temps GPU du graphe à
+l'évaluation des trajectoires : la réduction finale n'explique pas le retard.
+Le couplage des sauts est effectué par la lane productrice pour tous les nœuds
+actifs ; la taille du groupe joue aussi un rôle mesurable.
+
+Sur 32 lignes Bates réparties entre 5 et 1 260 jours, le graphe actuel prend
+307,262 s GPU contre 46,828 s pour `mono`. Un prototype isolé spécialisé aux
+7 sensibilités demandées, avec 4 threads par trajectoire, prend 45,417 s et
+produit les mêmes résultats, mais n'accepte pas les sélections de 8 à 13 axes.
+Une seule mesure par configuration ne qualifie pas un gain de 3 %. Le défaut
+des générateurs reste `mono` ; une bascule générale exige une géométrie qui
+préserve toutes les sélections et des comparaisons répétées sur plusieurs
+produits et modèles. Les reçus et le protocole sont conservés dans
+`work/generation/graph-bates-tuning-2026-10-09/README.md`.
 
 ### Pipeline américaine gelée
 

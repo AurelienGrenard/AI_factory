@@ -1,28 +1,17 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/recipe.yaml
-  sha256: 89519b3b017c615ded6f6cc15b98a966ba9c9f2bc5cbca9c328223a4b7252d08
 artifact:
   row_count: 1000
-  sha256: 334dd866f4773456f0b0407e662177c114179ef5ffe56ea6cdd625ea52d92dcb
-inputs:
-  models: 359e723991c28fb574048f7a53b5874f216a7c717fe53afa8b9f456fac744f5f
-  products: b94e88cb7a64436ff8382c9db193850114ff178cbfe6f817e543426d439f403e
+  sha256: 27e330bc08a2e0810ff843eec8cb16a07f64387484fb67bfda7a0949cf8d50fa
 execution:
-  binary_sha256: 9b1fe7365635e6e591f88e40a140e20655d0d306af20fa0a496438399af152c8
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: european_payer_swaptions
-    construction: aligned
-    has_curve: false
+  block_count: 4
+  threads_per_block: 256
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: jamshidian
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: vasicek
     product: european_swaption
     curve: ''
@@ -38,39 +27,47 @@ execution:
     block_count: 4
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: f7e5e479e583619679fafdc8e123a5f448198640dde0efa1c43984a823ec2bb0
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 4
-  threads_per_block: 256
   kernel_launch_count: 1
   requested_work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: e01c6c666126428168f112c9d87d279da7834ae0a63145393883ce4752b1bab7
+  generator_sha256: 28cea4d336dc215efbdbad309e250be06335657a17703499194b7477caed5764
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: european_payer_swaptions
+    construction: aligned
+    has_curve: false
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.136373321
-  kernel_seconds: 0.019649536
+  wall_seconds: 0.473316539
+  kernel_seconds: 0.00037068799138069154
+recipe:
+  path: catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/recipe.yaml
+  sha256: b205581a529305544add756d6a93ac113dc01a5b263b2822ca8d3a85f4822703
+inputs:
+  models: 3adedad4abc03bf55952fcd04b67551a85d8ef4cf779bbdbb67ad8f1340aa247
+  products: f351c92984bc8838cee9f8ebf482bc8aeeb049dc6e2b42631b8aaf9c6fd8c9b6
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307884.6363678
+    unix_time: 1791411662.621462
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 85, 108.08 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 79, 63.44 W, [N/A], 2310 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/fixed_income/vasicek/parameters/vasicek_01.json: eab5ace90615ad43f784ea285d802323f2219d7b426c44fcd8565da0b4473479
-    datasets/product/european_swaption/european_swaptions_01.json: 5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf
   generator: catalog/model/fixed_income/vasicek/prices/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 1fe29bcae2a6b02601c2694c2b37d6fdfbff21003ddd78b85e64bc1c0ee15f15
-  record_sha256: e526ef647f8950336324615509374b33a130162d7dbccd8473ca3cdbd43eba84
-record_sha256: 1c4045ea5ca5a7848e21c84fd03bc9dfc149956d472bcbce3cc021d55e7d5c6a
+  input_files:
+    datasets/model/fixed_income/vasicek/parameters/vasicek_01.json: 229dc48a8d8d698a366b624d1dab7521487dda6a81ceb874609e36de2eb751d9
+    datasets/product/european_swaption/european_swaptions_01.json: 30d42fbe5343826a6421913808a768d3e27b1c093e1103cc0d1bba5e9fe5052e
+record_sha256: 107560f0df84c5962437daf1daea74e0dc85d0c6d2ba741306359322ccc4149f

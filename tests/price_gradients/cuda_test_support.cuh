@@ -198,10 +198,15 @@ Results execute(const Plan& plan, pg::LaunchConfiguration configuration, Launche
     }
     const auto host = values.read();
     const auto preparation_error = error.read();
-    require(
-        preparation_error[0].code == 0,
-        "Device sensitivity preparation failed."
-    );
+    if (preparation_error[0].code != 0) {
+        throw std::runtime_error(
+            "Device sensitivity preparation failed at row "
+            + std::to_string(preparation_error[0].row)
+            + ", sensitivity "
+            + std::to_string(preparation_error[0].sensitivity)
+            + ", code " + std::to_string(preparation_error[0].code)
+        );
+    }
     Results result{
         {host.begin(), host.begin()+rows},
         {},

@@ -55,7 +55,7 @@ l’entrée transférée. Aucun constat ne doit figurer dans les deux registres.
   n'a été écrêté. Une nouvelle
   publication de prix certifiés exigerait une estimation du premier moment et
   des queues indépendante et suffisamment précise.
-- **Provenance :** [analyse et reçus](../../artifacts/audit/num037-2026-10-06/README.md)
+- **Provenance :** [analyse et reçus](../../project_journal/evidence/audit/num037-2026-10-06/README.md)
   conservent sources, hashes des binaires, résultats bruts et décision. Le
   vérificateur de qualification passe : 26 masques, 52 lignes, prix et reçus
   inchangés, hashes d'artefacts concordants.
@@ -79,7 +79,7 @@ l’entrée transférée. Aucun constat ne doit figurer dans les deux registres.
   core 154, la vraie Hessienne strike vaut 110,108641. Élargir le pas jusqu'à
   faire coïncider les kernels donne 78,584821, soit 28,6 % de biais. La
   référence CIR T-forward et la décomposition QuantLib concordent sur le prix
-  à 1,52e−13 près. [Analyse et traces](../../artifacts/audit/perf027-2026-10-06/README.md).
+  à 1,52e−13 près. [Analyse et traces](../../project_journal/evidence/audit/perf027-2026-10-06/README.md).
 - **Vérification du nouveau contrat :** compilation dans un build isolé,
   test CUDA du rejet des ordres 2 et de la parité des gradients, codegen
   complet avec comparaison nulle, tests de manifeste, benchmark ordre 1 sur
@@ -97,7 +97,7 @@ l’entrée transférée. Aucun constat ne doit figurer dans les deux registres.
   Aucun `generation.yaml` n'a été copié au catalogue. Les deux entrées
   manquantes ont été restaurées depuis la campagne
   `work/generation/fixed-income-aligned-01` avec les mêmes SHA-256 que son
-  manifeste. [Campagne ordre un](../../artifacts/audit/perf027-2026-10-06/first_order_scope/result.json).
+  manifeste. [Campagne ordre un](../../project_journal/evidence/audit/perf027-2026-10-06/first_order_scope/result.json).
 - **Portée :** cette clôture retire la promesse de Hessienne pour CIR
   standalone/Jamshidian. Elle ne certifie pas les Hessiennes des autres
   bindings fixed income, ni la performance du preset de production sur tout

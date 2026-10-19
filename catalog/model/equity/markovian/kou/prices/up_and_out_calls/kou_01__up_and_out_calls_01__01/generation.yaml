@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/kou/prices/up_and_out_calls/kou_01__up_and_out_calls_01__01/recipe.yaml
-  sha256: 63ce3f204267e2bceec9ca72a45ed778141b4780ac6a13ef077abe416014a4de
 artifact:
   row_count: 1000
-  sha256: 16f1de730536e4fc297b16dc70dd445f9eb5c5a61e06cf09d01c5cec46a0130b
-inputs:
-  models: 5867fba85d7f5574c7240d8cfb4ea6ef2d471857b0c28b7daeb81b69daa93276
-  products: 1b1caffda978b7f8ba7c7fb1d940aa7403f7fbd24a68f49cbb98fed958cf3349
+  sha256: cbf26f59d9cc01147a14bff6d67a61f2cd047c2955b96ddad773d6fd25e55a76
 execution:
-  binary_sha256: 7a3aafb9a00b70a5feff537483b8cb078cabcb491da3781c93042babd30ce881
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: up_and_out_calls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: kou
     product: up_and_out_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 0168a66a49db87da3b52cb5141a89fa29673a5c2c5e236b9e82c97f0333dec31
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 97ac70e4d4d1076aa3be138c7256ef824f68ba0a3b8f9b7c5614aa1c49539191
+  generator_sha256: 488ae3f7594b696ed68aa0bda4c7d81e69f9ed2701439986d75ed80b9ab580f7
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: up_and_out_calls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 50.056872206
-  kernel_seconds: 52.384554687
+  wall_seconds: 22.409674746
+  kernel_seconds: 21.0168046875
+recipe:
+  path: catalog/model/equity/markovian/kou/prices/up_and_out_calls/kou_01__up_and_out_calls_01__01/recipe.yaml
+  sha256: 8214723f5d7bbdd3fabe871d0d4c94804f1744a0f1003544e2c17df14c6408f9
+inputs:
+  models: af18002839b8e4b1e2930e3be77e362f25ae4a0d2497fddf90b6c4b1b894e6ac
+  products: cf104421a43d2c1f2c58b22a51d1b58d1fcb3d572337a2fd5fb8c62e3b9e165c
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789322813.9046903
+    unix_time: 1791495059.1095767
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 77, 71.33 W, [N/A], 2310 MHz, 9001 MHz
+      610.60, P0, 72, 46.48 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/kou/parameters/kou_01.json: 9627a0dfba73f0609e137bd39f49b3b04e1cce4afca996323a6bcb1298de6f28
-    datasets/product/up_and_out_option/up_and_out_options_01.json: e117773336dd47d27a828c06163813e81a4359a1bbd75d6b7fea81fc179ee2d3
   generator: catalog/model/equity/markovian/kou/prices/up_and_out_calls/kou_01__up_and_out_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 6887c3eb54a212675f865cdb63bcec0d052aeb98d025f80be51d05949b5a2674
-  record_sha256: 068706aeb1cf058eb7f31f52472f46ec8978cf8c5a361c7ffb717cc975b9fde8
-record_sha256: 31785eedd7da5b8c0553ab09820632950d19e9c0bab89d6472031650507837f5
+  input_files:
+    datasets/model/equity/markovian/kou/parameters/kou_01.json: f3171db0ff41d63d68f0dfc1db7ba891897fa61264c824d50611d097f0da24f8
+    datasets/product/up_and_out_option/up_and_out_options_01.json: 656a1b2370ff10ecbf86cf2fb9172928e6b901d87c5591500ceec3a4a39254d7
+record_sha256: baa22024b8bad610a97cfff18796660f13692559811353e83b12e299e444072d

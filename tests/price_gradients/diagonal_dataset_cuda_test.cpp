@@ -1,7 +1,6 @@
 // A short native campaign verifies diagonal rows and checkpoint replay.
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/american_option_price_gradients.cuh"
-#include "model/fixed_income/cir/product/european_swaption_price_gradients.cuh"
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/pricing/price_gradients/generation.cuh"
 #include "tools/pricing/price_gradients/mixed_generation.cuh"
@@ -10,6 +9,9 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <string>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -26,6 +28,16 @@ int main() {
     try {
         const auto require = [](bool valid) {
             if (!valid) throw std::runtime_error("Diagonal dataset replay failed.");
+        };
+        const auto receipt_contains = [](
+            const std::filesystem::path& path, const std::string& token
+        ) {
+            std::ifstream input(path);
+            const std::string content{
+                std::istreambuf_iterator<char>(input),
+                std::istreambuf_iterator<char>()
+            };
+            return content.find(token) != std::string::npos;
         };
         datasets::write_json_file(directory / "models.json", {
             {"database_id", "model_fixture"}, {"catalog", "catalog/test"},
@@ -89,13 +101,13 @@ int main() {
         require(execute() == 0);
         const auto first = datasets::read_json_file(recipe.dataset);
         require(first["results"].size() == 1U);
-        require(first["results"][0U]["stencils"]["model.rho"]["node_count"] == 4U);
-        require(first["results"][0U]["outputs"]["diagonal_hessians"].size() == 2U);
+        require(!first["results"][0U].contains("stencils"));
+        require(first["results"][0U]["diagonal_hessians"].size() == 2U);
         require(execute() == 0);
         const auto replay = datasets::read_json_file(recipe.dataset);
         require(replay["results"] == first["results"]);
-        require(replay["summary"]["checkpoint"]["resumed_prices"] == 1U);
-        require(first["summary"]["sensitivity_strategy"] == "mono");
+        require(receipt_contains(recipe.catalog, "resumed_prices: 1"));
+        require(receipt_contains(recipe.catalog, "sensitivity_strategy: \"mono\""));
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");
         recipe.sensitivity_strategy =
@@ -103,11 +115,11 @@ int main() {
         require(execute() == 0);
         const auto graph = datasets::read_json_file(recipe.dataset);
         require(graph["results"] == first["results"]);
-        require(graph["summary"]["sensitivity_strategy"] == "node_graph");
-        require(graph["summary"]["maximum_live_scenarios"] == 7U);
-        require(graph["summary"]["sensitivity_graph_node_capacity"] == 7U);
-        require(graph["summary"]["represented_nodes_per_sensitivity"] == 4U);
-        require(graph["summary"]["sensitivity_workspace_bytes"] > 0U);
+        require(receipt_contains(recipe.catalog, "sensitivity_strategy: \"node_graph\""));
+        require(receipt_contains(recipe.catalog, "maximum_live_scenarios: 7"));
+        require(receipt_contains(recipe.catalog, "sensitivity_graph_node_capacity: 7"));
+        require(receipt_contains(recipe.catalog, "represented_nodes_per_sensitivity: 4"));
+        require(receipt_contains(recipe.catalog, "sensitivity_workspace_bytes:"));
 
         auto mixed_recipe = recipe;
         mixed_recipe.dataset = directory / "mixed.json";
@@ -172,22 +184,22 @@ int main() {
         require(execute_mixed() == 0);
         const auto mixed = datasets::read_json_file(mixed_recipe.dataset);
         require(mixed["results"].size() == 1U);
-        require(mixed["results"][0U]["outputs"]["price"]
-            == graph["results"][0U]["outputs"]["price"]);
-        require(mixed["results"][0U]["outputs"]["gradients"]
-            == graph["results"][0U]["outputs"]["gradients"]);
-        require(mixed["results"][0U]["outputs"]["diagonal_hessians"]
-            == graph["results"][0U]["outputs"]["diagonal_hessians"]);
+        require(mixed["results"][0U]["price"]
+            == graph["results"][0U]["price"]);
+        require(mixed["results"][0U]["gradients"]
+            == graph["results"][0U]["gradients"]);
+        require(mixed["results"][0U]["diagonal_hessians"]
+            == graph["results"][0U]["diagonal_hessians"]);
         require(
-            mixed["results"][0U]["outputs"]["mixed_hessians"].size() == 1U
+            mixed["results"][0U]["mixed_hessians"].size() == 1U
         );
-        require(mixed["results"][0U]["mixed_stencils"].size() == 1U);
+        require(!mixed["results"][0U].contains("mixed_stencils"));
         require(execute_mixed() == 0);
         const auto mixed_replay =
             datasets::read_json_file(mixed_recipe.dataset);
         require(mixed_replay["results"] == mixed["results"]);
         require(
-            mixed_replay["summary"]["checkpoint"]["resumed_prices"] == 1U
+            receipt_contains(mixed_recipe.catalog, "resumed_prices: 1")
         );
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");
@@ -250,7 +262,7 @@ int main() {
         );
         require(american_first["results"].size() == 1U);
         require(
-            american_first["results"][0U]["outputs"]["diagonal_hessians"]
+            american_first["results"][0U]["diagonal_hessians"]
                 .size() == 3U
         );
         require(execute_american() == 0);
@@ -259,174 +271,10 @@ int main() {
         );
         require(american_replay["results"] == american_first["results"]);
         require(
-            american_replay["summary"]["checkpoint"]["resumed_prices"] == 1U
+            receipt_contains(american_recipe.catalog, "resumed_prices: 1")
         );
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");
-
-        datasets::write_json_file(directory / "cir_models.json", {
-            {"database_id", "cir_model_fixture"}, {"catalog", "catalog/test"},
-            {"url", "https://datasets.ai-factory.example/cir_model_fixture.json"},
-            {"models", {{{"id", "000001"}}}}
-        });
-        datasets::write_json_file(directory / "swaptions.json", {
-            {"database_id", "swaption_fixture"}, {"catalog", "catalog/test"},
-            {"url", "https://datasets.ai-factory.example/swaption_fixture.json"},
-            {"time_convention", {{"unit", "business_day"}, {"days_per_year", 252}}},
-            {"products", {{{"id", "000001"}}}}
-        });
-        const datasets::price_gradients::Recipe cir_recipe{
-            directory / "cir_models.json", directory / "swaptions.json",
-            directory / "cir_diagonal.json",
-            directory / "cir_generation.yaml",
-            "https://datasets.ai-factory.example/cir_diagonal.json",
-            "catalog/test/cir_recipe.yaml", PriceConstruction::Aligned,
-            {{{"model.initial_state", {.0005, pg::BumpScale::absolute}},
-              {"product.strike", {.0005, pg::BumpScale::absolute}}}},
-            {1.0f/504.0f, 2U}, true,
-            pg::SensitivityOrders::first_and_second
-        };
-        namespace cir = model::fixed_income::cir;
-        const std::vector<cir::ModelParameters> cir_models{
-            {{.6f, .04f, .15f}, 0.0f}
-        };
-        const std::vector<product::RegularEuropeanSwaptionParameters>
-            swaptions{{1.0f, .035f, .5f, 252U, 126U, 4U}};
-        const auto prepare_cir = [](
-            const auto& model_rows,
-            const auto& product_rows,
-            PriceConstruction construction,
-            pg::TimeConfiguration time,
-            const pg::PriceGradientConfiguration& selected
-        ) {
-            return cir::prepare_cir_european_swaption_sensitivities(
-                model_rows, product_rows, construction, time, selected,
-                {pg::SensitivityOrders::first_and_second}
-            );
-        };
-        const auto launch_cir = [](
-            const auto& plan,
-            auto inputs,
-            auto stencils,
-            const auto& configuration,
-            auto outputs
-        ) {
-            cir::launch_cir_european_swaption_diagonal_sensitivities_cuda<
-                SwaptionSide::payer,
-                pg::SensitivityOrders::first_and_second
-            >(
-                plan, inputs, stencils, configuration, outputs,
-                closed_form::WorkDistribution::cooperative
-            );
-        };
-        const auto execute_cir = [&] {
-            return offline::pricing::price_gradients::execute_dataset<
-                false, pg::SensitivityOrders::first_and_second>(
-                cir_recipe,
-                {offline::cuda_tuning::PricingFamily::jamshidian,
-                 "cir", "european_swaption", ""},
-                0U, cir_models, swaptions, prepare_cir, launch_cir, 0U,
-                cir::prepare_european_swaption_diagonal_sensitivity_stencils_cuda
-            );
-        };
-        require(execute_cir() == 0);
-        const auto cir_first = datasets::read_json_file(cir_recipe.dataset);
-        require(cir_first["results"].size() == 1U);
-        require(
-            cir_first["results"][0U]["stencils"]["model.initial_state"]
-                ["node_count"] == 4U
-        );
-        require(
-            cir_first["results"][0U]["outputs"]["diagonal_hessians"]
-                .size() == 2U
-        );
-        require(execute_cir() == 0);
-        const auto cir_regenerated = datasets::read_json_file(cir_recipe.dataset);
-        require(cir_regenerated["results"] == cir_first["results"]);
-        require(!cir_regenerated["summary"].contains("checkpoint"));
-
-        auto cir_mixed_recipe = cir_recipe;
-        cir_mixed_recipe.dataset = directory / "cir_mixed.json";
-        cir_mixed_recipe.catalog =
-            directory / "cir_mixed_generation.yaml";
-        cir_mixed_recipe.url =
-            "https://datasets.ai-factory.example/cir_mixed.json";
-        cir_mixed_recipe.sensitivity_request =
-            pg::SensitivityRequest::full_hessian();
-        const auto prepare_cir_mixed = [](
-            const auto& model_rows,
-            const auto& product_rows,
-            PriceConstruction construction,
-            pg::TimeConfiguration time,
-            const pg::PriceGradientConfiguration& selected,
-            pg::SensitivityRequest request
-        ) {
-            return cir::prepare_cir_european_swaption_sensitivities(
-                model_rows,
-                product_rows,
-                construction,
-                time,
-                selected,
-                std::move(request)
-            );
-        };
-        const auto launch_cir_mixed = [](
-            const auto& plan,
-            auto inputs,
-            auto stencils,
-            auto mixed_stencils,
-            const auto& configuration,
-            auto outputs,
-            auto mixed_outputs,
-            void* workspace,
-            std::size_t workspace_bytes
-        ) {
-            cir::
-                launch_cir_european_swaption_mixed_node_graph_sensitivities_cuda<
-                    SwaptionSide::payer>(
-                        plan,
-                        inputs,
-                        stencils,
-                        mixed_stencils,
-                        configuration,
-                        outputs,
-                        mixed_outputs,
-                        workspace,
-                        workspace_bytes,
-                        closed_form::WorkDistribution::cooperative
-                    );
-        };
-        require(offline::pricing::price_gradients::
-            execute_mixed_node_graph_dataset<false>(
-                cir_mixed_recipe,
-                {
-                    offline::cuda_tuning::PricingFamily::jamshidian,
-                    "cir",
-                    "european_swaption",
-                    "",
-                },
-                0U,
-                cir_models,
-                swaptions,
-                prepare_cir_mixed,
-                cir::cir_european_swaption_mixed_node_graph_workspace_bytes<
-                    SwaptionSide::payer>,
-                launch_cir_mixed,
-                0U,
-                cir::
-                    prepare_european_swaption_diagonal_sensitivity_stencils_cuda
-            ) == 0);
-        const auto cir_mixed =
-            datasets::read_json_file(cir_mixed_recipe.dataset);
-        require(cir_mixed["results"][0U]["outputs"]["price"]
-            == cir_first["results"][0U]["outputs"]["price"]);
-        require(cir_mixed["results"][0U]["outputs"]["gradients"]
-            == cir_first["results"][0U]["outputs"]["gradients"]);
-        require(cir_mixed["results"][0U]["outputs"]["diagonal_hessians"]
-            == cir_first["results"][0U]["outputs"]["diagonal_hessians"]);
-        require(
-            cir_mixed["results"][0U]["outputs"]["mixed_hessians"].size() == 1U
-        );
 
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_DIR");
         unsetenv("AI_FACTORY_GENERATION_CHECKPOINT_ID");

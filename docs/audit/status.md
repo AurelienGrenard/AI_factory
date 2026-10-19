@@ -1,6 +1,6 @@
 # Tableau de bord de l'audit principal
 
-Référentiel actif : **v10.1 — 2026-10-02**. Dernier passage examiné : **2026-10-07, suivi des quatre constats encore ouverts** ; auparavant, reprise des dix constats hors rough, axe IV — performance, axe VI — hygiène et reprise de PRODUCT-001 et NUM-028 à NUM-030. Les preuves détaillées des passages précédents sont dans [véracité](history/truth-before-hygiene-2026-10-06.md) et [architecture](history/architecture-complete-before-truth-2026-10-06.md). Le passage hygiène s'est déroulé pendant ce chantier ; ses observations de génération correspondent au worktree au moment de leur exécution.
+Référentiel actif : **v10.1 — 2026-10-02**. Dernier passage examiné : **2026-10-08, contrôle des datasets fixed income, des samples et préparation equity** ; auparavant, reprise des dix constats hors rough, axe IV — performance, axe VI — hygiène et reprise de PRODUCT-001 et NUM-028 à NUM-030. Les preuves détaillées des passages précédents sont dans [véracité](history/truth-before-hygiene-2026-10-06.md) et [architecture](history/architecture-complete-before-truth-2026-10-06.md). Le passage hygiène s'est déroulé pendant ce chantier ; ses observations de génération correspondent au worktree au moment de leur exécution.
 
 ## Verdict et portée
 
@@ -131,7 +131,7 @@ complet à 1 024 opérations reste archivé : cinq p95 dépassent +5 %, jusqu'à
 campagnes passent sur secteur à 175 W. La clôture ne signifie donc **pas** que
 le gate de performance soit passé ni que tous les p95 soient qualifiés ; le
 protocole général et le baseline restent inchangés.
-[Preuves A/B](../../artifacts/audit/perf024-2026-10-07/README.md) ;
+[Preuves A/B](../../project_journal/evidence/audit/perf024-2026-10-07/README.md) ;
 [décision et limites acceptées](closed.md).
 `PERF-025` reste ouvert : la forte mémoire locale de l'instanciation Bates
 mixte n'a pas encore de variante profilée et validée aux capacités courante
@@ -146,7 +146,7 @@ benchmark diagonal sort de la matrice active. Les 1 000 lignes core et huit
 stress passent le gate prix/gradient ; la référence FP64 contrôle des lignes
 alignées. Quatre datasets prix + gradient et leurs reçus ont été exécutés
 dans un build Ninja isolé, mais restent en staging : la publication exige un
-worktree Git propre. [Campagne ordre un](../../artifacts/audit/perf027-2026-10-06/first_order_scope/result.json).
+worktree Git propre. [Campagne ordre un](../../project_journal/evidence/audit/perf027-2026-10-06/first_order_scope/result.json).
 
 ## Reprise ciblée véracité et produit de taux — 2026-10-06
 
@@ -161,7 +161,7 @@ worktree Git propre. [Campagne ordre un](../../artifacts/audit/perf027-2026-10-0
   sur grille. Les 14 recettes sont livrées dans `catalog/` ; leurs anciens
   reçus locaux ne qualifient pas les paramètres rafraîchis et aucun nouveau
   `generation.yaml` n'est livré pour ces recettes en attente d'exécution.
-  [Preuve produit](../../artifacts/audit/product001-2026-10-06/result.json).
+  [Preuve produit](../../project_journal/evidence/audit/product001-2026-10-06/result.json).
 - NUM-029 est transféré dans [closed.md](closed.md) : le pas Lamperti FP32
   est corrigé ; les 15 écarts rough SABR signalés disparaissent sur trois
   replays par ligne. Les 29 prix rough, 29 prix markoviens et quatre jeux de
@@ -176,7 +176,7 @@ worktree Git propre. [Campagne ordre un](../../artifacts/audit/perf027-2026-10-0
   `NUM-037`, suivi dans
   [les clôtures non résolues](unresolved-closures.md) ; leurs 52 prix restent non certifiés comme
   références.
-  [Validation de release](../../artifacts/audit/rough-price-quality-2026-10-06/num029_release_validation.json).
+  [Validation de release](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/num029_release_validation.json).
 - `NUM-037` est clos administrativement par exclusion des références, mais
   son problème numérique reste dans [unresolved-closures.md](unresolved-closures.md) :
   les 26 paires markoviennes
@@ -186,7 +186,7 @@ worktree Git propre. [Campagne ordre un](../../artifacts/audit/perf027-2026-10-0
   262 144 et 2²⁰ chemins, trois graines, premier moment, absorption, queues,
   schéma Euler spot indépendant et raffinement temporel documentent la limite ;
   le vérificateur contrôle les 26 masques et les empreintes. Aucun prix de
-  remplacement n'est revendiqué. [Preuves](../../artifacts/audit/num037-2026-10-06/README.md).
+  remplacement n'est revendiqué. [Preuves](../../project_journal/evidence/audit/num037-2026-10-06/README.md).
 
 - NUM-028 : 507 replays historiques confirment le déficit extrême de
   premier moment sur la ligne 984. Le nouveau domaine QRH borné passe les
@@ -223,7 +223,7 @@ nouveaux jeux fixed income ni les campagnes rough de cette reprise.
 Le passage IV couvre le code des stratégies closed form scalaire/coopérative,
 MC terminal exact/à pas fixes et produits de chemin, LSM equity/fixed income,
 Volterra FFT et causal, samples à un ou plusieurs chemins et graphes diagonal
-et mixte. Les preuves sont sous `artifacts/audit/axis-performance-2026-10-06/`
+et mixte. Les preuves sont sous `project_journal/evidence/audit/axis-performance-2026-10-06/`
 (snapshot et hashes dans `receipt.json`). Le build temporaire de 1,1 Gio a été supprimé après archivage et vérification des six exécutables profilés, de la configuration et des rapports Nsight. Les quatre tests CUDA de graphes
 terminal, path, mixte terminal et mixte path passent dans un build isolé
 Release SM89/CUDA 12.9.41. Les mesures restent diagnostiques : ni trois
@@ -247,9 +247,9 @@ conditions de clôture sont dans [response.md](response.md).
 
 ## Sources, codegen et orphelins
 
-- Régénération `python3 tools/codegen/pricing_bindings/generate.py --family all --output /tmp/ai_factory_hygiene_codegen_20261006 --compare-root .` : **7 036 sorties comparées, zéro différence, zéro chemin manquant ou en trop**. Le contrôle d'inventaire de la famille `all` confronte aussi bindings, recettes, helpers de samples et chemins attendus du renderer. Le journal compressé et son empreinte sont dans la [preuve locale](../../artifacts/audit/axis-hygiene-2026-10-06/receipt.json).
+- Régénération `python3 tools/codegen/pricing_bindings/generate.py --family all --output /tmp/ai_factory_hygiene_codegen_20261006 --compare-root .` : **7 036 sorties comparées, zéro différence, zéro chemin manquant ou en trop**. Le contrôle d'inventaire de la famille `all` confronte aussi bindings, recettes, helpers de samples et chemins attendus du renderer. Le journal compressé et son empreinte sont dans la [preuve locale](../../project_journal/evidence/audit/axis-hygiene-2026-10-06/receipt.json).
 - Croisement des sources suivies présentes avec `compile_commands.json` du build local : **1 222/1 222** unités de `src`, **17/17** unités de `tools`, **696/696** générateurs de `catalog` et **142/142** unités de tests présentes y figurent. Un ancien test rough FFT suivi était déjà supprimé dans le worktree et ne fut pas compté comme fichier physique orphelin. Le croisement avec `CTestTestfile.cmake` ne laisse hors CTest que vingt exécutables explicitement nommés benchmark, probe ou study ; ce ne sont pas des tests oubliés. Ce croisement de graphe n'est pas une compilation réussie du snapshot courant.
-- Le balayage des imports/includes de `src`, `learning`, `tools` et `catalog` ne trouve pas de dépendance obligatoire vers `work/` ou `artifacts/`. `work/catalog` est enregistré seulement si ses recettes physiques existent, et `work/experiments` exige un opt-in CMake explicite.
+- Le balayage des imports/includes de `src`, `learning`, `tools` et `catalog` ne trouve pas de dépendance obligatoire vers `work/` ou `project_journal/evidence/`. `work/catalog` est enregistré seulement si ses recettes physiques existent, et `work/experiments` exige un opt-in CMake explicite.
 - Balayage des includes et des templates : treize headers de compatibilité `frozen_exercise` ne contenaient qu'un include vers `frozen_replay` et n'avaient aucun consommateur interne. Ils ont été retirés ; aucun install/export de ces headers n'existe. Les unités CUDA American et Bermudan correspondantes **recompilent** avec CUDA 12.9/SM89. `BOUNDARY-005` est transféré dans [closed.md](closed.md). Aucun autre header existant sans consommateur n'a été démontré par ce balayage ; les deux chemins Volterra trouvés étaient déjà des suppressions du worktree.
 
 ## Datasets, campagnes et rétention
@@ -259,7 +259,7 @@ conditions de clôture sont dans [response.md](response.md).
 | `datasets/` | 696 sorties sélectionnées, toutes présentes ; **696/696** SHA-256 et comptes de lignes correspondent aux `generation.yaml` | conserver les données publiées |
 | `work/datasets/` | 1 713 recettes locales dont 24 sorties matérialisées, plus les payloads historiques de qualification et release ; les 24 sorties locales gardent leurs hashes | conserver ces jeux et les références historiques |
 | `work/generation/` | 18 campagnes gelées : cinq publiées complètes, quatre publiées inachevées, cinq études privées complètes et quatre privées inachevées ; certaines portent `running` sans processus actif | conserver les checkpoints, tentatives et preuves de publication ; reprendre explicitement ou classer avant suppression |
-| `artifacts/` | 6,9 Gio : audit, performance, validation, learning, Premia et dataset historique relocalisé | conserver les preuves citées et leurs hashes ; ne pas confondre avec un cache |
+| `project_journal/evidence/` | 6,9 Gio : audit, performance, validation, learning, Premia et dataset historique relocalisé | conserver les preuves citées et leurs hashes ; ne pas confondre avec un cache |
 | `builds/local-cuda12-9-0-sm89/` | 14 Gio, CUDA 12.9/SM89 ; le dry-run `ai_factory_cuda_tests` annonce **64 compilations CUDA** | garder comme build actif, sans employer ses anciens binaires comme preuve courante |
 
 Pour les feuilles historiques non régénérées, les recettes actuelles ne doivent pas être présentées comme leurs recettes d'origine : les hashes diffèrent pour **644/696** feuilles de production. Les 52 paramètres modèles/produits régénérés correspondent à leurs reçus. Les hashes diffèrent encore pour **23/24** feuilles locales matérialisées. [Le guide de déploiement](../deployment-catalog.md) annonce déjà cette limite et le manifeste la marque avec `recipeMatchesReceipt: false`. Les hashes des artefacts prouvent la conservation des octets historiques, pas la reproduction par le code actuel.
@@ -268,7 +268,91 @@ Pour les feuilles historiques non régénérées, les recettes actuelles ne doiv
 
 - Suppression de `build/` (8,9 Gio, cache CUDA 13.3/SM75), `builds/ppti/` (173 Mio, cache CUDA 13 obsolète) et `work/builds/heston-samples-3m-current/` (247 Mio, sous-build). Les campagnes qui y pointent historiquement copient leurs propres binaires, inputs, sources et configurations ; aucun processus ne les utilisait.
 - Suppression de 77 répertoires initiaux de cache Python/pytest (environ 5 Mio), puis de trois caches recréés pendant les contrôles. `.gitignore` exclut désormais aussi les caches pytest, Ruff, mypy, checkpoints de notebooks, couvertures et rapports binaires de profiler ; `git check-ignore` a vérifié ces motifs. Un cache NumPy de 62 Mio a été supprimé après vérification SHA-256 de son dataset relocalisé et de ses deux jeux de paramètres.
-- Le build isolé de l'audit véracité (3,5 Gio) a été remplacé par 2,8 Mio de snapshot, configuration et journal CTest hashés sous [axis-truth-2026-10-06](../../artifacts/audit/axis-truth-2026-10-06/receipt.json). Les sorties temporaires du codegen, les objets CUDA de vérification et les logs non retenus ont aussi été supprimés.
+- Le build isolé de l'audit véracité (3,5 Gio) a été remplacé par 2,8 Mio de snapshot, configuration et journal CTest hashés sous [axis-truth-2026-10-06](../../project_journal/evidence/audit/axis-truth-2026-10-06/receipt.json). Les sorties temporaires du codegen, les objets CUDA de vérification et les logs non retenus ont aussi été supprimés.
 - `docs/local-artifacts.md` indique maintenant les propriétaires et la règle de conservation des principales racines locales. Les treize alias supprimés ont leur clôture dans l'archive.
 
 Ce nettoyage libère **environ 13 Gio** tout en gardant les datasets, checkpoints et preuves nécessaires. `DOC-004` est fermé : les trois scripts génériques du Quick start sont suivis, les deux scripts PPTI restent ignorés et leurs commandes ont quitté la documentation publique. Les campagnes marquées `running` sans processus sont classées comme interrompues ou reprenables, pas supprimées. Les rapports de performance à chemins absolus restent des preuves historiques dont les binaires référencés ne sont plus le build actif.
+
+## Suivi des prix centraux, des samples et de la sélection equity — 2026-10-08
+
+La reprise fixed income `-03` est terminée : 117 prix et 104 jeux de
+sensibilités ont été générés en staging, sans publication. Une comparaison
+indépendante des 104 paires, ligne par ligne sur leurs 1 000 prix centraux,
+donne 88 paires identiques bit à bit et 16 paires de swaptions européennes
+Jamshidian avec des arrondis FP32 différents. L'écart absolu maximal est
+7,5996×10⁻⁷ ; aucune ligne ne dépasse le budget inter-mode documenté
+`2e-6 + 2e-5 × max(|prix seul|, |prix central|)`. Dans ces 16 cas, les deux
+générateurs évaluent la même formule fermée et les mêmes entrées, sans
+trajectoire MC ni régression. Les 94 gradients exécutés après l'amendement
+portent le diagnostic dans la campagne ; les dix premiers ont été comparés
+séparément. Ce contrôle n'est pas une validation indépendante du prix.
+
+Les 50 recettes locales de samples n'ont pas été régénérées après la révision
+des paramètres du 2026-10-07. Le routage courant ne trouve que 23 couples
+JSON/reçu dans `work/datasets` et `work/catalog` ; 24 anciens JSON
+`samples_01` sont encore sous `datasets/model`, et trois autres couples sont
+absents. Les 47 reçus existants ne correspondent plus au hash de leur recette
+actuelle. La loi sample ne suit pas partout le cœur de pricing : SABR garde
+`rho ∈ [-0,9 ; +0,2]`, `beta ∈ [0,3 ; 1]` et vol-of-vol au plus 2, contre
+respectivement `[-0,9 ; -0,2]`, `[0,5 ; 0,95]` et 1,5 dans le cœur courant ;
+G2/G2++ gardent des corrélations positives et un tirage direct des volatilités,
+contrairement à la reconstruction par dispersions stationnaires du cœur.
+Les samples ne doivent donc pas être présentés comme alignés sur les nouveaux
+paramètres. Ce défaut n'affecte pas la sélection des prix equity, qui lit les
+JSON de paramètres modèles et produits courants.
+
+La sélection statique du catalogue equity markovien contient 364 prix et 380
+prix + gradient + Hessienne diagonale, sur douze modèles. Les 16 gradients
+additionnels sont les variantes `frozen_exercise_time` des options
+américaines ; les 16 `frozen_regression_policy` figurent aussi dans la
+sélection. Les 744 générateurs et tous leurs inputs sont présents ; 716
+recettes utilisent 2²⁰ chemins et 28 sont analytiques. La compilation et la
+génération equity restent à exécuter, sans qualification préalable des prix.
+
+### Précontrôle des arrêts de génération equity — 2026-10-08
+
+Le plan compilé a été confronté aux 744 recettes equity markoviennes : zéro
+écart de cardinalité ou de chemins. Les 744 URL natives inscrites dans les
+générateurs correspondent aux recettes ; les 380 sensibilités retrouvent leur
+prix source, leurs entrées, leurs seeds et leur nombre de chemins, et les 32
+variantes américaines portent la politique de gel déclarée. Le comparateur
+de prix centraux du contrôleur est diagnostique et ne bloque plus la campagne
+sur un écart FP32.
+
+Un pilote natif a néanmoins trouvé un défaut absent de ces contrôles : la
+recette des sensibilités à calendrier exact demandait
+`exact_schedule_transition`, mais le sérialiseur écrivait
+`exact_terminal_transition`. Les 37 générateurs equity concernés déclarent
+désormais explicitement le calendrier exact, et le sérialiseur le respecte.
+Le premier pilote Black–Scholes géométrique a échoué sur ce contrôle ; une
+nouvelle campagne pilote a terminé ses deux jobs et obtenu zéro écart de prix
+central sur 1 000 lignes. Un pilote Kou forward-start d'une ligne, exécuté
+en `/tmp`, a produit prix et gradient+diagonale à 2²⁰ chemins avec URL,
+calendrier et prix central cohérents. La comparaison complète du codegen et
+les tests du contrôleur passent. Ces pilotes ne garantissent pas l'exécution
+future des 744 jobs ni la qualité de leurs prix ; la grande campagne reste à
+lancer dans son nouveau staging.
+
+### Arrêt de compilation equity et correction — 2026-10-08
+
+La compilation de la campagne equity markovienne s'est arrêtée avant création
+du staging sur `generate_bates_gap_calls_01_price_gradient_diagonal_hessian` :
+l'adaptateur produit appelait `::isfinite` dans du code compilé par C++ hôte.
+Les adaptateurs `gap_option` et `straddle` utilisent maintenant le prédicat
+hôte/CUDA `price_gradients::finite_positive` déjà partagé. Une passe
+`-fsyntax-only` avec les vraies options CMake a parcouru les 380 générateurs
+de sensibilités. Elle a révélé deux autres recettes Black–Scholes où le
+codegen ajoutait à tort `OptionSide::put` à `range_accrual` et `straddle`,
+produits sans côté call/put. Le template utilise désormais la liste
+d'arguments déduite du binding ; le codegen a régénéré ses sorties.
+
+La cible Bates/gap et les deux cibles Black–Scholes corrigées ont été
+compilées et liées, bibliothèques CUDA comprises. Le pilote Black–Scholes
+`range_accrual`/`straddle` a terminé quatre jobs en staging ; les deux
+paires ont 1 000 prix centraux identiques bit à bit. Les 378 autres
+contrôles syntaxiques ont passé ; les deux échecs relevés avant correction
+ont été rejoués avec succès. La compilation intégrale des 744 cibles et la
+campagne de prix restent à exécuter. Le dossier principal
+`work/generation/equity-markovian-aligned-prices-gradients-01` est absent :
+la même commande lancera donc une nouvelle campagne après compilation
+incrémentale, sans option `--resume`.

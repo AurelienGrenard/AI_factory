@@ -2,7 +2,7 @@
 
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md). Les liens vers
-`artifacts/` et `maintainer/` désignent des preuves conservées localement,
+`project_journal/evidence/` et `maintainer/` désignent des preuves conservées localement,
 non incluses dans le dépôt public.
 
 Ce fichier conserve les constats **réglés** : correction vérifiée, contrat
@@ -25,7 +25,7 @@ elle ne peut pas être présentée comme un pass ni effacée. Ce compromis et se
 protocole général de régression à +5 % et le baseline officiel ne changent pas.
 Cette décision accepte un compromis mémoire/performance pour ce seul changement ;
 elle ne certifie pas le p95 de toutes les charges. Les mesures et binaires
-restent dans [la preuve A/B](../../artifacts/audit/perf024-2026-10-07/README.md).
+restent dans [la preuve A/B](../../project_journal/evidence/audit/perf024-2026-10-07/README.md).
 
 - **État historique / propriétaire :** ouvert le 2026-10-06 ; propriétaire : workspace et
   évaluateur des graphes diagonaux MC, path et replay LSM.
@@ -54,13 +54,13 @@ restent dans [la preuve A/B](../../artifacts/audit/perf024-2026-10-07/README.md)
   4 096 chemins, 71 696 / 231 472 / 497 768 octets pour 1 / 4 / 9 axes ;
   à 1 048 576 chemins, 16 783 376 / 54 544 432 / 117 479 528 octets.
   Les tests GPU terminal, path et replay American/Bermudan vérifient la
-  parité sur leurs cas représentatifs. [Mesures du build courant](../../artifacts/audit/nonrough-2026-10-06/result.json).
+  parité sur leurs cas représentatifs. [Mesures du build courant](../../project_journal/evidence/audit/nonrough-2026-10-06/result.json).
   Un second probe a mesuré la VRAM libre avant/après allocation sur la RTX
   4090 Laptop du build courant : 2 097 152 octets observés pour chacun des
   trois cas à 4 096 chemins, puis 18 874 368 / 56 623 104 / 119 537 664
   octets pour 1 / 4 / 9 axes à 1 048 576 chemins ; ces deltas incluent les
   arrondis de l'allocateur CUDA et concordent avec les tailles du workspace.
-  [Trace et empreintes](../../artifacts/audit/nonrough-followup-2026-10-06/README.md).
+  [Trace et empreintes](../../project_journal/evidence/audit/nonrough-followup-2026-10-06/README.md).
   La comparaison A/B oppose le **même moteur `node_graph`** en stride actif
   au `node_graph` témoin en stride maximal ; `mono` ne sert ici qu'au contrôle
   numérique, pas de référence de vitesse. Le témoin diffère seulement par
@@ -75,7 +75,7 @@ restent dans [la preuve A/B](../../artifacts/audit/perf024-2026-10-07/README.md)
   pour Heston 4 axes à un million de chemins ; les gains CIR sont
   75 497 488 et 37 748 744 octets pour 1 et 4 axes. À la capacité
   maximale, le pic est inchangé. Les snapshots de sources, exécutables,
-  reçus et télémétries sont hashés dans [la preuve A/B](../../artifacts/audit/nonrough-followup-2026-10-06/perf024/README.md).
+  reçus et télémétries sont hashés dans [la preuve A/B](../../project_journal/evidence/audit/nonrough-followup-2026-10-06/perf024/README.md).
   Le protocole final utilise cinq échauffements, 21 répétitions, trois
   campagnes, 256 opérations groupées sur les petits cas et un intervalle
   fixe entre cas. Les CV agrégés sont admissibles et la télémétrie ne montre
@@ -105,7 +105,7 @@ restent dans [la preuve A/B](../../artifacts/audit/perf024-2026-10-07/README.md)
   Heston 9 axes/1 048 576 chemins, deux des trois CV kernel actifs dépassent
   5 %. Les médianes des charges à pic restent proches du témoin, mais le
   protocole conserve chaque maximum p95 et ne permet pas de déclarer un pass
-  en écartant ces campagnes. [Résultats, sources, binaires et SHA-256](../../artifacts/audit/perf024-2026-10-07/README.md).
+  en écartant ces campagnes. [Résultats, sources, binaires et SHA-256](../../project_journal/evidence/audit/perf024-2026-10-07/README.md).
   **Avant la décision d’acceptation, le gate échouait** : la cause des pics
   GPU/API et une comparaison complète admissible sous budget restaient à établir. Aucune modification de
   calcul ni régénération de prix n'est justifiée par ces chronos seuls.
@@ -145,7 +145,7 @@ continue reste approximée.
   de la barrière continûment surveillée. Les transitions jointes gaussiennes
   sont exactes pour OU, Vasicek, G2, Hull–White et G2++; CIR et CIR++ utilisent
   la transition exacte du facteur et une intégrale du taux au trapèze.
-- **Preuve :** [résultat de validation](../../artifacts/audit/product001-2026-10-06/result.json) :
+- **Preuve :** [résultat de validation](../../project_journal/evidence/audit/product001-2026-10-06/result.json) :
   13/13 générateurs de prix compilés et exécutés sur le build isolé courant,
   plus le générateur des 1 000 paramètres produit ; 13 000 prix finis et
   non négatifs, 14 reçus `generation.yaml` avec SHA des datasets, binaires,
@@ -180,7 +180,7 @@ continue reste approximée.
   tous les résidus sont sous 1,77 erreur standard. À 1, 2 et 4 pas/jour, la
   ligne 394 reste compatible avec le premier moment attendu. Le test de
   précision CUDA, les quantiles, l'absorption et la comparaison FFT/directe
-  passent. [Replays](../../artifacts/audit/rough-price-quality-2026-10-06/rough_sabr_fixed_flag_replays.jsonl).
+  passent. [Replays](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/rough_sabr_fixed_flag_replays.jsonl).
 - **Publication :** les 29 jeux de prix rough SABR, les 29 prix SABR
   markoviens touchés par le helper partagé et leurs quatre jeux de samples
   ont été exécutés dans deux builds isolés : 62 runs, 12 058 000 lignes.
@@ -189,7 +189,7 @@ continue reste approximée.
   les versions historiques. Le [vérificateur indépendant](../../maintainer/tools/datasets/verify_num029_release.py)
   contrôle les hashes, reçus et 1 000 paires européennes publiées : zéro
   signal de parité rough SABR.
-  [Résultat](../../artifacts/audit/rough-price-quality-2026-10-06/num029_release_validation.json).
+  [Résultat](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/num029_release_validation.json).
 - **Limite conservée :** 26 écarts de parité persistent sur le SABR
   **markovien** publié dans cette même release. Ils relèvent du constat
   distinct [NUM-037](unresolved-closures.md) ; la release et ses reçus établissent la provenance,
@@ -211,14 +211,14 @@ continue reste approximée.
   gradients portent cette portée. Sur 16 graines près du seuil d'exercice
   initial, 12 sorties à exercice `t0` ont une SE nulle, les quatre autres
   une SE positive, et les prix diffèrent jusqu'à 0,004241.
-  [Preuve multi-graines](../../artifacts/audit/nonrough-2026-10-06/result.json).
+  [Preuve multi-graines](../../project_journal/evidence/audit/nonrough-2026-10-06/result.json).
 - **Publication :** la [qualification versionnée](../../work/catalog/qualifications/num036-lsm-error-scope-20261006-v1/manifest.json)
   contient 36 copies de jeux de prix LSM avec `methodology` explicite.
   Elle référence les JSON et reçus originaux ; aucune des 36 000 lignes de
   prix/SE n'a été recalculée ou changée. Le
   [vérificateur](../../maintainer/tools/datasets/verify_num036_qualification.py) contrôle
   les 36 originaux, les 36 copies et 4 013 lignes à SE nulle.
-  [Résultat](../../artifacts/audit/nonrough-followup-2026-10-06/num036_qualification_validation.json).
+  [Résultat](../../project_journal/evidence/audit/nonrough-followup-2026-10-06/num036_qualification_validation.json).
 - **Limite conservée :** il n'existe pas d'estimation d'incertitude totale
   du prix LSM appris. La qualification dit précisément ce que la SE publiée
   mesure ; elle ne promet pas une couverture du prix optimal.
@@ -448,7 +448,7 @@ décisions d’exercice figées.
   moyenne, priorité haute, confiance prouvée. Propriétaire : documentation
   prix-gradients.
 - **Signature :** la politique de qualification liait deux rapports sous
-  `artifacts/`, donc absents d'un clone propre.
+  `project_journal/evidence/`, donc absents d'un clone propre.
 - **Correction :** les preuves locales restent citées comme chemins locaux en
   code inline, avec mention explicite de leur caractère ignoré et non
   distribué; elles ne sont plus exposées comme liens documentaires.
@@ -2900,7 +2900,7 @@ historique de cloture.
 
 Les cinq clôtures ci-dessous portent sur les signatures rouvertes ou relevées
 ce jour, dans le worktree courant. [Le résultat et les commandes de
-validation](../../artifacts/audit/nonrough-2026-10-06/result.json) fixent le
+validation](../../project_journal/evidence/audit/nonrough-2026-10-06/result.json) fixent le
 build SM89/CUDA 12.9, les tests et la comparaison complète du codegen.
 
 ### BOUNDARY-001 — Rendre la progression LSM indépendante de tools

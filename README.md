@@ -80,12 +80,13 @@ The `local-sm89` preset additionally selects the developer's pinned toolchain
 and mathDx paths when those are available. `CUDA_VISIBLE_DEVICES` selects a GPU that can run the compiled
 binary. The default `all` target builds libraries; `local-tests` and
 `local-generators` cover the test and catalogue aggregates explicitly.
-Cartesian and sample recipes in `work/catalog/` remain buildable by target
+Experimental Cartesian recipes in `work/catalog/` remain buildable by target
 name when present locally, but are excluded from the public aggregates.
+Model-only sample recipes are part of the public catalogue.
 
 ### Run one catalog generator
 
-The local preset can compile and run any of the 1,195 catalogue generators
+The local preset can compile and run any public catalogue generator
 by CMake target name. The launcher keeps outputs in a new directory under
 `work/generation/runs/`, so an existing dataset is never overwritten. It
 copies required parameter inputs and builds missing parameter generators when
@@ -107,15 +108,14 @@ those journal or progress files. Compilation updates the selected CMake build
 directory under `builds/`; generation does not modify the root `catalog/` or
 `datasets/` unless `--publish` is explicitly requested.
 
-The output file is `generation.yaml` (the source is `generator.cpp`). Its
-`provenance.hardware_used` records the actual CPU or GPU, and
-`provenance.build_options` records the CUDA architecture, compiler versions,
-C++20/CUDA20, Release flags, the NVCC flags of linked CUDA libraries, and the
-SHA-256 of the CUDA math header used during compilation.
-The `tuning_profile.measured_on` field describes the origin of a tuning profile;
-it is not the device observed during this run. `--publish` is optional and
-only accepts a new immutable dataset and receipt pair whose parameter inputs
-are already published in the project.
+A completed run writes a compact `generation.yaml` beside its JSON dataset.
+It records the current input and output SHA-256, the observed CPU or GPU, and
+available CMake, C++ and CUDA compiler versions. The recipe describes the
+current JSON and its requested sensitivities. After a documented curation,
+`tools/datasets/refresh_generation.py` updates the hashes and migrates a legacy
+receipt without rerunning the Monte Carlo calculation. The publication command
+creates a new pair; it does not overwrite an existing published pair implicitly.
+
 
 ### Another GPU
 
@@ -149,17 +149,19 @@ catalog/      Published recipes and generation metadata
 datasets/     Published or downloaded dataset artifacts only; ignored by Git
 build/        Legacy local CMake build; ignored by Git
 builds/       Separate CMake builds per CUDA architecture; ignored by Git
-artifacts/    Local audit evidence, performance runs and tool caches; ignored by Git
+project_journal/  Ignored local decisions, dated reports and retained evidence
+maintainer/   Ignored reusable investigation code and reference tools
 tests/        Host, CUDA, architecture, and performance tests
 cmake/        Build ownership by runtime, catalogue, tests, and performance
-docs/         Task-oriented workflows, contracts, references, and audit records
+docs/         Public workflows and contracts; historical records are being moved to the local journal
 ```
 
 The reusable code under `src`, `learning`, and `tools` never depends on a
 concrete experiment. Experiment-specific datasets, seeds, training budgets,
 notebooks, and reports live under `work/experiments/<asset_class>/<model>/`.
 Frozen generation campaigns live under `work/generation/`; a result enters
-`datasets/` only through explicit publication.
+`datasets/` only through explicit publication. `generation.yaml` is created
+only by a real generator execution and is published with its JSON output.
 The runtime under `src` never depends on `tools`, `catalog`, or `validation`.
 Model-product launch units live under each model's `product/` directory.
 `catalog` and `datasets` mirror the canonical model, curve, and product paths

@@ -1,6 +1,7 @@
 // Nonhomogeneous paths, absorbing CEV states, boundaries and legacy delta parity.
 #include "model/equity/markovian/cev/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/cev/product/european_option_price_delta.cuh"
+#include "common/equity/spot_relative_product.hpp"
 #include "cuda_test_support.cuh"
 #include "diagonal_cuda_test_support.cuh"
 
@@ -61,15 +62,19 @@ template<OptionSide Side> void check(std::size_t paths) {
             && std::isfinite(maturity_result.diagonal_hessian[row]),
             "CEV maturity diagonal is non-finite.");
     }
+    // The legacy price/delta launcher consumes absolute strike levels.
+    const auto absolute_products = equity::spot_relative::resolve_rows(
+        models, products, PriceConstruction::Aligned
+    ).products;
     DeviceArray<cev::ModelParameters> dm(models);
-    DeviceArray<product::EuropeanOptionParameters> dp(products);
+    DeviceArray<product::EuropeanOptionParameters> dp(absolute_products);
     for (unsigned threads : {64U,128U,256U}) {
         pg::LaunchConfiguration launch{pg::PricingMethod::monte_carlo,0U,3U,paths,threads,3U,719U};
         const auto solo=execute(prepare({{spot}}),launch,launcher);
         const auto price_only=execute(prepare({}),launch,launcher);
         DeviceArray<float> old(12);
         cev::launch_cev_european_option_price_delta_cuda<Side>(models.data(),dm.data,3U,
-            products.data(),dp.data,3U,PriceConstruction::Aligned,3U,0U,3U,paths,
+            absolute_products.data(),dp.data,3U,PriceConstruction::Aligned,3U,0U,3U,paths,
             1.f/504.f,2U,threads,3U,719U,{.01f},old.data,old.data+3,old.data+6,old.data+9);
         auto reference=old.read();
         for (unsigned row=0;row<3;++row) {

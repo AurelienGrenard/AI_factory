@@ -332,6 +332,15 @@ __global__ void evaluate_mixed_nodes_kernel(
                  slot < NodesPerWorker;
                  ++slot) {
                 if (!active_path || !owns[slot] || !active[slot]) continue;
+                if constexpr (VariableTerminal
+                    && Traits::kKind == PathScheduleKind::dense) {
+                    const auto row_node =
+                        local_row * sensitivity_graph.node_capacity
+                        + owned_nodes[slot];
+                    if (observation >= workspace.terminal_transition_counts[
+                            row_node
+                        ]) continue;
+                }
                 const auto& state = simulates[slot]
                     ? states[slot]
                     : central_state;
@@ -399,6 +408,22 @@ __global__ void evaluate_mixed_nodes_kernel(
                     }
                     observe(observation);
                 }
+            }
+        } else if constexpr (Traits::kKind == PathScheduleKind::dense) {
+            for (std::uint32_t observation = 0U;
+                 observation < maximum_terminal_transitions;
+                 ++observation) {
+                // Match the scalar evaluator's per-step innovations before
+                // checking the barrier at this grid point.
+                transition_prepared([&](unsigned int slot) {
+                    const auto row_node =
+                        local_row * sensitivity_graph.node_capacity
+                        + owned_nodes[slot];
+                    return observation < workspace.terminal_transition_counts[
+                        row_node
+                    ];
+                });
+                observe(observation);
             }
         } else {
             const auto& central_schedule = schedule.central;

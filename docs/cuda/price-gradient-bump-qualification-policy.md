@@ -92,7 +92,7 @@ selon les cas par le bruit MC, l'erreur totale ou le biais du stencil ; quatre
 cas de maturité Heston échouent aussi la convergence de référence. Aucun bump
 par défaut n'est modifié par ce constat. Le détail de chaque vérification et la
 chaîne SHA-256 sont conservés localement sous
-`artifacts/price_gradients/2026-09-16-bump-qualification-merton/`. Ce chemin
+`project_journal/evidence/price_gradients/2026-09-16-bump-qualification-merton/`. Ce chemin
 ignoré n'est pas distribué avec un clone.
 
 Son verdict CEV maturité est invalide : l'adaptateur QuantLib arrondissait les
@@ -115,7 +115,7 @@ significatifs sous une borne prudente de six SE ; la grille fine se rapproche
 de la dérivée indépendante dans 25 cas. Ce signal distingue un biais temporel
 possible du seul bruit MC, sans prétendre l'identifier causalement dans tous
 les cas. Les preuves, échecs et empreintes sont conservés localement sous
-`artifacts/price_gradients/2026-09-16-bump-qualification-v2/`; cette archive
+`project_journal/evidence/price_gradients/2026-09-16-bump-qualification-v2/`; cette archive
 ignorée n'est pas distribuée avec un clone.
 
 ## Reproduction
@@ -123,15 +123,15 @@ ignorée n'est pas distribuée avec un clone.
 ```bash
 cmake --build build --target study_price_gradients_bumps -j2
 ./build/study_price_gradients_bumps 262144 \
-  > artifacts/price_gradients/<run>/native.jsonl
+  > project_journal/evidence/price_gradients/<run>/native.jsonl
 python3 maintainer/tests/price_gradients/analyze_bumps.py \
-  artifacts/price_gradients/<run>/native.jsonl \
-  artifacts/price_gradients/<run>/analysis.json \
+  project_journal/evidence/price_gradients/<run>/native.jsonl \
+  project_journal/evidence/price_gradients/<run>/analysis.json \
   --policy maintainer/tests/price_gradients/qualification_policy_v2.json
 python3 maintainer/tests/price_gradients/qualify_bumps.py \
   maintainer/tests/price_gradients/qualification_policy_v2.json \
-  artifacts/price_gradients/<run>/analysis.json \
-  artifacts/price_gradients/<run>/qualification.json
+  project_journal/evidence/price_gradients/<run>/analysis.json \
+  project_journal/evidence/price_gradients/<run>/qualification.json
 ```
 
 Le nombre de trajectoires peut être abaissé pour un smoke test, mais le rapport

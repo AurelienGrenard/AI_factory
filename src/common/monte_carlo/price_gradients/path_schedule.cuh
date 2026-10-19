@@ -192,6 +192,13 @@ prepare_terminal_path_node(
 ) {
     using Traits = PathScheduleTraits<Schedule>;
     PreparedTerminalPathNode result{};
+    if constexpr (Traits::kKind == PathScheduleKind::dense) {
+        // Dense products observe through each node's own maturity. A shorter
+        // node may end before the central final-step prefix.
+        result.transition_count = scenario.step_count;
+        result.interval_years = schedule.central.interval_years[0U];
+        return result;
+    }
     if (scenario.step_count == scenario.central_step_count) {
         // Preserve the canonical price-only arithmetic for the central date.
         // Reconstructing T - prefix can differ by one FP32 ulp from the
