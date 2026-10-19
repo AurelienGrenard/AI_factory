@@ -136,11 +136,11 @@ Une ligne est signalée si sa valeur absolue dépasse à la fois cinq erreurs
 standards combinées et 0,5 % de `max(S0, K)`. Ce n'est pas une référence de
 prix indépendante : la cause d'un écart peut être une queue rare, le biais de
 discrétisation, le statut martingale du modèle ou une erreur de code.
-[Le script et son résultat local](../../artifacts/audit/rough-price-quality-2026-09-14/result.json)
+[Le script et son résultat local](../../project_journal/evidence/audit/rough-price-quality-2026-09-14/result.json)
 figent la règle et les nombres. Le compte rendu détaillé appartient aux preuves
 historiques antérieures à v10 ; sa compatibilité avec le prochain snapshot doit
 être réétablie avant réemploi. La reprise du 2026-10-06 utilise deux builds
-isolés du worktree courant ; [son manifeste de preuves](../../artifacts/audit/rough-price-quality-2026-10-06/result.json)
+isolés du worktree courant ; [son manifeste de preuves](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/result.json)
 fige les hashes des sources, binaires et replays.
 
 ### NUM-028 — Qualifier les prix quadratic rough Heston dominés par les queues extrêmes
@@ -175,17 +175,17 @@ fige les hashes des sources, binaires et replays.
   résidu vaut −0,774477 ± 7,34e-6. À 1, 2, 4 pas/jour, ce moment descend de
   2,70e-4 à 4,12e-5 puis 3,14e-6. Avec 2, 3, 7 facteurs, il reste
   respectivement près de zéro, près de zéro et 4,12e-5
-  ([replays facteurs](../../artifacts/audit/rough-price-quality-2026-10-06/quadratic_factor_replays.jsonl)).
+  ([replays facteurs](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/quadratic_factor_replays.jsonl)).
   Sur un million de chemins, les dix plus grands payoffs call de cette ligne portent 98,4 %
   de leur moyenne ; 44 550 spots terminaux sont nuls en FP32
-  ([queue européenne 984](../../artifacts/audit/rough-price-quality-2026-10-06/quadratic_european_tail_replay.jsonl)).
+  ([queue européenne 984](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/quadratic_european_tail_replay.jsonl)).
   Pour le lookback 770, quatre replays de 262 144 à 1 048 576 chemins donnent des
   moyennes de payoff de 1,78 à 2,42, des maxima de 1,30e4 à 1,62e5 et une
   contribution des cent plus grands de 25 % à 44 %. Les seeds, quantiles
-  et configurations figurent dans [les 169 replays](../../artifacts/audit/rough-price-quality-2026-10-06/quadratic_flag_replays.jsonl),
-  [les queues lookback](../../artifacts/audit/rough-price-quality-2026-10-06/quadratic_lookback_tail_replays.jsonl)
-  et [le raffinement](../../artifacts/audit/rough-price-quality-2026-10-06/temporal_refinement_replays.jsonl).
-  [Résumé des 507 replays](../../artifacts/audit/rough-price-quality-2026-10-06/quadratic_sweep_summary.json).
+  et configurations figurent dans [les 169 replays](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/quadratic_flag_replays.jsonl),
+  [les queues lookback](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/quadratic_lookback_tail_replays.jsonl)
+  et [le raffinement](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/temporal_refinement_replays.jsonl).
+  [Résumé des 507 replays](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/quadratic_sweep_summary.json).
 - **Domaine candidat du 2026-10-07 :** le générateur de paramètres borne
   `a`, `λ` et `η` pour les longues maturités du catalogue sans écrêter la variance ou les prix. Les 1 000 paires européennes
   exécutées dans le build courant ont 0 signal de parité et 0 prix >0,01 à
@@ -258,18 +258,18 @@ fige les hashes des sources, binaires et replays.
   0,942389 ± 0,001789 contre 0,998961 attendu. Avec rho=0, le même
   estimateur revient à 1,4e-6 et 5,4e-6 des forwards des lignes 948 et
   993, écarts de précision FP32 plutôt que d'échantillonnage.
-  [Erreurs conditionnelles](../../artifacts/audit/rough-price-quality-2026-10-06/log_modulated_conditional_moment_se_replays.jsonl).
+  [Erreurs conditionnelles](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/log_modulated_conditional_moment_se_replays.jsonl).
   Sur huit chemins et huit pas effectivement utilisés par le pricing,
   convolution directe et FFT diffèrent au plus de 2,86e-6 ligne 948 et
   8,58e-6 ligne 993. Mettre rho=0 réduit le déficit à deux pas/jour ;
   à quatre pas/jour la ligne 948 revient dans une erreur standard, sans tendance temporelle monotone.
   La ligne 993 garde un déficit à un et deux pas/jour ; son échéance dépasse
   la limite FFT de 4 096 pas à quatre pas/jour. Aucune erreur FFT n'est
-  démontrée. [Contrôle rho=0](../../artifacts/audit/rough-price-quality-2026-10-06/log_modulated_rho_zero_refinement.jsonl).
-  [Scan core/stress](../../artifacts/audit/rough-price-quality-2026-10-06/log_modulated_published_parity_scan.json),
-  [replays stress](../../artifacts/audit/rough-price-quality-2026-10-06/log_modulated_flag_replays.jsonl),
-  [moment conditionnel](../../artifacts/audit/rough-price-quality-2026-10-06/log_modulated_conditional_moment_se_replays.jsonl),
-  [queues et FFT](../../artifacts/audit/rough-price-quality-2026-10-06/fft_tail_diagnostics.jsonl).
+  démontrée. [Contrôle rho=0](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/log_modulated_rho_zero_refinement.jsonl).
+  [Scan core/stress](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/log_modulated_published_parity_scan.json),
+  [replays stress](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/log_modulated_flag_replays.jsonl),
+  [moment conditionnel](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/log_modulated_conditional_moment_se_replays.jsonl),
+  [queues et FFT](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/fft_tail_diagnostics.jsonl).
 - **Six prix stress à forte incertitude :** les six lignes historiques ont
   été rejouées sur trois couples chemins/graines. L'Asian call 988 passe de
   0,03693 ± 0,02109 à 0,01658 ± 0,00078 et 0,01488 ± 0,00074 sur deux
@@ -277,7 +277,7 @@ fige les hashes des sources, binaires et replays.
   aussi des sauts de queue. Le call européen 948 a un payoff maximum 170,69
   et ses cent plus grands payoffs portent 19,8 % de la moyenne sur
   262 144 chemins. La ligne européenne 993 atteint un payoff 736,20,
-  avec un quantile 99,99 % de 67,39. [Replays des six lignes](../../artifacts/audit/rough-price-quality-2026-10-06/log_modulated_high_se_replays.jsonl).
+  avec un quantile 99,99 % de 67,39. [Replays des six lignes](../../project_journal/evidence/audit/rough-price-quality-2026-10-06/log_modulated_high_se_replays.jsonl).
 - **Reprise sur le build isolé du 2026-10-07 :** les 1 000 paramètres
   satisfont les hypothèses du noyau log modulé ; les 900 core ont `ρ≤0`,
   42 stress ont `ρ>0`, et les huit écarts européens sont tous dans ce
@@ -348,7 +348,7 @@ fige les hashes des sources, binaires et replays.
 
 Périmètre : source et binaires du worktree courant, Release SM89, CUDA 12.9.41,
 RTX 4090 Laptop 16 Gio. Snapshot initial, commandes, sorties et profils sont
-conservés sous `artifacts/audit/axis-performance-2026-10-06/` ; le fichier
+conservés sous `project_journal/evidence/audit/axis-performance-2026-10-06/` ; le fichier
 `receipt.json` fixe leurs empreintes. Les chronos de ce passage sont
 **diagnostiques** : ils ne constituent pas les trois campagnes admissibles du
 protocole v3. Les alternatives ci-dessous restent à comparer avec les mêmes
@@ -434,3 +434,81 @@ modèles, produits, chemins, calendriers, sorties et précision.
   échoue si une phase active, un hash, un budget ou une sortie manque ;
   médiane, p95, CV, VRAM et publication sont enregistrés sur toutes les
   familles annoncées.
+
+## Suivi des prix centraux et des samples — 2026-10-08
+
+La reprise fixed income `-03` s'est achevée avec 221 jobs complets (117 prix,
+104 sensibilités). Le contrôle indépendant ligne par ligne trouve 88 paires de
+prix centraux identiques bit à bit et 16 paires de swaptions européennes
+Jamshidian avec de faibles écarts FP32 ; maximum 7,5996×10⁻⁷ et zéro ligne
+hors du budget inter-mode sur les 104 000 lignes comparées. Les dix premiers
+gradients n'ont pas de diagnostic de parité dans leur reçu historique, car
+ils précèdent l'amendement, mais ils sont inclus dans ce contrôle séparé.
+Aucune trajectoire Monte Carlo ni régression n'intervient dans ces 16 cas.
+Les sorties sont en staging ; cette comparaison ne qualifie ni leurs prix
+absolus ni les constats rough encore ouverts.
+
+L'examen des 50 recettes samples et du routage physique trouve 23 couples
+JSON/reçu à leur emplacement courant, 24 anciens JSON `samples_01` à leur
+ancien emplacement et trois couples absents. Les 47 reçus existants ont un
+hash de recette différent de celui des recettes courantes et proviennent de
+la campagne antérieure à la révision des paramètres. Les lois ne coïncident
+pas partout avec le cœur de pricing : SABR admet encore `rho > 0`, `beta`
+jusqu'à 1 et vol-of-vol jusqu'à 2 dans ses samples ; G2/G2++ admettent une
+corrélation positive et tirent directement des volatilités, alors que le
+cœur courant reconstruit celles-ci à partir des dispersions stationnaires.
+Schöbel–Zhu admet aussi `correlation > 0` dans ses samples. Une nouvelle
+génération des recettes, binaires et JSON samples est nécessaire avant de
+déclarer les samples alignés. Les prix equity utilisent leurs propres JSON
+de paramètres ; ce point ne bloque pas leur campagne.
+
+Le précontrôle du catalogue equity markovien sélectionne 744 recettes
+alignées : 364 prix et 380 prix + gradient + Hessienne diagonale, sur douze
+modèles. Les 16 recettes de sensibilité supplémentaires correspondent aux
+deux politiques de gel pour les options américaines, toutes deux déclarées
+par le catalogue. Tous les inputs sont présents ; 716 recettes sont MC à
+2²⁰ chemins et 28 sont analytiques. Aucune exécution de cette campagne
+equity ni comparaison de ses prix centraux n'est revendiquée ici.
+
+## Précontrôle des arrêts de génération equity — 2026-10-08
+
+Avant la campagne equity, les 744 recettes ont été confrontées à
+`inspect_pricing_launch_plan` : zéro écart sur le nombre de lignes ou de
+chemins. Les 744 URL figurent dans les générateurs natifs ; les 380 gradients
+ont un prix source, des entrées, une seed dynamique et un nombre de chemins
+cohérents. Les 32 gradients américains codent la politique de gel annoncée.
+Le comparateur prix seul/prix central est un diagnostic non bloquant.
+
+Le pilote Black–Scholes géométrique a révélé un vrai arrêt : sa recette
+`exact_schedule_transition` était sérialisée par le writer commun comme
+`exact_terminal_transition`. Le writer accepte maintenant le type de
+calendrier exact déclaré explicitement par les générateurs issus du codegen.
+Les 37 générateurs equity concernés portent ce champ ; un test vérifie leur
+accord avec les recettes. Le pilote initial est conservé comme échec, tandis
+qu'un nouveau pilote de deux jobs termine et donne 1 000 prix centraux
+identiques bit à bit. Un pilote natif Kou forward-start de prix et
+sensibilités, sur une ligne copiée en `/tmp`, termine à 2²⁰ chemins par prix
+et vérifie l'URL, le calendrier, le reçu et le prix central. La comparaison
+complète du codegen et les tests du contrôleur passent. La campagne complète
+n'a pas été exécutée ni qualifiée numériquement.
+
+## Arrêt de compilation equity et correction — 2026-10-08
+
+La compilation utilisateur a échoué sur le générateur de sensibilités
+Bates/gap, avant de créer le staging de la campagne. L'adaptateur gap
+utilisait `::isfinite` dans une fonction hôte/CUDA ; `straddle` avait la
+même erreur. Les deux utilisent maintenant `price_gradients::finite_positive`,
+le prédicat déjà employé par les autres produits. La compilation native de
+Bates/gap passe après correction.
+
+Un balayage syntaxique des 380 générateurs de sensibilités avec les
+commandes CMake exactes a trouvé deux autres erreurs : les recettes
+Black–Scholes `range_accrual` et `straddle` fournissaient un
+`OptionSide::put` à des launchers sans argument de côté. Le template
+codegen a été corrigé puis régénéré. Les deux fichiers ont passé un
+nouveau contrôle syntaxique, une compilation et une édition de liens
+natives avec leurs bibliothèques CUDA. Un pilote de quatre jobs en
+staging termine ; chacune des deux paires prix/sensibilités a zéro écart
+sur 1 000 prix centraux. Les 378 autres générateurs ont passé le balayage
+syntaxique. Cette preuve ne remplace pas la construction et l'exécution de
+la campagne complète ; son répertoire principal n'existe toujours pas.

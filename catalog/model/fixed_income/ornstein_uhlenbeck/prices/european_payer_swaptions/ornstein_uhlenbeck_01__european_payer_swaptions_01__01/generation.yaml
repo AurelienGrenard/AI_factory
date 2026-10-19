@@ -1,76 +1,73 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01/recipe.yaml
-  sha256: 0f76cc284b43ee3f17f1242b8f9411af4858e4660e06005e6988f678791ca108
 artifact:
   row_count: 1000
-  sha256: b03f02642e2dbe415c4eccb2b89770f5cf5ef23e912dee8b9a50cc61117d1144
-inputs:
-  models: f1ca902513bb0b5e722e7c227cbe433246bcf33200bc3790f5b411bcc6fd342c
-  products: b94e88cb7a64436ff8382c9db193850114ff178cbfe6f817e543426d439f403e
+  sha256: b7f8cfd250b5814364af14108f4d40166853f3de16156498f878cf51729e2285
 execution:
-  binary_sha256: 09778b76d8b7778e16bf0145ed5ce212442a0e0dde9a40150c69d6e3b8cc1a44
+  block_count: 4
+  threads_per_block: 256
+  launch_plan:
+    profile_id: sm89_cuda12_unqualified_v1
+    family: jamshidian
+    selection: host launch plan; no runtime autotuning
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+    model: ornstein_uhlenbeck
+    product: european_swaption
+    curve: ''
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per thread at a time
+    block_count: 4
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  kernel_launch_count: 1
+  requested_work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: a6e3a568902b840368687745351fe61e905858d2c6fc1b6f226c5321ae9385d4
+  generator_sha256: 061ffdec99b884dc93962046eecba895b9f4ef7b865cd8d65355ce9342f5265c
   declared_method:
     engine: fixed_income_closed_form
     profile: closed_form_price_profile
     variant: european_payer_swaptions
     construction: aligned
     has_curve: false
-  launch_plan:
-    profile_id: sm89_reference_v1
-    family: jamshidian
-    selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
-    model: ornstein_uhlenbeck
-    product: european_swaption
-    curve: ''
-    qualification: candidate_pending_native_confirmation
-    evidence: docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md
-    price_count: 1000
-    paths_per_price: 0
-    threads_per_block: 128
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 1000
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
+    random_number_generator: null
   build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 7d044910b558e14f984d68861e2935f1e6dba52393ef5a7f77b986b4512bce89
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 128
-  kernel_launch_count: 1
-  requested_work_distribution: one price per block
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.162670743
-  kernel_seconds: 0.005331968
+  wall_seconds: 0.529221264
+  kernel_seconds: 0.0004147199988365173
+recipe:
+  path: catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01/recipe.yaml
+  sha256: 1c0f0797e8134a189586ff1d41f0af1954ac945f46989c92e93f235a3e3bd155
+inputs:
+  models: 8cbefc6ea8976f41355f3c7e80411855d23856c94c2e7a5f8f6dcfb25cc3c1d6
+  products: f351c92984bc8838cee9f8ebf482bc8aeeb049dc6e2b42631b8aaf9c6fd8c9b6
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307866.4913206
+    unix_time: 1791411648.8267968
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 84, 106.49 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 77, 48.72 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json: 1966f6147218ec57ac8e90dead97464944c0d037ed064d7fc522ba46e779571e
-    datasets/product/european_swaption/european_swaptions_01.json: 5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf
   generator: catalog/model/fixed_income/ornstein_uhlenbeck/prices/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: c8746beccecb8ace5820d9e0a99528bbd1607b2f8fa857e1122268be3f1f83f7
-  record_sha256: 09bbf4c84a0b2c2c9a1e5d6a858f91b982427ffc1b6b0acc5d6a21d26937e75c
-record_sha256: 560c473f2bc6e40f216c6276d356338a6e7a0862ca895a848c4d7aad0125f270
+  input_files:
+    datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json: 659eef441992948fde9ffd367cc297f73b79059a7ecf642d57db8ec01429c624
+    datasets/product/european_swaption/european_swaptions_01.json: 30d42fbe5343826a6421913808a768d3e27b1c093e1103cc0d1bba5e9fe5052e
+record_sha256: ac9c9f082c48f11a67a215192ff8d1adc59f9e32282ffa62c9af9fb3ad01fe29

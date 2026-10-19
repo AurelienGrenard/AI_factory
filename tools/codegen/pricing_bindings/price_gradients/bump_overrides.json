@@ -1,0 +1,4379 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "dataset_id": "bates_01__american_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "bates_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "bates_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "bates_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "bates_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "bates_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "bates_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "bates_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "bates_01__european_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "bates_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "bates_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "bates_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "bates_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "cir_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.initial_state",
+      "displacement": 0.0005,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "cir_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.volatility",
+      "displacement": 0.005,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "g2_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy",
+      "parameter": "product.strike",
+      "displacement": 3.125e-05,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "g2_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy",
+      "parameter": "product.strike",
+      "displacement": 3.125e-05,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "g2_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy",
+      "parameter": "product.strike",
+      "displacement": 3.125e-05,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_3_2_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_3_2_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_3_2_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_3_2_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_3_2_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "heston_3_2_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "hull_white_01__flat_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy",
+      "parameter": "product.strike",
+      "displacement": 3.125e-05,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "hull_white_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient",
+      "parameter": "curve.rate",
+      "displacement": 0.00025,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "hull_white_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy",
+      "parameter": "product.strike",
+      "displacement": 3.125e-05,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "hull_white_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy",
+      "parameter": "product.strike",
+      "displacement": 3.125e-05,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "kou_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.up_probability",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "kou_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.up_probability",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "kou_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.up_probability",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "kou_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.up_probability",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__cliquets_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_floor",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.log_modulation_power",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.log_modulation_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "log_modulated_rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "merton_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "merton_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "merton_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "merton_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "merton_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "merton_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.jump_log_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "normal_inverse_gaussian_01__american_puts_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "normal_inverse_gaussian_01__european_calls_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "normal_inverse_gaussian_01__forward_start_calls_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "normal_inverse_gaussian_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "normal_inverse_gaussian_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asian_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asian_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.06308957689383866,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_floor",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__european_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__european_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__forward_start_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__forward_start_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__geometric_asian_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.0025,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__geometric_asian_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__geometric_asian_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.0025,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__geometric_asian_puts_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__lookback_options_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__straddles_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.feedback_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.feedback_rate",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.initial_feedback",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.quadratic_scale",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.quadratic_shift",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "quadratic_rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.variance_floor",
+      "displacement": 0.12617915378767733,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__cliquets_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_cap",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_floor",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_bergomi_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asian_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asian_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asian_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asian_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asian_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asian_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_cap",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_floor",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__digital_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__european_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__european_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__european_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__european_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__european_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__european_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__forward_start_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__forward_start_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__forward_start_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__forward_start_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__forward_start_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__forward_start_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__geometric_asian_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__geometric_asian_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__geometric_asian_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__geometric_asian_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__geometric_asian_puts_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__geometric_asian_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__geometric_asian_puts_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__lookback_options_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__lookback_options_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__straddles_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__straddles_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__straddles_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.initial_variance",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.variance_drift",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_heston_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.volatility_of_variance",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__cliquets_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_cap",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_floor",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__digital_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.eta",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.xi_0",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_sabr_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.beta",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_sabr_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__asset_or_nothing_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__athena_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__cliquets_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_cap",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__cliquets_01__01_price_gradient",
+      "parameter": "product.local_floor",
+      "displacement": 0.001,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_calls_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__digital_puts_01__01_price_gradient",
+      "parameter": "product.strike",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_calls_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.lower_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__double_knock_out_puts_01__01_price_gradient",
+      "parameter": "product.upper_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_in_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__down_and_out_puts_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__gap_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__gap_puts_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.autocall_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.coupon_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__phoenix_memory_autocalls_01__01_price_gradient",
+      "parameter": "product.protection_barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__range_accruals_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_in_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.002,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.spot",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_and_out_calls_01__01_price_gradient",
+      "parameter": "product.barrier",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.hurst_exponent",
+      "displacement": 0.004,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.mean_reversion",
+      "displacement": 0.01,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.rho",
+      "displacement": 0.008,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.volatility_level",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "rough_stein_stein_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.02,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "schobel_zhu_01__asset_or_nothing_calls_01__01_price_gradient",
+      "parameter": "model.correlation",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "schobel_zhu_01__digital_calls_01__01_price_gradient",
+      "parameter": "model.correlation",
+      "displacement": 0.016,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "schobel_zhu_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.correlation",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "schobel_zhu_01__up_no_touches_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    },
+    {
+      "dataset_id": "schobel_zhu_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.correlation",
+      "displacement": 0.032,
+      "scale": "absolute"
+    },
+    {
+      "dataset_id": "schobel_zhu_01__up_one_touches_01__01_price_gradient",
+      "parameter": "model.volatility_of_volatility",
+      "displacement": 0.04,
+      "scale": "relative"
+    }
+  ]
+}

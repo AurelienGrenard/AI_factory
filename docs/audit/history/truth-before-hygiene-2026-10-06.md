@@ -52,4 +52,4 @@ Les bindings rough de gradients et delta existent comme API, même si le catalog
 
 **Évolution du registre :** `NUM-036` ouvert pendant ce passage ; `NUM-028` à `NUM-030` conservés. Aucun écart de formule ou de branchement prix/gradient supplémentaire n'a été démontré dans les représentants testés. Les sept constats des axes II/III restent ouverts sans modification de leur portée.
 
-**Rétention :** le build isolé de 3,5 Gio a été supprimé pendant le passage hygiène du même jour. Le snapshot, les empreintes, la configuration et le journal CTest sont conservés sous `artifacts/audit/axis-truth-2026-10-06/`, avec un `receipt.json` hashé.
+**Rétention :** le build isolé de 3,5 Gio a été supprimé pendant le passage hygiène du même jour. Le snapshot, les empreintes, la configuration et le journal CTest sont conservés sous `project_journal/evidence/audit/axis-truth-2026-10-06/`, avec un `receipt.json` hashé.

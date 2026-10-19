@@ -15,31 +15,68 @@ int main() {
     const std::filesystem::path directory(allocated);
     try {
         const auto require = [](bool value) { if (!value) throw std::runtime_error("Gradient artifact contract failed."); };
-        nlohmann::ordered_json models{{"database_id","models"},{"catalog","catalog/test"},
+        nlohmann::ordered_json models{{"database_id","models"},{"model_family","Test model"},{"catalog","catalog/test"},
             {"url","https://datasets.ai-factory.example/models.json"}, {"models",{{{"id","000001"}}}}};
         auto products = models;
         products.erase("models"); products["products"] = {{{"id","000001"}}};
         products["time_convention"] = {{"unit","business_day"},{"days_per_year",252}};
+        products["product_family"] = "Test product";
         datasets::write_json_file(directory/"models.json",models);
         datasets::write_json_file(directory/"products.json",products);
         data::Recipe recipe{directory/"models.json",directory/"products.json",directory/"gradients.json",directory/"generation.yaml",
-            "https://datasets.ai-factory.example/gradients.json","source/generator.cpp",PriceConstruction::Aligned,
+            "source/generator.cpp",PriceConstruction::Aligned,
             {{{"model.rho",{.125,pg::BumpScale::absolute}}}}, {}};
         data::Results result{{.1f},{.01f},{.2f},{.02f},
             {pg::prepare_stencil(1.f,{.125,pg::BumpScale::absolute},[](float p){return p>=-1 && p<=1;})},
             {{"paths_per_price",32},{"sensitivity_count",1},{"scenario_count",3},{"seed",719}}};
         data::write_dataset(recipe,result);
         const auto valid = datasets::read_json_file(recipe.dataset);
-        require(valid["results"][0]["stencils"]["model.rho"]["kind"]=="backward");
-        require(valid["validation"]["verified"]==false);
-        require(valid["sensitivity"]["parameters"][0]["displacement"]==.125);
-        require(valid["sensitivity"]["method"]
-            == "finite_difference_shared_innovations");
+        require(valid.size() == 8U && valid.contains("results"));
+        require(valid["database_id"] == "gradients"
+            && valid["model_family"] == "Test model"
+            && valid["product_family"] == "Test product"
+            && valid["catalog"] == directory.generic_string()
+            && valid["row_count"] == 1U);
+        require(valid["model_dataset"] == nlohmann::ordered_json({
+            {"id", "models"}, {"catalog", "catalog/test"}
+        }));
+        require(valid["product_dataset"] == valid["model_dataset"]);
+        require(valid["results"].size() == 1U);
+        require(valid["results"][0]["model_id"] == "000001");
+        require(valid["results"][0]["product_id"] == "000001");
+        require(valid["results"][0]["price"] == .1f);
+        require(valid["results"][0]["gradients"]["model.rho"] == .2f);
+        require(valid["results"][0]["standard_error"] == .01f);
+        require(valid["results"][0]["gradient_standard_errors"]["model.rho"] == .02f);
+        require(!valid["results"][0].contains("stencils"));
+        auto call_recipe = recipe;
+        call_recipe.dataset = directory / "call_gradients.json";
+        call_recipe.source_price_recipe =
+            "catalog/model/test/prices/european_calls/test/recipe.yaml";
+        call_recipe.option_side = "call";
+        data::write_dataset(call_recipe, result);
+        const auto call_document = datasets::read_json_file(
+            call_recipe.dataset
+        );
+        require(call_document["product_family"] == "Test product"
+            && call_document["option_side"] == "call");
+        // Exact rate increments still need a monitored path for a bond barrier.
+        auto barrier_recipe = recipe;
+        barrier_recipe.dataset = directory / "barrier_gradients.json";
+        barrier_recipe.catalog = directory / "barrier_generation.yaml";
+        barrier_recipe.exact_transition = true;
+        barrier_recipe.barrier_grid_monitoring = true;
+        data::write_dataset(barrier_recipe, result);
+        const auto barrier_document = datasets::read_json_file(
+            barrier_recipe.dataset
+        );
+        require(barrier_document["results"] == valid["results"]);
         // A spot-relative product level executes at an absolute S0-scaled
         // strike, while the published stencil and gradient use ratio units.
         auto quote_recipe = recipe;
         quote_recipe.configuration.sensitivities[0].parameter =
             "product.strike";
+        quote_recipe.configuration.sensitivities[0].bump.displacement = .01f;
         quote_recipe.dataset = directory / "quote_gradients.json";
         quote_recipe.catalog = directory / "quote_generation.yaml";
         auto quote_result = result;
@@ -57,15 +94,18 @@ int main() {
         const auto quote_document = datasets::read_json_file(
             quote_recipe.dataset
         );
-        const auto centered_quote =
-            quote_document["results"][0]["stencils"]["product.strike"];
-        require(std::abs(centered_quote["central"].get<float>() - 1.0f)
-            < 1e-5f);
-        require(centered_quote["represented_width"].get<float>()
-            == centered_quote["second"].get<float>()
-                - centered_quote["first"].get<float>());
-        require(std::abs(centered_quote["execution_coordinate_scale"]
-            .get<double>() - 2.0) < 1e-5);
+        require(quote_document["results"][0]["gradients"]["product.strike"] == .2f);
+        require(!quote_document["results"][0].contains("stencils"));
+        // A small absolute bump at nonunit S0 must survive conversion to
+        // ratio units without rounding both endpoints to FP32 again.
+        quote_stencil.central = 1.53f;
+        quote_stencil.first = 1.53f - 1e-4f;
+        quote_stencil.second = 1.53f + 1e-4f;
+        quote_stencil.represented_width =
+            (quote_stencil.second - quote_stencil.first) / 1.7f;
+        data::write_dataset(quote_recipe, quote_result);
+        require(datasets::read_json_file(quote_recipe.dataset)["results"][0]["price"] == .1f);
+        quote_stencil.central = 2.0f;
         quote_stencil.first = 1.98f;
         quote_stencil.second = 1.96f;
         quote_stencil.represented_width =
@@ -74,13 +114,7 @@ int main() {
         quote_stencil.first_weight = -200.0f;
         quote_stencil.second_weight = 50.0f;
         data::write_dataset(quote_recipe, quote_result);
-        const auto backward_quote = datasets::read_json_file(
-            quote_recipe.dataset
-        )["results"][0]["stencils"]["product.strike"];
-        require(backward_quote["kind"] == "backward");
-        require(backward_quote["represented_width"].get<float>() < 0.0f);
-        require(std::abs(backward_quote["central"].get<float>() - 1.0f)
-            < 1e-5f);
+        require(datasets::read_json_file(quote_recipe.dataset)["results"][0]["price"] == .1f);
         auto lsm_recipe = recipe;
         lsm_recipe.dataset = directory / "lsm_gradients.json";
         lsm_recipe.catalog = directory / "lsm_generation.yaml";
@@ -89,9 +123,7 @@ int main() {
                 frozen_regression_policy;
         data::write_dataset(lsm_recipe, result);
         const auto lsm_document = datasets::read_json_file(lsm_recipe.dataset);
-        require(lsm_document["standard_error_scope"].get<std::string>()
-            .find("fit variability") != std::string::npos);
-        require(lsm_document["lsm_fit_and_valuation_paths"] == "same paths");
+        require(lsm_document["results"] == valid["results"]);
         auto sparse_recipe = recipe;
         sparse_recipe.configuration.sensitivities.push_back(
             {"model.volatility", {.25, pg::BumpScale::absolute}}
@@ -139,11 +171,54 @@ int main() {
         result.execution["materialized_scenario_count"] = 0U;
         data::write_dataset(recipe,result);
         const auto diagonal_document = datasets::read_json_file(recipe.dataset);
-        require(diagonal_document["results"][0]["stencils"]["model.rho"]["node_count"] == 4);
-        require(diagonal_document["results"][0]["stencils"]["model.rho"]["third"] == .625);
-        require(diagonal_document["results"][0]["outputs"]["diagonal_hessians"]["model.rho"] == .3f);
-        require(diagonal_document["sensitivity"]["orders"] ==
-            nlohmann::ordered_json::array({"first", "diagonal_second"}));
+        require(diagonal_document["results"][0]["diagonal_hessians"]["model.rho"] == .3f);
+        require(!diagonal_document["results"][0].contains("stencils"));
+        require(diagonal_document["results"][0].size() == 8U);
+        auto full_recipe = recipe;
+        full_recipe.dataset = directory / "full_hessian.json";
+        full_recipe.catalog = directory / "full_hessian_generation.yaml";
+        full_recipe.option_side = "call";
+        full_recipe.configuration.sensitivities.push_back(
+            {"model.volatility", {.125, pg::BumpScale::absolute}}
+        );
+        full_recipe.sensitivity_request =
+            pg::SensitivityRequest::full_hessian();
+        const auto full_metadata = data::sensitivity_metadata(
+            full_recipe, true
+        );
+        require(full_metadata["orders"] == nlohmann::ordered_json::array(
+            {"first", "diagonal_second", "mixed_second"}
+        ) && full_metadata["mixed_second"] == "all"
+          && full_metadata["parameters"].size() == 2U);
+        auto full_result = result;
+        full_result.gradients = {.2f, .4f};
+        full_result.gradient_errors = {.02f, .04f};
+        full_result.stencils.push_back(full_result.stencils.front());
+        full_result.diagonal_hessians = {.3f, .5f};
+        full_result.diagonal_hessian_errors = {.03f, .05f};
+        full_result.diagonal_stencils.push_back(diagonal);
+        full_result.mixed_hessians = {.6f};
+        full_result.mixed_hessian_errors = {.06f};
+        full_result.mixed_stencils = {
+            pg::make_mixed_sensitivity_stencil(diagonal, diagonal)
+        };
+        full_result.execution["sensitivity_count"] = 2U;
+        data::write_dataset(full_recipe, full_result);
+        const auto full_document = datasets::read_json_file(
+            full_recipe.dataset
+        );
+        const auto& full_row = full_document["results"][0];
+        require(full_document.size() == 9U
+            && full_document["option_side"] == "call"
+            && full_row.size() == 10U
+            && full_row["gradients"]["model.volatility"] == .4f
+            && full_row["diagonal_hessians"]["model.volatility"] == .5f
+            && full_row["mixed_hessians"]["model.rho|model.volatility"] == .6f
+            && full_row["mixed_hessian_standard_errors"]
+                ["model.rho|model.volatility"] == .06f
+            && !full_document.contains("sensitivity")
+            && !full_document.contains("url")
+            && !full_row.contains("stencils"));
         result.diagonal_stencils[0].second_weights[2U] =
             std::numeric_limits<float>::quiet_NaN();
         bool diagonal_rejected = false;
@@ -166,15 +241,15 @@ int main() {
         result.price_errors.clear(); result.gradient_errors.clear();
         data::write_dataset(recipe,result);
         const auto deterministic = datasets::read_json_file(recipe.dataset);
-        require(!deterministic["results"][0]["outputs"].contains("gradient_standard_errors"));
-        require(deterministic["sensitivity"]["method"]
-            == "finite_difference");
+        require(!deterministic["results"][0].contains("gradient_standard_errors"));
+        require(!deterministic["results"][0].contains("standard_error"));
 
         models["models"].push_back({{"id", "000002"}});
         products["products"].push_back({{"id", "000002"}});
         nlohmann::ordered_json curves{
             {"database_id", "curves"},
             {"catalog", "catalog/test"},
+            {"curve_family", "Test curve"},
             {"url", "https://datasets.ai-factory.example/curves.json"},
             {"curves", {{{"id", "000001"}}, {{"id", "000002"}}}},
         };
@@ -189,10 +264,19 @@ int main() {
         result.stencils.assign(8U, result.stencils.front());
         data::write_dataset(recipe, result);
         const auto curve_document = datasets::read_json_file(recipe.dataset);
-        require(curve_document["row_count"] == 8U);
-        require(curve_document["price_construction"]["order"]
-            == "model, curve, product");
-        require(curve_document["curve_dataset"]["id"] == "curves");
+        require(curve_document.size() == 10U);
+        auto family_field = curve_document.begin();
+        require(family_field.key() == "database_id");
+        ++family_field;
+        require(family_field.key() == "model_family");
+        ++family_field;
+        require(family_field.key() == "product_family");
+        ++family_field;
+        require(family_field.key() == "curve_family");
+        require(curve_document["curve_family"] == "Test curve"
+            && curve_document["curve_dataset"]["id"] == "curves"
+            && curve_document["curve_dataset"]["catalog"] == "catalog/test");
+        require(curve_document["results"].size() == 8U);
         require(curve_document["results"][0]["model_id"] == "000001"
             && curve_document["results"][0]["curve_id"] == "000001"
             && curve_document["results"][0]["product_id"] == "000001");

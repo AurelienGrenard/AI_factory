@@ -21,6 +21,31 @@ A model README documents only its equation, parameter mapping, and
 model-specific analytical formulas. Common caplet, bond-option, swaption, and
 early-exercise contracts are not copied between models.
 
+## Initial short rate and curve sensitivities
+
+In CIR++, G2++ and Hull–White, the deterministic shift fits the input zero
+curve. At inception their short rate is the initial instantaneous forward:
+
+```text
+flat:                    r(0) = curve.rate
+Nelson–Siegel, Svensson: r(0) = curve.beta0 + curve.beta1
+```
+
+The `curve.rate` and `curve.beta0` gradients therefore measure a parallel
+shift of the **whole initial curve**, with the fitted shift recomputed. They
+are not sensitivities to the short rate at time zero while holding the rest
+of the curve fixed. `curve.beta1` also changes `r(0)`, but changes the curve
+shape as well; it cannot be interpreted as the same risk as `curve.beta0`.
+Likewise, CIR++ `model.initial_state` changes the latent CIR factor and its
+fitted shift, so it is not an independent `r(0)` bump.
+
+The dataset gradients are derivatives per unit of the named curve parameter,
+where rates are decimal annual rates. Multiply a parallel-rate derivative by
+`0.0001` for the price change under a +1 bp parallel shift (subject to the
+finite-difference approximation). An isolated `r(0)` sensitivity requires a
+specified deformation of the entire initial curve; it is not an additional
+coordinate of these fitted models.
+
 ## Authoritative references
 
 - [Model reference index](../../../docs/model-and-curve-reference-index.md)

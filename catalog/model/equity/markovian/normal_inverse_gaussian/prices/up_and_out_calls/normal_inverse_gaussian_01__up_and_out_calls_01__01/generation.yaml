@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_and_out_calls/normal_inverse_gaussian_01__up_and_out_calls_01__01/recipe.yaml
-  sha256: e5dcd03c12ed116ea0a9d58ccbfc66b4b7837e80a53c0e58e529d2986502f551
 artifact:
   row_count: 1000
-  sha256: 52346107ffe44f38067be39ffff74c246fb172c4d39da614b7917c052e870b6b
-inputs:
-  models: f5a15dafd3c4d387461f16022455d8ab7000fea4ecfbfd84bf102c1db2b5786b
-  products: 1b1caffda978b7f8ba7c7fb1d940aa7403f7fbd24a68f49cbb98fed958cf3349
+  sha256: d1085107873e57d321d499bae903d30f3bfeb4507fdb69addf52b9c3c5c1a776
 execution:
-  binary_sha256: 4fa4446cf00e715840423db284558cf8ff737ae26e0a93824f6fb58de908c09f
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: up_and_out_calls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: normal_inverse_gaussian
     product: up_and_out_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: ed3ab021f59a0c5987cd54697e9a4e7440dda9866461bceb3be142195e930d4a
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 356aa3693ba383ca57c579339f3c9f7a017cd45cdc6db8702c552fb5e1d86941
+  generator_sha256: f0891ebdb7a4fbff6a19e627d07bb5c18ca04f9f8d77d96f94625f68d3ebcbd3
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: up_and_out_calls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 66.719344171
-  kernel_seconds: 70.195695313
+  wall_seconds: 21.157212029
+  kernel_seconds: 19.8324609375
+recipe:
+  path: catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_and_out_calls/normal_inverse_gaussian_01__up_and_out_calls_01__01/recipe.yaml
+  sha256: 215dbfe8e17e44facd9474e7fe65c48ccfdabedebf343d1a2fc76b248b5e77f0
+inputs:
+  models: 9a33b9d001483427db9ebd53cc034d07c4eda77f5e1303400fc7752564584f2c
+  products: cf104421a43d2c1f2c58b22a51d1b58d1fcb3d572337a2fd5fb8c62e3b9e165c
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789324763.472867
+    unix_time: 1791495781.2864754
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 82, 87.37 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 74, 46.76 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json: c2a974117e0036720a590be4afd64d255dc1d2f5d2a58dbc9adc0c78723bd837
-    datasets/product/up_and_out_option/up_and_out_options_01.json: e117773336dd47d27a828c06163813e81a4359a1bbd75d6b7fea81fc179ee2d3
   generator: catalog/model/equity/markovian/normal_inverse_gaussian/prices/up_and_out_calls/normal_inverse_gaussian_01__up_and_out_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: a6c0c1474ef98590b6c37a52b2f15d0ed9cca904e4e46c99bc70b267ab11d9ff
-  record_sha256: d6ff5a536b0ab363d399947df1c4e2889c7a43f37423e058f6c24b0872ead2be
-record_sha256: 10be5af52a8296b38670bc7c3a6d13bdab0463b868c31773edccfe6455c0a8af
+  input_files:
+    datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json: c04a5c9c37f467b72392a8e1a996cbeae8b2e64971f0e33bf5c960cf6180dcfc
+    datasets/product/up_and_out_option/up_and_out_options_01.json: 656a1b2370ff10ecbf86cf2fb9172928e6b901d87c5591500ceec3a4a39254d7
+record_sha256: 464d93ba6fc5c5a1f30e6bf3070593456d5d6a0ba0e07e84a1e2d961f2d23b54

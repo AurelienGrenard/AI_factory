@@ -71,8 +71,8 @@ def catalogue_documents(root: Path) -> Iterable[tuple[str, Path]]:
     """Enumerate every versioned catalogue document governed by a schema."""
 
     for kind in ("recipe", "generation", "validation"):
-        for folder in (root / "catalog", root / "work/catalog"):
-            yield from ((kind, path) for path in sorted(folder.rglob(f"{kind}.yaml")))
+        folder = root / "catalog"
+        yield from ((kind, path) for path in sorted(folder.rglob(f"{kind}.yaml")))
 
 
 def validate_repository(

@@ -1,28 +1,16 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01/recipe.yaml
-  sha256: a1bd5ca3a06338518f1fb5316370ccd4977e61674aefdaf0fe91db7511376b4b
 artifact:
   row_count: 1000
-  sha256: 23b5d519c121c6666fdf8177b32cdb3729172e9dcb219fc17138f07856931a67
-inputs:
-  models: 335a9cd3e7c01d3b6819e3f40b998a86e010913c478d6cb40c23c97408fce2d7
-  products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+  sha256: ca5bdc01a166bb2c6ad1645115ad4877b5512933ab11fe192fb2bbeab82e8ff2
 execution:
-  binary_sha256: b90db2047a9bfb383fcddc9f3c00a8036690d771bc3b100daa1413c38d6bece8
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: caplets
-    construction: aligned
-    has_curve: false
+  block_count: 4
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: closed_form
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: g2
     product: rate_option
     curve: ''
@@ -38,39 +26,48 @@ execution:
     block_count: 4
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: bc6dbb1aba4a0ea107e0ef73570f034ed025546eff447edc34ab14049f4912a2
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: e6c9be4f9ebd155dc28736c02a246c5dec21acf32dbd4bc350b0360bf680063e
+  generator_sha256: 92bf94f57cae4d3b68ee0b66335e0a71d64df2647c1d5b19a886e361809fa305
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: caplets
+    construction: aligned
+    has_curve: false
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.138871788
-  kernel_seconds: 1.1264e-05
+  wall_seconds: 0.328438354
+  kernel_seconds: 2.1503999829292296e-05
+recipe:
+  path: catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01/recipe.yaml
+  sha256: 6157654689bf540c2a07a7bc8a7d49177dd25cd1aa6c1f6d25002ead269044c4
+inputs:
+  models: 41bb150cfafd84f658eec46eb4692136118920386e8aeb78e735d587a6d5c58d
+  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307208.8561594
+    unix_time: 1791411425.4854324
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 84, 98.43 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 74, 47.29 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/fixed_income/g2/parameters/g2_01.json: 2ecf6e4b03ccbadb78130211f519d0ac115768ad2853f5c75bec7f8df9a59ee4
-    datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
   generator: catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 93215348ec07963639bd809168b88df49390a571e47c1e776f5ecb099f9628ea
-  record_sha256: ec0b848db3534aa82b9088ec3ab47d3ef6b7af0adce8852f8556873e1eb46674
-record_sha256: 00e8e8d86c9b490c03cb651bd56463d8a3393656c6381a00bdc44d164ad5df7b
+  input_files:
+    datasets/model/fixed_income/g2/parameters/g2_01.json: eafbe3fca21bfdd36a2006f8c33724ca68ad8e8d876abbcffb82b54d6cf1416a
+    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+record_sha256: b3168ee5d2198c8993905f82c8f58d23e3714953257dda4dd8a61457209054a0

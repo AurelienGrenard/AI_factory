@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/heston/prices/up_one_touches/heston_01__up_one_touches_01__01/recipe.yaml
-  sha256: 2f536b9476176271b01c2258248d2c73ee3fb7e1bfb0b0370f89d4392cbc33ea
 artifact:
   row_count: 1000
-  sha256: 4f9a33399d6424a9371d8d14c9cf5c0d9c06f1d963e77e779cc781146a85f242
-inputs:
-  models: 6c7bf0f577f8feb33e7de8d828b5890dccce6376bcf22e168cdbf85c8d8fef48
-  products: 37bed9acd9705fa4e81b25f8b6b72c0060c827cb989ac72dd3b86574205aa807
+  sha256: 8ba069b16db79e5238040342bdfc6a499dad849751693f944d78c58bc4b9b4ea
 execution:
-  binary_sha256: 03f04a8627fbcab5cd06177909c81e5d78ea403106cc44087bcaa2075fee5a16
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: up_one_touches
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: heston
     product: up_one_touch
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: b8ca54cf5f4fb84f773bc7a73c99b8d21d0f953203b71c5464023eabf4f0ed77
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: e6e9127a3d6430eda46ceb82b6bcade4baa0fc18f764b2e14636544cef1ed8fc
+  generator_sha256: 51b37719ddf90888b85e725360b5dae4225d00a3deaf42cc8a948ba0a448c170
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: up_one_touches
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 89.874971859
-  kernel_seconds: 94.23321875
+  wall_seconds: 29.370357541
+  kernel_seconds: 27.54889453125
+recipe:
+  path: catalog/model/equity/markovian/heston/prices/up_one_touches/heston_01__up_one_touches_01__01/recipe.yaml
+  sha256: 6a9cb1ede5a19b3a4763949c079219d49b9d85e972307b660bf4e8524b3536fd
+inputs:
+  models: 3cec002453ad9b52d2333b7fc78dcf9fbf1114ef8e5acd04515299b5d060946c
+  products: 57b478755a1a78a2cecaa37b8b769a717a7cb33fc1ccd2e8999759516f6d191f
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789320511.3448377
+    unix_time: 1791494194.9810648
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 79, 89.86 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 73, 46.33 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/heston/parameters/heston_01.json: 1fd686c8077f7f93b34381a242ad806c83adfbf82f4eddcb664d4a3db0477b33
-    datasets/product/up_one_touch/up_one_touches_01.json: 95e86dcbe4a7a77bc62bb47df636ae0e861ae08be40bb522d9fab36124a232d1
   generator: catalog/model/equity/markovian/heston/prices/up_one_touches/heston_01__up_one_touches_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 19dc63b84cd0d39c751c5ff72d1e6ce6083c9f74a7512c8507a99ec11fded459
-  record_sha256: 6580785d40e2f1138ce09203c808a9dc0d289fbcb9f571685fb8528341853048
-record_sha256: aeff930d1a465015e1d2602bb589e0c955432c808ccf70fcef296924c46d28c1
+  input_files:
+    datasets/model/equity/markovian/heston/parameters/heston_01.json: f75ce14adf6364f0a8f01e563ddd12c36367d8a34fa452e1e6210f3b5bee23b9
+    datasets/product/up_one_touch/up_one_touches_01.json: 6dc5294bb9e5a198a240db2ad567974070d126e1a7435c458b6332899ac285a5
+record_sha256: b8aaca43db1928baad3166ab3a4e3062ecd44fe7c2c2e30c61415af0215af1bd

@@ -28,6 +28,15 @@ from sample_manifest import SAMPLE_MODELS
 
 SCHEMA_VERSION = 2
 
+# One curve draw for each Cartesian model-product row. The C++ row decoder
+# uses the same seed and SplitMix64 modulo mapping.
+CURVE_ASSIGNMENT = {
+    "method": "splitmix64_modulo",
+    "seed": 20261014,
+    "sampling": "with_replacement",
+    "key": "zero_based_result_index",
+}
+
 # Published v1 parameter URLs predate the current catalogue taxonomy.
 # Preserve them so immutable recipes and receipts stay valid.
 HISTORICAL_PARAMETER_URL_PATHS: dict[tuple[str, str], str] = {
@@ -185,6 +194,7 @@ class DatasetSpec:
     sensitivity_orders: tuple[str, ...] = ()
     sensitivity_parameters: tuple[str, ...] = ()
     exercise_replay: str | None = None
+    product_shard: int | None = None
 
     @property
     def row_count(self) -> int:
@@ -199,8 +209,7 @@ class DatasetSpec:
             if self.construction == "aligned":
                 return 1_000
             if self.construction == "cartesian":
-                input_count = 3 if self.curve is not None else 2
-                return 1_000 ** input_count
+                return 100_000 if self.product_shard is not None else 1_000_000
         raise ValueError(
             f"dataset cardinality is not declared for {self.dataset_kind}: "
             f"{self.generator_path}"
@@ -1647,23 +1656,29 @@ ALIGNED_PRICE_DATASET_SPECS = tuple(
     dataset for dataset in AVAILABLE_DATASET_SPECS
     if dataset.dataset_kind == "prices" and dataset.construction == "aligned"
 )
-# This barrier contract deliberately publishes only aligned rows: a million-row
-# Cartesian campaign at path-level monitoring has no qualified production budget.
-CARTESIAN_SOURCE_DATASET_SPECS = tuple(
-    dataset for dataset in ALIGNED_PRICE_DATASET_SPECS
-    if dataset.product != "zero_coupon_bond_up_and_out"
-)
+# Monte Carlo Cartesian recipes use 100,000-row product shards; formulas
+# retain the complete million-row Cartesian construction.
+CARTESIAN_SOURCE_DATASET_SPECS = ALIGNED_PRICE_DATASET_SPECS
+
+
+def cartesian_suffix(dataset: DatasetSpec) -> str:
+    if dataset.engine in {"equity_closed_form", "fixed_income_closed_form"}:
+        return "_cartesian"
+    return "_cartesian_shard00"
+
+
 CARTESIAN_PRICE_DATASET_SPECS = tuple(
     replace(
         dataset,
-        dataset_id=dataset.dataset_id + "_cartesian",
+        dataset_id=dataset.dataset_id + cartesian_suffix(dataset),
         generator_path=dataset.generator_path.replace(
             "/" + dataset.dataset_id + "/",
-            "/" + dataset.dataset_id + "_cartesian/",
+            "/" + dataset.dataset_id + cartesian_suffix(dataset) + "/",
         ),
         construction="cartesian",
+        product_shard=(None if cartesian_suffix(dataset) == "_cartesian" else 0),
         layout=(
-            "model_major_curve_then_product_cartesian_price_rows"
+            "model_product_cartesian_sampled_curve_price_rows"
             if dataset.curve is not None
             else "model_major_product_fastest_cartesian_price_rows"
         ),
@@ -1770,9 +1785,29 @@ PRICE_GRADIENT_DATASET_SPECS = tuple(
     if spec.sensitivity_orders == ("first",)
     and spec.construction == "aligned"
     and not spec.dataset_id.endswith("_price_gradient_spot")
+    # American datasets fix exercise dates; Bermudan datasets retain the
+    # frozen central regression policy selected for their LSM sensitivities.
+    and (spec.product != "american_option"
+         or spec.exercise_replay == "frozen_exercise_time")
     and (spec.asset_class != "fixed_income"
          or spec.product != "bermudan_swaption"
          or spec.exercise_replay == "frozen_regression_policy")
+)
+CARTESIAN_PRICE_GRADIENT_DATASET_SPECS = tuple(
+    spec
+    for spec in PRICE_GRADIENT_DATASET_VARIANTS
+    if spec.sensitivity_orders == ("first",)
+    and spec.construction == "cartesian"
+    and not spec.dataset_id.endswith("_price_gradient_spot")
+    and (spec.product != "american_option"
+         or spec.exercise_replay == "frozen_exercise_time")
+    and (spec.asset_class != "fixed_income"
+         or spec.product != "bermudan_swaption"
+         or spec.exercise_replay == "frozen_regression_policy")
+)
+ALL_PRICE_GRADIENT_DATASET_SPECS = (
+    *PRICE_GRADIENT_DATASET_SPECS,
+    *CARTESIAN_PRICE_GRADIENT_DATASET_SPECS,
 )
 PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
     gradient.generator_path: next(
@@ -1783,10 +1818,10 @@ PRICE_GRADIENT_SOURCE_BY_GENERATOR = {
         == (gradient.model, gradient.curve, gradient.product,
             gradient.variant, gradient.construction, gradient.engine)
     )
-    for gradient in PRICE_GRADIENT_DATASET_SPECS
+    for gradient in ALL_PRICE_GRADIENT_DATASET_SPECS
 }
-DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
-AVAILABLE_DATASET_SPECS += PRICE_GRADIENT_DATASET_SPECS
+DATASET_SPECS += ALL_PRICE_GRADIENT_DATASET_SPECS
+AVAILABLE_DATASET_SPECS += ALL_PRICE_GRADIENT_DATASET_SPECS
 _RNG_ALIAS_ROOT_BY_GENERATOR = {
     dataset.generator_path: dataset.generator_path
     for dataset in ALIGNED_PRICE_DATASET_SPECS
@@ -1794,14 +1829,14 @@ _RNG_ALIAS_ROOT_BY_GENERATOR = {
 }
 RNG_DOMAIN_SPECS += tuple(
     replace(RNG_DOMAIN_BY_GENERATOR[source.generator_path], generator_path=gradient.generator_path)
-    for gradient in PRICE_GRADIENT_DATASET_SPECS
+    for gradient in ALL_PRICE_GRADIENT_DATASET_SPECS
     if (source := PRICE_GRADIENT_SOURCE_BY_GENERATOR[gradient.generator_path]).generator_path in RNG_DOMAIN_BY_GENERATOR
 )
 RNG_DOMAIN_BY_GENERATOR = {domain.generator_path: domain for domain in RNG_DOMAIN_SPECS}
 _RNG_ALIAS_ROOT_BY_GENERATOR.update({
     gradient.generator_path: (CARTESIAN_PRICE_SOURCE_BY_GENERATOR[source.generator_path].generator_path
         if source.generator_path in CARTESIAN_PRICE_SOURCE_BY_GENERATOR else source.generator_path)
-    for gradient in PRICE_GRADIENT_DATASET_SPECS
+    for gradient in ALL_PRICE_GRADIENT_DATASET_SPECS
     if (source := PRICE_GRADIENT_SOURCE_BY_GENERATOR[gradient.generator_path]).generator_path in RNG_DOMAIN_BY_GENERATOR
 })
 _RNG_ALIAS_ROOT_BY_GENERATOR.update({
@@ -1817,7 +1852,7 @@ RNG_COMMON_RANDOM_NUMBER_ALLOWLIST = frozenset(
     if left < right and left_root == right_root
 )
 validate_rng_domain_specs(RNG_DOMAIN_SPECS, RNG_COMMON_RANDOM_NUMBER_ALLOWLIST)
-for _dataset in PRICE_GRADIENT_DATASET_SPECS:
+for _dataset in ALL_PRICE_GRADIENT_DATASET_SPECS:
     validate_dataset_spec(_dataset)
 
 

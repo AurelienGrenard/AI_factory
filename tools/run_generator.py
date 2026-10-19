@@ -10,7 +10,6 @@ import json
 import os
 from pathlib import Path
 import platform
-import re
 import shutil
 import subprocess
 import sys
@@ -30,7 +29,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools/codegen/pricing_bindings"))
 from capability_manifest import AVAILABLE_DATASET_SPECS  # noqa: E402
 from tools.datasets.artifact_publication import contained_path, digest, publish_pair  # noqa: E402
-from tools.datasets.dataset_provenance import fingerprint, input_fingerprints  # noqa: E402
+from tools.datasets.dataset_provenance import generation_record, software_versions  # noqa: E402
 from tools.datasets.metadata_schemas import validate_document  # noqa: E402
 
 PARAMETER_KINDS = {"model_parameters", "curve_parameters", "product_parameters"}
@@ -77,76 +76,6 @@ def cache_values(build: Path) -> dict[str, str]:
     return values
 
 
-def compiler_version(path: str) -> str:
-    if not path:
-        return "unavailable"
-    result = subprocess.run([path, "--version"], capture_output=True, text=True, check=True)
-    return next((line for line in result.stdout.splitlines() if "release " in line), result.stdout.splitlines()[-1]) if Path(path).name == "nvcc" else result.stdout.splitlines()[0]
-
-
-def build_evidence(build: Path, target: str) -> tuple[dict, dict]:
-    cache = cache_values(build)
-    graph_name = "build.ninja" if (build / "build.ninja").is_file() else "Makefile"
-    if not (build / graph_name).is_file():
-        raise FileNotFoundError(f"No CMake build graph in {build}")
-    flag_file = build / "CMakeFiles" / f"{target}.dir" / "flags.make"
-    target_flags = {}
-    if flag_file.is_file():
-        for line in flag_file.read_text().splitlines():
-            if line.startswith(("CXX_FLAGS =", "CUDA_FLAGS =", "CXX_DEFINES =", "CUDA_DEFINES =")):
-                key, value = line.split("=", 1)
-                target_flags[key.strip()] = value.strip()
-    hashes = {name: digest(build / name) for name in ("CMakeCache.txt", graph_name)}
-    if flag_file.is_file():
-        hashes[f"CMakeFiles/{target}.dir/flags.make"] = digest(flag_file)
-    cuda_dependency_flags = {}
-    link_file = build / "CMakeFiles" / f"{target}.dir" / "link.txt"
-    if link_file.is_file():
-        for dependency in sorted(set(re.findall(r"\blib([A-Za-z0-9_]+)\.a\b", link_file.read_text()))):
-            dependency_flags = build / "CMakeFiles" / f"{dependency}.dir" / "flags.make"
-            if not dependency_flags.is_file():
-                continue
-            lines = {}
-            for line in dependency_flags.read_text().splitlines():
-                if line.startswith(("CUDA_FLAGS =", "CUDA_DEFINES =")):
-                    key, value = line.split("=", 1)
-                    lines[key.strip()] = value.strip()
-            if lines:
-                cuda_dependency_flags[dependency] = lines
-                hashes[f"CMakeFiles/{dependency}.dir/flags.make"] = digest(dependency_flags)
-    options = {
-        "cmake_generator": cache.get("CMAKE_GENERATOR"),
-        "build_type": cache.get("CMAKE_BUILD_TYPE"),
-        "cxx_standard": 20,
-        "cuda_standard": 20,
-        "cuda_architectures": cache.get("CUDA_WORKBENCH_ARCHITECTURES"),
-        "tuning_profile": cache.get("AI_FACTORY_CUDA_TUNING_PROFILE_ID"),
-        "mathdx_root": cache.get("AI_FACTORY_MATHDX_ROOT"),
-        "cxx_compiler": cache.get("CMAKE_CXX_COMPILER"),
-        "cxx_compiler_version": compiler_version(cache.get("CMAKE_CXX_COMPILER", "")),
-        "cuda_compiler": cache.get("CMAKE_CUDA_COMPILER"),
-        "cuda_compiler_version": compiler_version(cache.get("CMAKE_CUDA_COMPILER", "")),
-        "cuda_host_compiler": cache.get("CMAKE_CUDA_HOST_COMPILER"),
-        "cxx_release_flags": cache.get("CMAKE_CXX_FLAGS_RELEASE"),
-        "cuda_release_flags": cache.get("CMAKE_CUDA_FLAGS_RELEASE"),
-        "target_flags": target_flags,
-        "cuda_dependency_flags": cuda_dependency_flags,
-    }
-    toolkit = Path(cache.get("CMAKE_CUDA_COMPILER", "")).parent.parent
-    cuda_math_header = next((
-        toolkit / relative for relative in (
-            "targets/x86_64-linux/include/crt/math_functions.h",
-            "include/crt/math_functions.h",
-        ) if (toolkit / relative).is_file()
-    ), None)
-    if cuda_math_header is not None:
-        options["cuda_math_header_sha256"] = digest(cuda_math_header)
-    compatibility_marker = toolkit / ".ai-factory-cuda-glibc-compat.json"
-    if compatibility_marker.is_file():
-        options["cuda_glibc_compatibility"] = json.loads(compatibility_marker.read_text())
-    return hashes, options
-
-
 def hardware(kind: str, gpu: str | None) -> dict:
     if kind in PARAMETER_KINDS:
         model = next((line.split(":", 1)[1].strip() for line in Path("/proc/cpuinfo").read_text().splitlines()
@@ -171,29 +100,11 @@ def enrich_receipt(spec, recipe: dict, stage: Path, build: Path, gpu: str | None
     dataset_path = stage / spec.dataset_path
     if not generation_path.is_file() or not dataset_path.is_file():
         raise FileNotFoundError(f"Generator did not create {dataset_path} and {generation_path}")
-    record = yaml.safe_load(generation_path.read_text())
-    if not isinstance(record, dict) or record.get("status") != "complete":
-        raise ValueError(f"Invalid native generation receipt: {generation_path}")
-    inputs = list(recipe.get("inputs", {}).values())
-    hashes, options = build_evidence(build, spec.cmake_target)
-    record["recipe"] = {"path": spec.recipe_yaml_path, "sha256": digest(contained_path(ROOT, spec.recipe_yaml_path))}
-    record["artifact"]["sha256"] = digest(dataset_path)
-    record["inputs"] = input_fingerprints(stage, inputs)
-    record["execution"].update({
-        "binary_sha256": digest(build / spec.cmake_target),
-        "generator_sha256": digest(contained_path(ROOT, spec.generator_path)),
-        "declared_method": recipe.get("numerical_method", {"engine": spec.dataset_kind}),
-        "build_hashes": hashes,
-    })
-    record["provenance"] = {
-        "generator": spec.generator_path,
-        "input_files": {name: digest(stage / name) for name in inputs},
-        "hardware_used": hardware(spec.dataset_kind, gpu),
-        "build_options": options,
-        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-    }
-    record["record_sha256"] = fingerprint(record)
-    validate_document(record, "generation", generation_path)
+    native = yaml.safe_load(generation_path.read_text())
+    record = generation_record(
+        native, spec.recipe_yaml_path, spec.dataset_path, recipe.get("inputs", {}),
+        stage, hardware(spec.dataset_kind, gpu), software_versions(build),
+    )
     generation_path.write_text(yaml.safe_dump(record, sort_keys=False))
     return generation_path
 

@@ -213,7 +213,7 @@ table. Build the inspector and the selected probes first. For example:
 python3 maintainer/tools/performance/run_pricing_scaling.py \
   --stage production --price-counts 1000 --path-counts 1048576 \
   --input-profile catalogue --cases kou__mc_terminal cir__closed_form \
-  --output artifacts/performance/production-plan-example --plan-only
+  --output project_journal/evidence/performance/production-plan-example --plan-only
 ```
 
 Use a fresh output directory and omit `--plan-only` to execute two excluded
@@ -325,7 +325,7 @@ at a time:
 cmake --build build --target pricing_scaling_benchmarks -j2
 python3 maintainer/tools/performance/run_pricing_scaling.py \
   --build-dir build \
-  --output artifacts/performance/pricing-scaling-<campaign> \
+  --output project_journal/evidence/performance/pricing-scaling-<campaign> \
   --stage scaling \
   --cases <manifest-case-id>
 ```
@@ -358,8 +358,8 @@ relaxed tolerance after seeing the results.
 
 ```sh
 python3 maintainer/tools/performance/summarize_pricing_scaling.py \
-  artifacts/performance/pricing-scaling-<campaign> \
-  --output artifacts/performance/pricing-scaling-<campaign>/summary.json
+  project_journal/evidence/performance/pricing-scaling-<campaign> \
+  --output project_journal/evidence/performance/pricing-scaling-<campaign>/summary.json
 ```
 
 Volterra FFT geometry has one implementation owner:
@@ -403,7 +403,7 @@ exhaustive leaf-level diff before publication:
 python3 maintainer/tools/performance/run_baseline.py \
   --baseline maintainer/tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
   --build-dir build \
-  --output artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --output project_journal/evidence/performance/performance_candidate_sm89_v3.ndjson \
   --predecessor-baseline \
     maintainer/tests/performance/history/baseline_sm89_v3_pre_struct_019.json \
   --rebaseline-output maintainer/tests/performance/baseline_sm89_v3.json \
@@ -464,21 +464,21 @@ reject any concurrent GPU use:
 ```sh
 python3 maintainer/tools/performance/profile_kernel.py \
   --baseline maintainer/tests/performance/baseline_sm89_v3.json \
-  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --candidate project_journal/evidence/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id cir_noinline \
   --output-dir maintainer/tests/performance/profiles/sm89
 
 python3 maintainer/tools/performance/profile_kernel.py \
   --baseline maintainer/tests/performance/baseline_sm89_v3.json \
-  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --candidate project_journal/evidence/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id model_samples__rough_n_factor_7_12000_x_250 \
   --output-dir maintainer/tests/performance/profiles/sm89
 
 python3 maintainer/tools/performance/profile_kernel.py \
   --baseline maintainer/tests/performance/baseline_sm89_v3.json \
-  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --candidate project_journal/evidence/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id lsm__equity_multi_state_heston \
   --resource-index 1 \
@@ -486,7 +486,7 @@ python3 maintainer/tools/performance/profile_kernel.py \
 
 python3 maintainer/tools/performance/profile_kernel.py \
   --baseline maintainer/tests/performance/baseline_sm89_v3.json \
-  --candidate artifacts/performance/performance_candidate_sm89_v3.ndjson \
+  --candidate project_journal/evidence/performance/performance_candidate_sm89_v3.ndjson \
   --build-dir build \
   --measurement-id rough_sabr_fft \
   --resource-index 2 \

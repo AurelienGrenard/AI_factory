@@ -10,12 +10,12 @@ int main() {
     try {
         datasets::price_gradients::Recipe recipe{
             "${model_input}", "${product_input}", "${dataset}", "${catalog}",
-            "${url}", "${source_recipe}", PriceConstruction::${construction},
+            "${source_recipe}", PriceConstruction::${construction},
             {{
         ${selections}
             }}, {1.0f / 504.0f, 2U}, ${exact_transition},
             pg::SensitivityOrders::first_and_second
-        };$exact_schedule_assignment
+        };$exact_schedule_assignment$option_side_assignment
         recipe.sensitivity_request = pg::SensitivityRequest::full_hessian();
         const auto models =
             model::equity::${model}::load_models(recipe.model_input);

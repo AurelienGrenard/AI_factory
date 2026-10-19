@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/stein_stein/prices/cliquets/stein_stein_01__cliquets_01__01/recipe.yaml
-  sha256: b8a9a76acd390369a07e5d21a0670820e6d72262a56c404843865b2a2cabd9e5
 artifact:
   row_count: 1000
-  sha256: 00b6a10932b013e7398b1921e4407fa590e04efc2460ccc95d61ef2a06aea1dd
-inputs:
-  models: 29eb6dd66bb9284bcba495eb21db0310c5c4adef80990256afd148fd5e01c341
-  products: 865f2498d688b56deb41a6ff4a20b84f723c2059195df01f8cf226cfc3840f6d
+  sha256: 545f0a3e76535dafbc51c817b971a3708884963d4e50de1422d6761a89455e3d
 execution:
-  binary_sha256: 5725a52b460b65a5d2c932e5688b3791008cf208c38b31ea28b8c91798b5753b
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: cliquets
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 256
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: stein_stein
     product: cliquet
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: f465009dec5e1153547e47ea71a4992d6e60384ef41544599b9450fcd65568bc
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 256
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: 8d1722634357f1895bf2de6d399e801914f31e36e45eb97a6356062794776db9
+  generator_sha256: 4e3e204d7b766768b37383a621a967ebc63f5ca46945889ab9641c765b3b2cf2
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: cliquets
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 105.111841815
-  kernel_seconds: 93.60575
+  wall_seconds: 39.365044162
+  kernel_seconds: 31.7626328125
+recipe:
+  path: catalog/model/equity/markovian/stein_stein/prices/cliquets/stein_stein_01__cliquets_01__01/recipe.yaml
+  sha256: b7bc54498f3a46259c1161caf43994e2d66e5a8e66978d33ffd60b02583900a8
+inputs:
+  models: 9cede842c4dbff2526678d0793a5208a2c1303b72401c94f3f379f4d51be8e23
+  products: 908521e7076453f1c1e785a6237a2dd3bc9dcc5ed12a779b496676e993fbe9ac
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789329527.6725838
+    unix_time: 1791497350.7914808
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 79, 87.91 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 76, 47.97 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json: 7fcec0892f82d5b1153394c505e8579acae7ce5df1a688094780308e8632c36a
-    datasets/product/cliquet/cliquets_01.json: 80af7142c863ef1100458e076be5999070bef44a7868208f3f93f7d7eba5b525
   generator: catalog/model/equity/markovian/stein_stein/prices/cliquets/stein_stein_01__cliquets_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 19b759209732f3e74eec25df7ee26625f67a7ceb8f858c92edeedde4e35d5e54
-  record_sha256: a0e2183533781c6e32055d4c7a5d7c7e8a8163c4275fd0169a35ee1f93b5d596
-record_sha256: cae70c6110d01b11d750587de159aaab122138cdc4d071376a7f469620b16fa5
+  input_files:
+    datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json: 8ba72ec79276877077a6254bf8bc1879d9ebed1d7e9c533c1c22cdfad7aafbbe
+    datasets/product/cliquet/cliquets_01.json: b6e5db6f40d6e9826c718518174eb4634d0d4cd9e10df1776bef86dc5147c0a4
+record_sha256: dea8e8cf9778eac6b7c1d32f3f22e89d86bb3aa0f4fb3217d47dd26045438fc0

@@ -1,28 +1,17 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/recipe.yaml
-  sha256: 9534a86b17614884b9fbc2a79652cb69ff97a9d7b3de59e7914b3591e74c6ac9
 artifact:
   row_count: 1000
-  sha256: 9fc6eb299d0bfe5da69235d9371bafe2b5cd141a5113b16f2a1720640fe1d70d
-inputs:
-  models: 7df367a120df98017f4728c34388236aea8dad3d9e7ab4cce473df927178990a
-  products: b94e88cb7a64436ff8382c9db193850114ff178cbfe6f817e543426d439f403e
+  sha256: 1330e662104fb80e92c8d366e7c47a7e9e9a771186e1cc611b4fb850d9d0ce3d
 execution:
-  binary_sha256: 0d00d7af1dc6e06e80318e30aeb20276fb44147d4559c9721975dd7fb343d15d
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: european_receiver_swaptions
-    construction: aligned
-    has_curve: false
+  block_count: 1000
+  threads_per_block: 128
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: jamshidian
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cir
     product: european_swaption
     curve: ''
@@ -38,39 +27,47 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 2600597c1f2fff22de93ed32380556810729873f9f889e6b40d2e4cf879e6caa
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 128
   kernel_launch_count: 1
   requested_work_distribution: one price per block
+  paths_per_price: 0
+  binary_sha256: f0f01b7dc0cc86fea0832490c966ef61b7760ac753e684aa825f1051ddd39fff
+  generator_sha256: 57d6ed203194b2ad94c0fc7026c21b9c62ce3cae2d203daef44b9778cdc42f09
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: european_receiver_swaptions
+    construction: aligned
+    has_curve: false
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.157135904
-  kernel_seconds: 0.00650752
+  wall_seconds: 0.242448505
+  kernel_seconds: 0.0002651520073413849
+recipe:
+  path: catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/recipe.yaml
+  sha256: ba18e089f7ff85bf16cc806347701a66173f51f187212c95de2ec27ac25cde43
+inputs:
+  models: 6608068922a452c176fab5aa2b03668e83a1e9ad446d2f4ee61d85beb4c85749
+  products: f351c92984bc8838cee9f8ebf482bc8aeeb049dc6e2b42631b8aaf9c6fd8c9b6
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307077.0569775
+    unix_time: 1791411362.5709472
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 87, 107.79 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 68, 54.42 W, [N/A], 2325 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/fixed_income/cir/parameters/cir_01.json: 4d55a8a6fd60909f5784cca8486d15fb3ae32c6d0201023ca2e560a7da8be4d1
-    datasets/product/european_swaption/european_swaptions_01.json: 5b5b3a2beb24f825a4ec85f3e9cd4d30d1b57e0ddc734b038bd707d3546ccedf
   generator: catalog/model/fixed_income/cir/prices/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: e19ced42b749a152408b5d4213c24c9723eb91691d8d69c748c23086ea1c6e56
-  record_sha256: 0064c62a6fd178ae188149915a4cd9a89b563abe0fbaf2a93803826175125677
-record_sha256: 80a96840c19c6465d439b0dce906d3874cdaa8aecc1e358eb4c89e728eaf584f
+  input_files:
+    datasets/model/fixed_income/cir/parameters/cir_01.json: 04f1027dcf994e9741ac058d9627efdd77df8a8f203f056f0c6f7fdc7fc1c0de
+    datasets/product/european_swaption/european_swaptions_01.json: 30d42fbe5343826a6421913808a768d3e27b1c093e1103cc0d1bba5e9fe5052e
+record_sha256: f1f13341447b6c7dc9ad4944acbc22ac0cd7ef9949706af024193046869183d0

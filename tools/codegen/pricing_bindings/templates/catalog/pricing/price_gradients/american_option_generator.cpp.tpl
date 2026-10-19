@@ -10,10 +10,10 @@ int main() {
     namespace pg = price_gradients;
     try {
         datasets::price_gradients::Recipe recipe{
-            "$model_input", "$product_input", "$dataset", "$catalog", "$url", "$source_recipe",
+            "$model_input", "$product_input", "$dataset", "$catalog", "$source_recipe",
             PriceConstruction::$construction, {{
         $selections
-            }}, {1.0f/504.0f, 2U}, false};
+            }}, {1.0f/504.0f, 2U}, false};$option_side_assignment
         constexpr auto exercise_replay =
             lspg::ExerciseReplayStrategy::$exercise_replay;
         recipe.exercise_replay = exercise_replay;

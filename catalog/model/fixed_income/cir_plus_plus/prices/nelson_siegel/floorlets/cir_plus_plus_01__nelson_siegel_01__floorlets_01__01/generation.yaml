@@ -1,29 +1,16 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/recipe.yaml
-  sha256: 28a8e5f7a5f6191db54ac487d426c53db2fdde54104007b69d830172813e81e1
 artifact:
   row_count: 1000
-  sha256: 47231463d5c7050c64d936cc229e8613a2692fe066f0ac9e93bf19ded792c01d
-inputs:
-  curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
-  models: 9dbb9f803ad0e887565621f777ba38c35909ba110916dd93eb294dcf4b403d1c
-  products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+  sha256: 48161f2a61a261cde63b39d326df1af2b597e25a918dc8d6b565ad9decd97b1b
 execution:
-  binary_sha256: 5036c8898d88e49708bd5e379e8941ddcc431e4137c2b05f115c154a61b9b5b4
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: floorlets
-    construction: aligned
-    has_curve: true
+  block_count: 4
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: closed_form
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: cir_plus_plus
     product: rate_option
     curve: nelson_siegel
@@ -39,40 +26,50 @@ execution:
     block_count: 4
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 9b615c09764c0c108b6ca00b2a2bb4e9f9052afd2a50fab5d2b9a6c27c68ff4e
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: 3b8324823e6b8ede3a936043447b869913a76e41687bfb6a3b05d3277e07d5da
+  generator_sha256: 48c1175c0b7fd01fe2655148ab27903c2648bf0499010ebab4b2656fc99d8184
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: floorlets
+    construction: aligned
+    has_curve: true
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.157140993
-  kernel_seconds: 0.00030208
+  wall_seconds: 0.467156119
+  kernel_seconds: 0.0002775039970874786
+recipe:
+  path: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/recipe.yaml
+  sha256: 97a3e450189cd160a3d279811caab5cdc79c5b0bf455100b41f5c73fc15691f4
+inputs:
+  curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
+  models: 330618ffe9405302fdaeb520101fdf44f0426c39acc9fbf58096a4757e96b950
+  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307096.6645906
+    unix_time: 1791411374.1206706
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 87, 107.89 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 69, 45.10 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
+  generator: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
   input_files:
     datasets/curve/nelson_siegel/nelson_siegel_01.json: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
-    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: f8ff3ccb45ca3889abc799583c3ee03adc2f7b73ce21bbd893e8e92d225e7915
-    datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
-  generator: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 446ab79694ce6888fed117d9acce631a8aeebb221dfad1aa7d0ef88d82019872
-  record_sha256: 9a9a3ebfb4daeb4ab7e35f7157373ea1f27b224d13b23941d58b8aad9bf51d7d
-record_sha256: b5c329c56a6370a81671c1fd277f26657dc0dd1bafe523603a3e85546ba7a923
+    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
+    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+record_sha256: a43ee881ba3607cadef99615ea1f00a0ce9281f3b75f6a83580f25502fc557e6

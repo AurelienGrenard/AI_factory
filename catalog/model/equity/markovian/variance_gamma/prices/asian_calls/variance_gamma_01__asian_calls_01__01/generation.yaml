@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/variance_gamma/prices/asian_calls/variance_gamma_01__asian_calls_01__01/recipe.yaml
-  sha256: 442d2304a646c7d74882441b0ed72476822e3953a3fcf366079c2fc011dca094
 artifact:
   row_count: 1000
-  sha256: e2c0f350eeee24867189f8f1b936dc4eec1fd409f772224c59bdd3f61ee4b4f4
-inputs:
-  models: d2fb8bc2f0c1d74a11e942deb3e146ab223873990c2e5b59cf38c8ba9d657751
-  products: cf39f012d5200a82195b5201d0a257e6a1aa30fbd012479582d67ed2207f9cfd
+  sha256: 9f92bdee773e8540001fd674051e1d1c8ce28a37a02783c00111d7359fb50898
 execution:
-  binary_sha256: e626106d24a78fc3913919a9ac666cece2d89d7d67515756c15ffd8af5699286
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: asian_calls
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: variance_gamma
     product: asian_option
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 4fc2842775308aa715e4feadae705f3abfa02522807b5fdb569fd9315835c623
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: b05aab5a5bd5cfcc7a0bdb45a3b61f30085fe3c8c0a0b046af5d933243197cdd
+  generator_sha256: 4d02d9e5004ffcfc0a021ace24483f763daf803bf3eeccd828a45a0c912a1f3c
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: asian_calls
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 292.737900524
-  kernel_seconds: 289.88746875
+  wall_seconds: 60.299080047
+  kernel_seconds: 56.429183593750004
+recipe:
+  path: catalog/model/equity/markovian/variance_gamma/prices/asian_calls/variance_gamma_01__asian_calls_01__01/recipe.yaml
+  sha256: 08acece86edbfdcdfcd0101cc3c7c3ce00d3a66ace389c2da64c6d62f13d3a4a
+inputs:
+  models: 27a2011a50833b7a10b6216d10663827ebbe280e773c8a9eea9e233fe83cebb1
+  products: 49f7522cff95ffaa9d74764fe01eda57f057e395ed092a02aabc6efb754cbbf5
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789331143.0832355
+    unix_time: 1791497949.653269
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 79, 89.39 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 77, 48.61 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 1ad57410b563845b1c4f4faaadce9d788e3b07c36708cdec99b02d4e3a9b9885
-    datasets/product/asian_option/asian_options_01.json: ae09796e37edac8ce763fdd66fde05401e39ec89820e3da89cc94576c6280005
   generator: catalog/model/equity/markovian/variance_gamma/prices/asian_calls/variance_gamma_01__asian_calls_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 12d0d066283c12fd1f36b7b93b0fe648cc896a1c792457a3bbf21057c9e04e4e
-  record_sha256: cd63c20186c4cabc25f162128e08706aa838981c4694189285d914ee8d15ce9b
-record_sha256: a2c1a9d88bcfbf581acbd64bfb3461ec1834e68e0fee4962cefc9e12466d2630
+  input_files:
+    datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 3c1260ac67cd924460f612c14b6a6ecd7964ce02a00afd9b793f705414353cbc
+    datasets/product/asian_option/asian_options_01.json: 8a51c15a49afbac2f6dd07a7802c8f34d199002e8e7eb5f2a2b01ff7a47f373e
+record_sha256: 130a628100a3cc4a2d4397e0c1844042f56bfca15b5f7e304d338011d7dad1e7

@@ -14,8 +14,30 @@ from .manifest import (
     path_product_metadata,
 )
 from manifest import PRICE_VARIANTS
+from capability_manifest import CURVE_ASSIGNMENT
 
 
+
+
+def _bump_overrides():
+    """Final aligned gradient steps chosen by the local bump campaign."""
+    document = json.loads(
+        Path(__file__).with_name("bump_overrides.json").read_text()
+    )
+    if document["version"] != 1:
+        raise ValueError("Unsupported gradient bump override version")
+    rules = {}
+    for row in document["rules"]:
+        key = (row["dataset_id"], row["parameter"])
+        if key in rules or row["displacement"] <= 0 or row["scale"] not in {
+            "absolute", "relative"
+        }:
+            raise ValueError(f"Invalid gradient bump override: {key}")
+        rules[key] = row
+    return rules
+
+
+BUMP_OVERRIDES = _bump_overrides()
 
 
 FIXED_INCOME_MODEL_DISPLAY = {
@@ -178,6 +200,9 @@ FIXED_INCOME_CLOSED_FORM_PRODUCT_METADATA = {
     "rate_option": ("RateOption", "rate_option"),
     "zero_coupon_bond_option": (
         "ZeroCouponBondOption", "zero_coupon_bond_option"
+    ),
+    "zero_coupon_bond_up_and_out": (
+        "ZeroCouponBondUpAndOut", "zero_coupon_bond_up_and_out"
     ),
 }
 
@@ -352,6 +377,38 @@ def fixed_income_monte_carlo_metadata(spec):
             'coupled_dynamics_impl.cuh"\n'
             f'#include "model/fixed_income/{model}/analytics_impl.cuh"'
         ),
+    })
+    return values
+
+
+def fixed_income_barrier_metadata(spec):
+    values = fixed_income_closed_form_metadata(spec)
+    model = spec.pricing.model
+    curve = spec.pricing.curve
+    fitted = curve is not None
+    base = {
+        "cir_plus_plus": "cir",
+        "g2_plus_plus": "g2",
+        "hull_white": "ornstein_uhlenbeck",
+    }.get(model, model)
+    values.update({
+        "barrier_dynamics_includes": (
+            f'#include "model/fixed_income/{model}/dynamics.cuh"\n'
+            if fitted else ""
+        ) + f'#include "model/fixed_income/{base}/dynamics_impl.cuh"\n'
+            + (
+                f'#include "model/fixed_income/{model}/{curve}/analytics_impl.cuh"'
+                if fitted else
+                f'#include "model/fixed_income/{model}/analytics_impl.cuh"'
+            ),
+        "barrier_pricing_type": (
+            "product::FittedZeroCouponBondUpAndOutPricingPolicy<"
+            "Schedule, FittedModelComposition>"
+            if fitted else
+            "product::ZeroCouponBondUpAndOutPricingPolicy<Schedule>"
+        ),
+        "barrier_dynamics_namespace": model,
+        "curve_prefix": f"{curve}/" if fitted else "",
     })
     return values
 
@@ -738,6 +795,8 @@ def render_bindings(output_root, specifications, template_root, write_generated)
         values["node_graph_declarations"] = node_graph_declarations
         if spec.preparation_strategy == "device_prepared_fixed_income_lsm":
             values.update(bermudan_lsm_metadata(spec))
+        elif spec.preparation_strategy == "device_prepared_fixed_income_barrier":
+            values.update(fixed_income_barrier_metadata(spec))
         elif spec.preparation_strategy == "device_prepared_fixed_income_monte_carlo":
             values.update(fixed_income_monte_carlo_metadata(spec))
         elif spec.preparation_strategy in {
@@ -783,6 +842,11 @@ def render_bindings(output_root, specifications, template_root, write_generated)
                 template = (
                     "pricing/longstaff_schwartz/fixed_income/price_gradients/"
                     "bermudan_swaption." + suffix + ".tpl"
+                )
+            elif spec.preparation_strategy == "device_prepared_fixed_income_barrier":
+                template = (
+                    "pricing/markovian/fixed_income/price_gradients/"
+                    "zero_coupon_bond_up_and_out." + suffix + ".tpl"
                 )
             elif spec.preparation_strategy == "device_prepared_fixed_income_monte_carlo":
                 template = (
@@ -907,6 +971,12 @@ def render_recipes(
             "equity_closed_form", "fixed_income_closed_form"
         }
         if (spec.asset_class == "fixed_income"
+                and spec.product == "zero_coupon_bond_up_and_out"):
+            template_path = (
+                "catalog/pricing/price_gradients/"
+                "fixed_income_bond_barrier_generator.cpp.tpl"
+            )
+        elif (spec.asset_class == "fixed_income"
                 and spec.product in {
                     "rate_option", "zero_coupon_bond_option"
                 }):
@@ -1045,6 +1115,21 @@ def render_recipes(
                     + ", ".join(missing)
                 )
             selected = [by_name[name] for name in spec.sensitivity_parameters]
+        if spec.asset_class == "equity":
+            # Rates and yields remain model inputs for pricing, but are not
+            # published first-order learning targets in the equity catalogue.
+            selected = [item for item in selected if item["parameter"] not in {
+                "model.risk_free_rate", "model.dividend_yield"}]
+        selected = [
+            {
+                **item,
+                "displacement": rule["displacement"],
+                "scale": rule["scale"],
+            } if (rule := BUMP_OVERRIDES.get(
+                (spec.dataset_id, item["parameter"])
+            )) is not None else item
+            for item in selected
+        ]
         strategy_decision = (
             (first_order_decision_for(spec.model, spec.product)
              if spec.sensitivity_orders == ("first",)
@@ -1074,6 +1159,10 @@ def render_recipes(
                     "datasets/product/zero_coupon_bond_option/"
                     "zero_coupon_bond_options_01.json"
                 ),
+                "zero_coupon_bond_up_and_out": (
+                    "datasets/product/zero_coupon_bond_up_and_out/"
+                    "zero_coupon_bond_up_and_outs_01.json"
+                ),
             }
             product_input = fixed_income_product_inputs[spec.product]
         elif spec.product == "american_option":
@@ -1101,9 +1190,15 @@ def render_recipes(
                 "floorlets": "put",
                 "zero_coupon_bond_calls": "call",
                 "zero_coupon_bond_puts": "put",
+                "zero_coupon_bond_up_and_out_calls": "call",
             }[spec.variant]
         else:
             side = "call" if spec.variant.endswith("calls") else "put"
+        option_side = (
+            side if spec.asset_class == "fixed_income"
+            or (spec.product != "american_option" and variant.side is not None)
+            else None
+        )
         product_loader_expression = ""
         if spec.asset_class == "equity" and spec.product != "american_option":
             product_loader_expression = (
@@ -1171,11 +1266,16 @@ def render_recipes(
             "product_loader": {
                 "rate_option": "load_rate_options",
                 "zero_coupon_bond_option": "load_zero_coupon_bond_options",
+                "zero_coupon_bond_up_and_out": "load_zero_coupon_bond_up_and_outs",
             }.get(spec.product, ""),
             "product_loader_expression": product_loader_expression,
-            "dataset": spec.dataset_path, "catalog": spec.generation_yaml_path, "url": spec.url,
+            "dataset": spec.dataset_path, "catalog": spec.generation_yaml_path,
             "source_recipe": source.recipe_yaml_path, "seed": str(seed), "stochastic": str(stochastic).lower(),
             "side": side,
+            "option_side_assignment": (
+                f'\n        recipe.option_side = "{option_side}";'
+                if option_side is not None else ""
+            ),
             "price_template_arguments": (
                 f"<OptionSide::{side}>" if variant.side is not None else ""
             ) if spec.asset_class == "equity"
@@ -1191,7 +1291,12 @@ def render_recipes(
                       else "<pg::SensitivityOrders::first_and_second>")
             ) if spec.asset_class == "equity"
                 and spec.product != "american_option" else "",
-            "construction": "Aligned" if spec.construction == "aligned" else "CartesianProduct",
+            "construction": (
+                "SampledCurveCartesianProduct"
+                if spec.construction == "cartesian" and spec.curve is not None
+                else "Aligned" if spec.construction == "aligned"
+                else "CartesianProduct"
+            ),
             "family": family,
             "exact_transition": str(exact_transition).lower(),
             "sensitivity_strategy": (
@@ -1202,10 +1307,6 @@ def render_recipes(
                 "\n        recipe.exact_schedule_transition = true;"
                 if exact_transition and spec.product in PATH_PRODUCT_PARAMETER_COUNT
                 else ""
-            ),
-            "recipe_const": (
-                "" if exact_transition and spec.product in PATH_PRODUCT_PARAMETER_COUNT
-                else "const "
             ),
             "exercise_replay": spec.exercise_replay or "",
             "curve": spec.curve or "",
@@ -1234,6 +1335,7 @@ def render_recipes(
                 "offline::cuda_tuning::kProductionPathsPerPrice"
                 if stochastic else "0U"
             ),
+            "rough_construction_label": "aligned " if spec.construction == "aligned" else "",
             "rough_product_type": "".join(
                 part.capitalize() for part in spec.product.split("_")
             ),
@@ -1263,7 +1365,6 @@ def render_recipes(
             "inputs": inputs,
             "output": {"path": spec.dataset_path, "format": "json"},
             "generation_output": spec.generation_yaml_path,
-            "url": spec.url,
             "row_count": spec.row_count,
             "paths_per_price": 1048576 if stochastic else 0,
             "sensitivity": {
@@ -1272,9 +1373,23 @@ def render_recipes(
                     if stochastic else "finite_difference"
                 ),
                 "parameters": selected,
+                "bump_rule": (
+                    "h = displacement (absolute) or displacement * abs(x) "
+                    "(relative); centered when valid, otherwise "
+                    "second-order one-sided."
+                ),
                 "source_price_recipe": source.recipe_yaml_path,
             },
         }
+        if option_side is not None:
+            metadata["option_side"] = option_side
+        if spec.asset_class == "equity":
+            metadata["sensitivity"]["spot_contract_rule"] = (
+                "Spot bumps keep absolute strikes and barriers resolved "
+                "at the central spot fixed; product gradients use quoted ratios."
+            )
+        if spec.construction == "cartesian" and fitted:
+            metadata["curve_assignment"] = CURVE_ASSIGNMENT
         if strategy_decision is not None:
             metadata["sensitivity_strategy"] = strategy_decision.strategy
         elif spec.engine in {"equity_n_factor", "equity_volterra_fft"}:
@@ -1290,15 +1405,26 @@ def render_recipes(
             )
             metadata["fit_and_valuation_paths"] = "same paths"
         if stochastic:
+            metadata.setdefault(
+                "standard_error_scope",
+                "paired Monte Carlo sampling error; excludes bump and discretization bias",
+            )
             metadata["seeds"] = {"dynamics": seed}
             metadata["random_number_generator"] = "philox"
-        if "diagonal_second" in spec.sensitivity_orders:
+        if spec.sensitivity_orders != ("first",):
             metadata["sensitivity"]["orders"] = list(spec.sensitivity_orders)
         if "mixed_second" in spec.sensitivity_orders:
             metadata["sensitivity"]["mixed_second"] = "all"
         # Early exercise replays a dated LSM policy on the 1/504 grid even
         # when the underlying model has exact transitions between dates.
-        if exact_transition and spec.exercise_replay is None:
+        if spec.product == "zero_coupon_bond_up_and_out":
+            metadata["time_grid"] = {
+                "steps_per_year": 504,
+                "simulation_steps_per_day": 2,
+                "delta_t": "1 / 504",
+                "monitoring": "grid points including t=0 and T; continuous barrier approximate",
+            }
+        elif exact_transition and spec.exercise_replay is None:
             metadata["time_representation"] = {
                 "kind": (
                     "exact_schedule_transition"

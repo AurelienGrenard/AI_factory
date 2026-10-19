@@ -52,6 +52,24 @@ inline PriceGradientLaunchPlan make_price_gradient_launch_plan(
         throw std::invalid_argument("Unsupported price-gradient execution family.");
     (void)pg::sensitivity_task_count(rows, sensitivities);
     auto profile = pricing_profile(identity, rows);
+    // Million-row path-dependent campaigns need a durable first checkpoint
+    // near 1,000 rows before the full dataset is left running. Each price
+    // still carries the production path count.
+    if (rows > 1000U
+        && (identity.model == "heston"
+            || identity.model == "rough_heston"
+            || (identity.model == "black_scholes"
+                && identity.product == "up_and_out_option"))) {
+        profile.prices_per_launch = std::min<std::size_t>(
+            profile.prices_per_launch, 1024U
+        );
+    }
+    if (rows > 1000U && identity.family == PricingFamily::rough_fft) {
+        // The FFT graph still evaluates one row at a time in a fixed-size
+        // workspace. Grouping sixteen rows only amortizes CUDA synchronization
+        // and one durable fsync per row on the remote filesystem.
+        profile.prices_per_launch = 16U;
+    }
     if (identity.family != PricingFamily::closed_form
         && identity.family != PricingFamily::jamshidian
         && !is_lsm_family(identity.family)) {

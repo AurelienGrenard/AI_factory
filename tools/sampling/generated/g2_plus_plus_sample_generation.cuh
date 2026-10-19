@@ -27,10 +27,11 @@ inline std::vector<ModelParameters> generate_core_parameters(
     while (parameters.size() < parameter_count) {
         HostUniformSequence uniforms(seed, proposal++);
         const float mean_reversion_x = uniform({0.03f, 0.35f}, uniforms);
-        const float mean_reversion_y = uniform({0.1f, 1.0f}, uniforms);
-        const float volatility_x = uniform({0.0025f, 0.018f}, uniforms);
-        const float volatility_y = uniform({0.0015f, 0.012f}, uniforms);
-        const float correlation = uniform({-0.75f, 0.25f}, uniforms);
+        const float mean_reversion_gap = uniform({0.1f, 1.0f}, uniforms);
+        const float stationary_standard_deviation_x = uniform({0.0025f, 0.018f}, uniforms);
+        const float stationary_standard_deviation_y = uniform({0.0015f, 0.012f}, uniforms);
+        const float correlation = uniform({-0.75f, -0.05f}, uniforms);
+        const float mean_reversion_y = mean_reversion_x + mean_reversion_gap; const float volatility_x = stationary_standard_deviation_x * std::sqrt(2.0f * mean_reversion_x); const float volatility_y = stationary_standard_deviation_y * std::sqrt(2.0f * mean_reversion_y);
         if (!(true)) continue;
         parameters.push_back({{mean_reversion_x, volatility_x, mean_reversion_y, volatility_y, correlation}});
     }
@@ -71,15 +72,16 @@ inline datasets::ModelSampleRecipe recipe(
         {
             {"regime", "plausible core only"},
             {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
-            {"proposal_draw_order", {"mean_reversion_x", "mean_reversion_y", "volatility_x", "volatility_y", "correlation"}},
+            {"proposal_draw_order", {"mean_reversion_x", "mean_reversion_gap", "stationary_standard_deviation_x", "stationary_standard_deviation_y", "correlation"}},
             {"latent_uniform_bounds", {
                 {"mean_reversion_x", {0.03f, 0.35f}},
-                {"mean_reversion_y", {0.1f, 1.0f}},
-                {"volatility_x", {0.0025f, 0.018f}},
-                {"volatility_y", {0.0015f, 0.012f}},
-                {"correlation", {-0.75f, 0.25f}}
+                {"mean_reversion_gap", {0.1f, 1.0f}},
+                {"stationary_standard_deviation_x", {0.0025f, 0.018f}},
+                {"stationary_standard_deviation_y", {0.0015f, 0.012f}},
+                {"correlation", {-0.75f, -0.05f}}
             }},
-            {"acceptance", "true"}
+            {"acceptance", "true"},
+            {"derived_parameters", {{"mean_reversion_y", "mean_reversion_y = mean_reversion_x + mean_reversion_gap."}, {"volatility_x", "volatility_x = stationary_standard_deviation_x * sqrt(2 * mean_reversion_x)."}, {"volatility_y", "volatility_y = stationary_standard_deviation_y * sqrt(2 * mean_reversion_y)."}}}
         },
         {
             {"state_x", {{"description", "Terminal state_x."}, {"layout", "sample-major"}}},

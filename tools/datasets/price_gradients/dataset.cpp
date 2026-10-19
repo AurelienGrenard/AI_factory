@@ -144,7 +144,6 @@ nlohmann::ordered_json sensitivity_metadata(
 }
 
 void write_dataset(const Recipe& recipe, const Results& result) {
-    validate_dataset_url(recipe.url);
     recipe.configuration.validate(recipe.configuration.sensitivities.size());
     recipe.time.validate();
 
@@ -289,8 +288,6 @@ void write_dataset(const Recipe& recipe, const Results& result) {
         auto gradients = nlohmann::ordered_json::object();
         auto diagonal_hessians = nlohmann::ordered_json::object();
         auto mixed_hessians = nlohmann::ordered_json::object();
-        auto stencils = nlohmann::ordered_json::object();
-        auto mixed_stencils = nlohmann::ordered_json::object();
         auto gradient_errors = nlohmann::ordered_json::object();
         auto diagonal_errors = nlohmann::ordered_json::object();
         auto mixed_errors = nlohmann::ordered_json::object();
@@ -335,15 +332,16 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                 ? static_cast<double>(execution_width)
                     / stencil.represented_width
                 : 1.0;
+            // Keep the represented endpoints in double. Rounding each
+            // absolute FP32 node back to FP32 quote units can erase a small
+            // bump when the central quote is much larger than its width.
             const auto quote_node = [coordinate_scale](float value) {
-                return static_cast<float>(
-                    static_cast<double>(value) / coordinate_scale
-                );
+                return static_cast<double>(value) / coordinate_scale;
             };
-            const float central = quote_node(stencil.central);
-            const float first = quote_node(stencil.first);
-            const float second = quote_node(stencil.second);
-            const float represented_width = second - first;
+            const double central = quote_node(stencil.central);
+            const double first = quote_node(stencil.first);
+            const double second = quote_node(stencil.second);
+            const double represented_width = second - first;
             if (!std::isfinite(coordinate_scale)
                 || !(coordinate_scale > 0.0)
                 || !std::isfinite(central)
@@ -376,22 +374,20 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                     "Stencil orientation disagrees with its endpoints."
                 );
             }
-
-            stencils[name] = {
-                {"kind", centered
-                    ? "centered" : forward ? "forward" : "backward"},
-                {"central", central},
-                {"first", first},
-                {"second", second},
-                {"displacement", stencil.displacement},
-                {"represented_width", represented_width},
-                {"first_weight", stencil.first_weight},
-                {"second_weight", stencil.second_weight},
-            };
-            if (quoted_level) {
-                stencils[name]["execution_coordinate_scale"] = coordinate_scale;
-                stencils[name]["calculation_width"] =
-                    stencil.represented_width;
+            const auto& bump =
+                recipe.configuration.sensitivities[coordinate].bump;
+            const float requested = bump.scale == pg::BumpScale::relative
+                ? static_cast<float>(bump.displacement)
+                    * std::abs(static_cast<float>(central))
+                : static_cast<float>(bump.displacement);
+            if (!(requested > 0.0f)
+                || std::abs(stencil.displacement - requested)
+                    > 2e-4f * requested
+                || (bump.boundary == pg::BoundaryRule::central_only
+                    && !centered)) {
+                throw std::invalid_argument(
+                    "Gradient stencil contradicts its recipe bump rule."
+                );
             }
 
             if (pg::has_coordinate_use(
@@ -425,18 +421,6 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                         );
                     }
                 }
-                stencils[name]["node_count"] = diagonal.node_count;
-                if (diagonal.node_count == 4U) {
-                    stencils[name]["third"] =
-                        quote_node(diagonal.parameter_values[3U]);
-                }
-                auto weights = nlohmann::ordered_json::array();
-                for (unsigned int node = 0U;
-                     node < diagonal.node_count;
-                     ++node) {
-                    weights.push_back(diagonal.second_weights[node]);
-                }
-                stencils[name]["second_weights"] = std::move(weights);
             }
         }
 
@@ -493,9 +477,6 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                     "Invalid mixed sensitivity stencil cardinality."
                 );
             }
-            auto weights = nlohmann::ordered_json::array();
-            auto first_nodes = nlohmann::ordered_json::array();
-            auto second_nodes = nlohmann::ordered_json::array();
             for (unsigned int node = 0U;
                  node < stencil.node_count;
                  ++node) {
@@ -506,46 +487,10 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                         "Invalid mixed sensitivity stencil support."
                     );
                 }
-                weights.push_back(stencil.weights[node]);
-                first_nodes.push_back(stencil.first_local_nodes[node]);
-                second_nodes.push_back(stencil.second_local_nodes[node]);
-            }
-            mixed_stencils[label] = {
-                {"node_count", stencil.node_count},
-                {"weights", std::move(weights)},
-                {"first_local_nodes", std::move(first_nodes)},
-                {"second_local_nodes", std::move(second_nodes)},
-            };
-        }
-
-        nlohmann::ordered_json outputs{{"price", result.prices[row]}};
-        if (first_count != 0U) outputs["gradients"] = gradients;
-        if (diagonal_count != 0U) {
-            outputs["diagonal_hessians"] = diagonal_hessians;
-        }
-        if (mixed_count != 0U) outputs["mixed_hessians"] = mixed_hessians;
-        if (stochastic) {
-            outputs["standard_error"] = result.price_errors[row];
-            if (first_count != 0U) {
-                outputs["gradient_standard_errors"] = gradient_errors;
-            }
-            if (diagonal_count != 0U) {
-                outputs["diagonal_hessian_standard_errors"] =
-                    diagonal_errors;
-            }
-            if (mixed_count != 0U) {
-                outputs["mixed_hessian_standard_errors"] = mixed_errors;
             }
         }
 
-        nlohmann::ordered_json output_row{
-            {"id", format_row_id(row)},
-            {"stencils", stencils},
-            {"outputs", outputs},
-        };
-        if (mixed_count != 0U) {
-            output_row["mixed_stencils"] = mixed_stencils;
-        }
+        nlohmann::ordered_json output_row;
         if (curve_rows == nullptr) {
             const auto indices = decode_model_product_result_index(
                 row, product_rows.size(), recipe.construction
@@ -563,86 +508,66 @@ void write_dataset(const Recipe& recipe, const Results& result) {
             );
             output_row["model_id"] =
                 model_rows.at(indices.model_index).at("id");
-            output_row["curve_id"] =
-                curve_rows->at(indices.curve_index).at("id");
             output_row["product_id"] =
                 product_rows.at(indices.product_index).at("id");
+            output_row["curve_id"] =
+                curve_rows->at(indices.curve_index).at("id");
+        }
+        output_row["price"] = result.prices[row];
+        if (first_count != 0U) output_row["gradients"] = gradients;
+        if (diagonal_count != 0U) {
+            output_row["diagonal_hessians"] = diagonal_hessians;
+        }
+        if (mixed_count != 0U) {
+            output_row["mixed_hessians"] = mixed_hessians;
+        }
+        if (stochastic) {
+            output_row["standard_error"] = result.price_errors[row];
+            if (first_count != 0U) {
+                output_row["gradient_standard_errors"] = gradient_errors;
+            }
+            if (diagonal_count != 0U) {
+                output_row["diagonal_hessian_standard_errors"] =
+                    diagonal_errors;
+            }
+            if (mixed_count != 0U) {
+                output_row["mixed_hessian_standard_errors"] = mixed_errors;
+            }
         }
         rows.push_back(std::move(output_row));
     }
 
-    const auto reference = [](const auto& input) {
+    // Keep identity and input references beside the data. Bump rules remain
+    // in the recipe; measured execution and hardware belong to the receipt.
+    const auto dataset_reference = [](const nlohmann::ordered_json& input) {
         return nlohmann::ordered_json{
             {"id", input.at("database_id")},
             {"catalog", input.at("catalog")},
-            {"url", input.at("url")},
         };
     };
-    const auto construction =
-        recipe.construction == PriceConstruction::Aligned
-            ? nlohmann::ordered_json{{"method", "Aligned"}}
-            : nlohmann::ordered_json{
-                {"method", "Cartesian product"},
-                {"order", curve_rows == nullptr
-                    ? "model, product" : "model, curve, product"},
-            };
-    nlohmann::ordered_json metadata{
-        {"title", recipe.dataset.stem().string()},
+    nlohmann::ordered_json document = {
         {"database_id", recipe.dataset.stem().string()},
-        {"catalog", recipe.catalog.parent_path().generic_string()},
-        {"url", recipe.url},
-        {"row_count", count},
-        {"time_convention", products.at("time_convention")},
-        {"model_dataset", reference(models)},
-        {"product_dataset", reference(products)},
-        {"price_construction", construction},
-        {"sensitivity", sensitivity_metadata(recipe, stochastic)},
-        {"summary", result.execution},
-        {"validation", {{"status", "pending"}, {"verified", false}}},
-        {"qualification", "bounded implementation checks; bump, discretization and performance not globally qualified"},
-        {"standard_error_scope", stochastic
-            ? "paired sampling error; excludes finite-difference and discretization bias"
-            : "not applicable"},
-        {"timing", {
-            {"wall_seconds", result.wall_seconds},
-            {"kernel_seconds", result.kernel_seconds},
-        }},
+        {"model_family", models.at("model_family")},
+        {"product_family", products.at("product_family")},
     };
-    append_exercise_replay_metadata(recipe, metadata);
-    if (recipe.exercise_replay.has_value()) {
-        metadata["standard_error_scope"] =
-            "paired path dispersion conditional on the central in-sample LSM fit; "
-            "excludes fit variability, policy bias, stencil bias and discretization bias";
-        metadata["lsm_fit_and_valuation_paths"] = "same paths";
-    }
     if (curve_rows != nullptr) {
-        metadata["curve_dataset"] = reference(curves);
+        document["curve_family"] = curves.at("curve_family");
     }
-    if (recipe.exact_schedule_transition && !recipe.exact_transition) {
-        throw std::invalid_argument(
-            "Exact schedule transition requires an exact model transition."
-        );
+    if (recipe.option_side.has_value()) {
+        const auto& side = *recipe.option_side;
+        if (side != "call" && side != "put"
+            && side != "payer" && side != "receiver") {
+            throw std::invalid_argument("Unknown priced option side.");
+        }
+        document["option_side"] = side;
     }
-    if (recipe.exact_transition) {
-        metadata["time_representation"] = {
-            {"kind", recipe.exact_schedule_transition
-                ? "exact_schedule_transition"
-                : "exact_terminal_transition"},
-            {"contractual_days_per_year",
-                steps_per_year / recipe.time.simulation_steps_per_day},
-            {"maturity_bump_steps_per_year", steps_per_year},
-        };
-    } else {
-        metadata["time_grid"] = {
-            {"steps_per_year", steps_per_year},
-            {"simulation_steps_per_day",
-                recipe.time.simulation_steps_per_day},
-            {"delta_t", "1 / " + std::to_string(steps_per_year)},
-        };
+    document["catalog"] = recipe.catalog.parent_path().generic_string();
+    document["row_count"] = count;
+    document["model_dataset"] = dataset_reference(models);
+    if (curve_rows != nullptr) {
+        document["curve_dataset"] = dataset_reference(curves);
     }
-
-    auto document = metadata;
-    document.erase("title");
+    document["product_dataset"] = dataset_reference(products);
     document["results"] = std::move(rows);
     write_json_file(recipe.dataset, document);
     nlohmann::ordered_json receipt_execution = result.execution;

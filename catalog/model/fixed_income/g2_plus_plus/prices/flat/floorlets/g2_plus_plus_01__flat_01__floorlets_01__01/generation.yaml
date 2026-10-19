@@ -1,0 +1,75 @@
+schema_version: 1
+status: complete
+artifact:
+  row_count: 1000
+  sha256: 223044c20cfe93c666bcd061a37a62adf888117ea540d32ae4ecbfe33af74819
+execution:
+  block_count: 4
+  launch_plan:
+    profile_id: sm89_cuda12_unqualified_v1
+    family: closed_form
+    selection: host launch plan; no runtime autotuning
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+    model: g2_plus_plus
+    product: rate_option
+    curve: flat
+    qualification: reference_default_not_pair_qualified
+    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
+    price_count: 1000
+    paths_per_price: 0
+    threads_per_block: 256
+    prices_per_launch: 1000
+    price_launch_count: 1
+    memory_batching: price launch bound; engine workspace guards still apply
+    work_distribution: one price per thread at a time
+    block_count: 4
+    device_resources_checked: false
+    scope: offline proposed launch; native engine guards and qualification still required
+  threads_per_block: 256
+  kernel_launch_count: 1
+  work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: dffdd2ea191d7f42706c33b551dcb7f0491b059776fad8e70e10e541594d66c2
+  generator_sha256: 5a611b3fe05c029a4f77ef1c298438b3b3dd7233b29277d4275231706fbd93df
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: floorlets
+    construction: aligned
+    has_curve: true
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
+timing:
+  wall_seconds: 0.469462458
+  kernel_seconds: 2.8543999418616297e-05
+recipe:
+  path: catalog/model/fixed_income/g2_plus_plus/prices/flat/floorlets/g2_plus_plus_01__flat_01__floorlets_01__01/recipe.yaml
+  sha256: 32db826bd94ed5fdba5b90a6f8326f41d778c8c858338a14febb5cf723b9a8a0
+inputs:
+  curves: 55ed0c58874e3775623a684c09651821961fa488c2aaaeaa4aa336dd7e509240
+  models: 8996a6718a993df50fc5c8055de6438947cc8890b68f1e73536ec33fbc452afa
+  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
+provenance:
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
+  runtime_observation:
+    unix_time: 1791411699.6168842
+    returncode: 0
+    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
+      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
+
+      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
+      610.60, P0, 76, 48.75 W, [N/A], 2040 MHz, 9001 MHz
+
+      '
+    stderr: ''
+  generator: catalog/model/fixed_income/g2_plus_plus/prices/flat/floorlets/g2_plus_plus_01__flat_01__floorlets_01__01/generator.cpp
+  input_files:
+    datasets/curve/flat/flat_01.json: c8f5a89941a327179d46322063c0d75da60e10a11da5c1d4894553163065f4e7
+    datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
+    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+record_sha256: 4605c02a8f1ff774f64e67e501b59454dfdddd521486ca4138faa3ebba099981

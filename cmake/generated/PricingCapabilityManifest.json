@@ -1,16 +1,16 @@
 {
   "schema_version": 2,
-  "source_sha256": "a1cfe6496c7d0e06989d37c22d0642de4fb0eb6a0e6b8d4f6aaa85f71d51d3c1",
+  "source_sha256": "df6e41ad0087a3ba90fe0ead20b661f78cd44be4bd1be97fba4d5f0198b33d92",
   "counts": {
     "engines": 13,
     "models": 25,
     "products": 27,
-    "available_datasets": 2061,
+    "available_datasets": 2726,
     "deferred_datasets": 0,
     "bounded_exceptions": 1,
-    "generated_outputs": 6359
+    "generated_outputs": 7715
   },
-  "outputs_sha256": "e08d310ba77d1fd8f08b506e72be4a2cb8ee06b8ffb2cdbc41d49b4bcdb62283",
+  "outputs_sha256": "5b457a863cdc1dba6b3db4e24cb768cb919fb053801ab3155e4c3a9f90886f34",
   "price_delta_bindings": {
     "src/model/equity/markovian/bates/product/asian_option_price_delta": {
       "pricing": "src/model/equity/markovian/bates/product/asian_option",
@@ -5631,6 +5631,123 @@
         "first",
         "diagonal_second",
         "mixed_second"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir/product/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "cir/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir_plus_plus/product/nelson_siegel/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "cir_plus_plus/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir_plus_plus/product/svensson/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "cir_plus_plus/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 14,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/g2/product/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "g2/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 11,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/g2_plus_plus/product/nelson_siegel/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "g2_plus_plus/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 13,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/g2_plus_plus/product/svensson/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "g2_plus_plus/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 15,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/hull_white/product/nelson_siegel/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "hull_white/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/hull_white/product/svensson/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "hull_white/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 12,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/ornstein_uhlenbeck/product/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "ornstein_uhlenbeck/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/vasicek/product/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "vasicek/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 8,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/cir_plus_plus/product/flat/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "cir_plus_plus/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 9,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/g2_plus_plus/product/flat/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "g2_plus_plus/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 10,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
+      ],
+      "qualification": "bounded_checks; bias_and_performance_not_certified"
+    },
+    "src/model/fixed_income/hull_white/product/flat/zero_coupon_bond_up_and_out_price_gradients": {
+      "identity": "hull_white/zero_coupon_bond_up_and_out",
+      "maximum_sensitivities": 7,
+      "preparation_strategy": "device_prepared_fixed_income_barrier",
+      "supported_orders": [
+        "first"
       ],
       "qualification": "bounded_checks; bias_and_performance_not_certified"
     },

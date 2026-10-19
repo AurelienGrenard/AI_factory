@@ -306,6 +306,7 @@ class PriceGradientBindingSpec:
             "device_prepared_cooperative_closed_form",
             "device_prepared_scalar_closed_form",
             "device_prepared_fixed_income_monte_carlo",
+            "device_prepared_fixed_income_barrier",
         }
         if self.preparation_strategy not in supported:
             raise ValueError(
@@ -478,6 +479,20 @@ def compose_bindings(pricing_bindings):
         and binding.engine == "fixed_income_monte_carlo"
         and binding.product == "european_swaption"
     )
+    fixed_income_barrier = tuple(
+        PriceGradientBindingSpec(
+            binding,
+            fixed_income_model_parameter_count[binding.model]
+                + curve_parameter_count[binding.curve] + 4,
+            False,
+            "device_prepared_fixed_income_barrier",
+            ("first",),
+        )
+        for binding in pricing_bindings
+        if binding.asset_class == "fixed_income"
+        and binding.engine == "fixed_income_monte_carlo"
+        and binding.product == "zero_coupon_bond_up_and_out"
+    )
     fixed_income_lsm = tuple(
         PriceGradientBindingSpec(
             binding,
@@ -497,6 +512,7 @@ def compose_bindings(pricing_bindings):
         *equity,
         *fixed_income_closed_form,
         *fixed_income_monte_carlo,
+        *fixed_income_barrier,
         *fixed_income_lsm,
     )
 
@@ -556,7 +572,7 @@ def compose_datasets(price_datasets, bindings):
         if dataset.dataset_kind == "prices"
         and dataset.asset_class == "equity"
         and dataset.model in rough_models
-        and dataset.construction == "aligned")
+        and dataset.construction in {"aligned", "cartesian"})
     spot = tuple(replace(
         dataset,
         dataset_id=(
@@ -584,6 +600,9 @@ def compose_datasets(price_datasets, bindings):
             "fixed_income_bermudan_swaption_generator.cpp.tpl"
             if dataset.product == "bermudan_swaption"
             else "catalog/pricing/price_gradients/"
+            "fixed_income_bond_barrier_generator.cpp.tpl"
+            if dataset.product == "zero_coupon_bond_up_and_out"
+            else "catalog/pricing/price_gradients/"
             "fixed_income_scalar_product_generator.cpp.tpl"
             if dataset.product in {
                 "rate_option", "zero_coupon_bond_option"
@@ -593,7 +612,9 @@ def compose_datasets(price_datasets, bindings):
         ),
         numerical_profile=(
             "selected_gradients_production_paths"
-            if dataset.product == "bermudan_swaption"
+            if dataset.product in {
+                "bermudan_swaption", "zero_coupon_bond_up_and_out"
+            }
             else "selected_gradients_closed_form"
         ),
         layout="row_major_selected_gradients",
@@ -608,6 +629,7 @@ def compose_datasets(price_datasets, bindings):
         and dataset.product in {
             "european_swaption", "bermudan_swaption",
             "rate_option", "zero_coupon_bond_option",
+            "zero_coupon_bond_up_and_out",
         }
         and (dataset.model, dataset.product) in supported
         and any(spec.pricing.model == dataset.model
@@ -1016,17 +1038,17 @@ def default_sensitivities(
             ("product.strike", .0005, "absolute"),
         ),
         "bermudan_swaption": (
-            ("product.notional", .005, "relative"),
             ("product.strike", .0005, "absolute"),
-            ("product.accrual_fraction", .005, "relative"),
         ),
         "rate_option": (
-            ("product.notional", .005, "relative"),
             ("product.strike", .0005, "absolute"),
         ),
         "zero_coupon_bond_option": (
-            ("product.notional", .005, "relative"),
             ("product.strike", .005, "relative"),
+        ),
+        "zero_coupon_bond_up_and_out": (
+            ("product.strike", .005, "relative"),
+            ("product.barrier", .005, "relative"),
         ),
     }[product]
     maturities = () if product in {

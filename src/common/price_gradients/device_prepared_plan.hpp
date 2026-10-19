@@ -115,7 +115,9 @@ Plan prepare_device_sensitivities_absolute(
         throw std::invalid_argument("A sensitivity order must be requested.");
     }
     if (construction != PriceConstruction::Aligned
-        && construction != PriceConstruction::CartesianProduct) {
+        && construction != PriceConstruction::CartesianProduct
+        && construction != PriceConstruction::PairedModelCurveCartesianProduct
+        && construction != PriceConstruction::SampledCurveCartesianProduct) {
         throw std::invalid_argument("Unknown price construction.");
     }
     const auto rows = price_row_count(
@@ -218,7 +220,9 @@ Plan prepare_curve_device_sensitivities(
         throw std::invalid_argument("A sensitivity order must be requested.");
     }
     if (construction != PriceConstruction::Aligned
-        && construction != PriceConstruction::CartesianProduct) {
+        && construction != PriceConstruction::CartesianProduct
+        && construction != PriceConstruction::PairedModelCurveCartesianProduct
+        && construction != PriceConstruction::SampledCurveCartesianProduct) {
         throw std::invalid_argument("Unknown price construction.");
     }
     const auto rows = price_row_count(

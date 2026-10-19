@@ -7,7 +7,7 @@ owned by C++/CUDA. `learning/` contains only reusable implementation. Concrete
 dataset choices, campaign configurations, notebooks and reports live below
 `work/experiments/`. Re-creatable caches and run outputs use the directory selected
 by the experiment and remain ignored by Git; ad hoc commands default to
-`artifacts/learning/`.
+`project_journal/evidence/learning/`.
 
 ## Dataset-independent boundary
 
@@ -43,7 +43,7 @@ arrays and subsequently opened read-only with memory mapping. The default cache
 is:
 
 ```text
-artifacts/learning/cache/<content-fingerprint>/
+project_journal/evidence/learning/cache/<content-fingerprint>/
 ```
 
 Its key covers the price JSON bytes, every referenced input JSON and the cache
@@ -161,7 +161,7 @@ both runs are still evaluated against the same held-out price and delta rows.
 ## Run evidence and comparison
 
 Each run writes below its configured output directory. The ad hoc CLI defaults
-to `artifacts/learning/runs/`; a versioned experiment configuration may use an
+to `project_journal/evidence/learning/runs/`; a versioned experiment configuration may use an
 ignored `output/` directory beside the campaign:
 
 ```text

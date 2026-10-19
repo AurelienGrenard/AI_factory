@@ -33,9 +33,9 @@ tailles de datasets.
 
 Les trois campagnes brutes sont conservées localement sous :
 
-- `artifacts/audit/price-gradients-strategies-sm89-2026-09-19-qualified-exact-c1` ;
-- `artifacts/audit/price-gradients-strategies-sm89-2026-09-19-qualified-exact-c2` ;
-- `artifacts/audit/price-gradients-strategies-sm89-2026-09-19-qualified-exact-c3`.
+- `project_journal/evidence/audit/price-gradients-strategies-sm89-2026-09-19-qualified-exact-c1` ;
+- `project_journal/evidence/audit/price-gradients-strategies-sm89-2026-09-19-qualified-exact-c2` ;
+- `project_journal/evidence/audit/price-gradients-strategies-sm89-2026-09-19-qualified-exact-c3`.
 
 Leurs `summary.json` portent respectivement les SHA-256
 `87a44dc06d69654134dc2ad64f1d3d7de1abda6e1f44d5060720878afcc36e8d`,
@@ -134,7 +134,7 @@ différence finie d'une divergence entre stratégies.
 cmake --build build --target price_gradients_performance_benchmarks -j2
 python3 maintainer/tools/performance/run_price_gradient_strategies.py \
   --build-dir build \
-  --output-dir artifacts/audit/price-gradients-strategies-sm89-<run> \
+  --output-dir project_journal/evidence/audit/price-gradients-strategies-sm89-<run> \
   --profile
 ```
 

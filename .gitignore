@@ -5,7 +5,6 @@
 /CMakeFiles/
 
 # Local audit evidence, performance runs and validation tool caches.
-/artifacts/
 /maintainer/
 
 # Local disposable generation campaigns and experiments.
@@ -54,3 +53,5 @@ htmlcov/
 /AI_factory_website/
 /AI_factory.code-workspace
 /validation/
+# Local decision journal and written audit history; never published.
+/project_journal/

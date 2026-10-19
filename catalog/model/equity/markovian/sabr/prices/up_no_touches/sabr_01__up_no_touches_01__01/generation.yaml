@@ -1,28 +1,20 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/equity/markovian/sabr/prices/up_no_touches/sabr_01__up_no_touches_01__01/recipe.yaml
-  sha256: 8ec914aaa632ff93f6c1963af32732f0a9234d8fa72893315d0267c8f7c8c694
 artifact:
   row_count: 1000
-  sha256: 8079b3fea515a57ae20b3b3fa06d569c48519b3811f8296e30382678b92d3611
-inputs:
-  models: 489dd7b24c08558002a3cf225e11ab6b025330aab52f0819d162e6af3c77b4fc
-  products: fdbff743bef44d30644d01f043a08ff49b4539279dae2fee9a9ed4e310997a50
+  sha256: 2da90ce34e18960576816148448790b42200abc445d15bbf728818d7f16fdf05
 execution:
-  binary_sha256: 722f304251604b25fbc8d5616f29ed7d7482902f7ae661fe4ba35bb0c5164820
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: up_no_touches
-    construction: aligned
-    has_curve: false
+  simulation_steps_per_day: 2
+  block_count: 1000
+  threads_per_block: 512
+  kernel_launch_count: 1
+  maximum_prices_per_block: 1
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: equity_step_mc
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: sabr
     product: up_no_touch
     curve: ''
@@ -38,45 +30,57 @@ execution:
     block_count: 1000
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: 5584fedf34ce522593c52a52fa5dbd101316492327032d661dd011a31e06e152
-  paths_per_price: 1048576
-  implementation: CUDA
-  device: gpu
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
   tuning_profile:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: markovian_pricing
     selection: compile-time CMake profile
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
+  checkpoint:
+    schema_version: 1
+    resumed_prices: 0
+    timing_scope: current process attempt
+  paths_per_price: 1048576
+  binary_sha256: ab20d91cb5ae39a40daf2fc62012a8a3e73c8873565ab94ec139218e3bcb2ace
+  generator_sha256: 1ab441fdeef37044b8bda8939cea66b6ca75a1cfb6e8c340ea346a93a92c2062
+  declared_method:
+    engine: equity_markovian
+    profile: catalog_price_profile
+    variant: up_no_touches
+    construction: aligned
+    has_curve: false
+    random_number_generator:
+      name: philox
+      mapping_version: philox_source_step_v2
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 34.588002847
-  kernel_seconds: 34.832882813
+  wall_seconds: 8.290367688
+  kernel_seconds: 7.6707236328125
+recipe:
+  path: catalog/model/equity/markovian/sabr/prices/up_no_touches/sabr_01__up_no_touches_01__01/recipe.yaml
+  sha256: b8e5179eeb5ded45cca3e190a72e47ff841d65b4127c5526968b10567858bcc9
+inputs:
+  models: 9ce8279b7b4e35b49273f14dab50d4e719cc9e6209e998c4a8df4d7579c5d27e
+  products: 0fe58f919f9e1ad46faf59c9b868520847b4f4232982c9d5189aff9089ff24a2
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: b1ff53b4096f38a3163d6b1b0aeeb032d3af439442edb6172a48d19c00bd2ec9
+  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
+  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
   runtime_observation:
-    unix_time: 1789327167.6386626
+    unix_time: 1791496484.0955892
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 79, 85.53 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 76, 47.61 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
-  input_files:
-    datasets/model/equity/markovian/sabr/parameters/sabr_01.json: c21e08d3818676b55b7a613677a57a6c2b6e763825e8989bc76229eed82e7842
-    datasets/product/up_no_touch/up_no_touches_01.json: b0d031f44dabd6bff5122266e9373e6f1e5f6ae9d2a80123bc39edb45a6f3aa3
   generator: catalog/model/equity/markovian/sabr/prices/up_no_touches/sabr_01__up_no_touches_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 9517c2e7eb84edf10aa1b000291108a716d6657ac9842312cff79fdd40f59018
-  record_sha256: 82931e79cee0b54e7f961bb26e1070767a40224aad3abaa9843fefc72b73364c
-record_sha256: dbca0ae45e99664fbfbb0f13458e9153e2a24bd97a7f7c76d2e2dd3b119d818e
+  input_files:
+    datasets/model/equity/markovian/sabr/parameters/sabr_01.json: 007b5cf9be3f65671449e2e68a9039c64791f9aa5c34d3f33373196cd0f8012e
+    datasets/product/up_no_touch/up_no_touches_01.json: dec4206818f8d8d766837e69b95e8d966e8c11681f62867ae6f014a54b8125fb
+record_sha256: 559f83e6b0a780dc1f4608bc7207e24092b524bcb9f4337b8162e85f909a3121

@@ -24,11 +24,11 @@ class PublicCatalogInventoryTest(unittest.TestCase):
         self.assertEqual(len(sources), len(rows))
         self.assertEqual(
             {row["kind"] for row in rows},
-            {"model_parameters", "product_parameters", "curve_parameters", "prices", "price_gradients"},
+            {"model_parameters", "product_parameters", "curve_parameters", "prices", "price_gradients", "samples"},
         )
         selected = [
             spec for spec in AVAILABLE_DATASET_SPECS
-            if spec.dataset_kind in {"model_parameters", "product_parameters", "curve_parameters"}
+            if spec.dataset_kind in {"model_parameters", "product_parameters", "curve_parameters", "samples"}
             or (spec.dataset_kind == "prices" and spec.construction == "aligned")
             or (
                 spec.dataset_kind == "price_gradients"
@@ -47,6 +47,27 @@ class PublicCatalogInventoryTest(unittest.TestCase):
             leaf = ROOT / row["catalogPath"]
             self.assertTrue((leaf / "generator.cpp").is_file(), leaf)
             self.assertTrue((leaf / "recipe.yaml").is_file(), leaf)
+            if row["kind"] == "price_gradients":
+                self.assertNotIn("url", row, leaf)
+                self.assertNotIn("url", yaml.safe_load((leaf / "recipe.yaml").read_text()), leaf)
+            receipt = leaf / "generation.yaml"
+            if receipt.exists():
+                self.assertTrue((ROOT / row["output"]).is_file(), leaf)
+            if row["kind"] == "samples" or (
+                row["kind"] == "price_gradients"
+                and "/equity/markovian/" in row["source"]
+            ):
+                self.assertFalse(receipt.exists(), leaf)
+        self.assertEqual(sum(row["kind"] == "samples" for row in rows), 50)
+        self.assertEqual(sum(row["kind"] == "price_gradients" for row in rows), 655)
+        self.assertEqual(sum(row["kind"] == "price_gradients"
+                             and row["source"].startswith("model/equity/rough/")
+                             for row in rows), 174)
+        self.assertFalse(any("diagonal_hessian" in row["source"]
+                             or "full_hessian" in row["source"] for row in rows))
+        self.assertFalse(any(row["kind"] == "price_gradients"
+                             and "/american_" in row["source"]
+                             and row["id"].endswith("_frozen_policy") for row in rows))
 
     def test_bermudan_public_policy_is_frozen_regression(self) -> None:
         manifest = json.loads((ROOT / "catalog/manifest.json").read_text())
@@ -75,8 +96,34 @@ class PublicCatalogInventoryTest(unittest.TestCase):
                  if spec.asset_class == "fixed_income"
                  and spec.construction == "aligned"
                  and spec.product != "bermudan_swaption"]),
-            78,
+            91,  # 13 model/curve compositions times seven non-Bermudan products.
         )
+
+    def test_fixed_income_gradient_products_cover_all_contract_coordinates(self) -> None:
+        expected = {
+            "rate_option": {"product.strike", "product.maturity_years"},
+            "zero_coupon_bond_option": {"product.strike", "product.maturity_years"},
+            "zero_coupon_bond_up_and_out": {
+                "product.strike", "product.barrier", "product.maturity_years"
+            },
+            "european_swaption": {"product.strike", "product.maturity_years"},
+            "bermudan_swaption": {"product.strike"},
+        }
+        checked = 0
+        for spec in PRICE_GRADIENT_DATASET_SPECS:
+            if spec.asset_class != "fixed_income" or spec.construction != "aligned":
+                continue
+            recipe_path = ROOT / spec.recipe_yaml_path
+            if not recipe_path.is_file():
+                continue
+            recipe = yaml.safe_load(recipe_path.read_text())
+            coordinates = {
+                item["parameter"] for item in recipe["sensitivity"]["parameters"]
+                if item["parameter"].startswith("product.")
+            }
+            self.assertEqual(coordinates, expected[spec.product], recipe_path)
+            checked += 1
+        self.assertEqual(checked, 117)
 
     def test_exact_schedule_sensitivities_declare_native_calendar(self) -> None:
         checked = 0

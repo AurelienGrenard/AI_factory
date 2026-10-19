@@ -85,7 +85,7 @@ python3 maintainer/tests/price_gradients/summarize_rate_bumps.py \
 ```
 
 Les preuves locales sont conservées dans
-`artifacts/price_gradients/2026-09-15-rate-bumps/` (campagne commencée le 15,
+`project_journal/evidence/price_gradients/2026-09-15-rate-bumps/` (campagne commencée le 15,
 rapport finalisé le 16) : plan préalable, sorties brutes, références, résumé,
 source et binaire exacts avec leurs empreintes. Le mode sans `--rates` conserve
 l'étude précédente de toutes les coordonnées.

@@ -12,12 +12,13 @@
 #include <nlohmann/json.hpp>
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace ai_factory::workbench::datasets::price_gradients {
 struct Recipe {
     std::filesystem::path model_input, product_input, dataset, catalog;
-    std::string url, source_price_recipe;
+    std::string source_price_recipe;
     PriceConstruction construction;
     ::ai_factory::workbench::price_gradients::PriceGradientConfiguration configuration;
     ::ai_factory::workbench::price_gradients::TimeConfiguration time;
@@ -37,6 +38,8 @@ struct Recipe {
         ::ai_factory::workbench::price_gradients::SensitivityRequest
     > sensitivity_request;
     bool exact_schedule_transition = false;
+    bool barrier_grid_monitoring = false;
+    std::optional<std::string> option_side;
 };
 void append_exercise_replay_metadata(
     const Recipe&,

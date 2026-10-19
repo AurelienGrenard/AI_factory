@@ -1,29 +1,16 @@
 schema_version: 1
 status: complete
-recipe:
-  path: catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/recipe.yaml
-  sha256: 419f5c0c41987ec1a6439520a8f865d647795877b061a74ea3561eb9c26c2792
 artifact:
   row_count: 1000
-  sha256: fbe4adc19f456c626cba8fa815a5bea331004d19e52b2941346fccb5d51c6976
-inputs:
-  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
-  models: 9be0d16aa5d7dd3e9e900d20b8fca601bb1a71ee1d241677cb7c7dd5712c76a9
-  products: b452595c954239c6fc69efad531514666f80b8bc86b28c6c39230c620a499cc6
+  sha256: 51a34a8a836a4ff9b2a26119ef3c2d2a383c02f48ea696bba372aa24485c3072
 execution:
-  binary_sha256: 5c016479bdf8c9f4fe09231a8cd83ee20c357c3609d7eabb9caf05f72e99da32
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: floorlets
-    construction: aligned
-    has_curve: true
+  block_count: 4
   launch_plan:
-    profile_id: sm89_reference_v1
+    profile_id: sm89_cuda12_unqualified_v1
     family: closed_form
     selection: host launch plan; no runtime autotuning
-    measured_on: NVIDIA GeForce RTX 4090 Laptop GPU / SM89
-    portability: safe reference values; benchmark before replacing on another GPU
+    measured_on: user-declared profile
+    portability: valid only for the separately documented target environment
     model: g2_plus_plus
     product: rate_option
     curve: svensson
@@ -39,40 +26,50 @@ execution:
     block_count: 4
     device_resources_checked: false
     scope: offline proposed launch; native engine guards and qualification still required
-  build_hashes:
-    CMakeCache.txt: 61508296ea70fe6bffa300eff43a835f0f1487bb5879bd1872367c4b92a04f57
-    build.ninja: c4140d89ffea2d0ad1bba85574fbfd8acde911852aa1aefe551bbda2a6adcb55
-  generator_sha256: b429902c18c5dd384755782704343e1609b35efa8497a2646190591acf53f263
-  paths_per_price: 0
-  implementation: CUDA
-  device: gpu
-  block_count: 4
   threads_per_block: 256
   kernel_launch_count: 1
   work_distribution: one price per thread
+  paths_per_price: 0
+  binary_sha256: 7ec23f49fc5bd03cfb6934697ab8287e05da45b8d7f2cf6ee760b80d26ab3fb0
+  generator_sha256: 0bbe32bd4e775d00c8d324ea70c524ad86c6032a7cead3d7795a6e62eb0744a9
+  declared_method:
+    engine: fixed_income_closed_form
+    profile: closed_form_price_profile
+    variant: floorlets
+    construction: aligned
+    has_curve: true
+    random_number_generator: null
+  build_hashes:
+    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
+    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
+    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
 timing:
-  wall_seconds: 0.111837342
-  kernel_seconds: 8.192e-06
+  wall_seconds: 0.456724732
+  kernel_seconds: 2.8672000393271447e-05
+recipe:
+  path: catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/recipe.yaml
+  sha256: d13dba38248ae21ac77c69d8785b2cb96add7c0673bd3df28e058eb67354887f
+inputs:
+  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
+  models: 8996a6718a993df50fc5c8055de6438947cc8890b68f1e73536ec33fbc452afa
+  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
 provenance:
-  revision: 620642bd79f7d756a34bfa5e125a6cef4677fdd2
-  source_archive_sha256: 19d9c1b9924741651dc6753ea7369aa6e547251d7f524fe1a9fb30ba89d3d535
+  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
+  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
   runtime_observation:
-    unix_time: 1789307503.56877
+    unix_time: 1791411513.8094058
     returncode: 0
     stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
       [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
 
       0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      596.08, P0, 84, 102.47 W, [N/A], 1590 MHz, 9001 MHz
+      610.60, P0, 77, 49.54 W, [N/A], 2040 MHz, 9001 MHz
 
       '
     stderr: ''
+  generator: catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
   input_files:
     datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
-    datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: e2dd953ab4e521eb3514c1ad1b5fc180bbbcb51864d47d1923c1f9a07ad36819
-    datasets/product/rate_option/rate_options_01.json: 62f7bc7cc465b756e6dbff423e255cee7ac85f779b20cf664fec131998dca098
-  generator: catalog/model/fixed_income/g2_plus_plus/prices/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01/generator.cpp
-legacy_checksums:
-  contract_sha256: 3e9120c695bba078add9f13c52430a7a54789696ff61d9d75914c5d84ad53218
-  record_sha256: f7133d51600ce31888ab4bb7e0e64f90d8d56bec787f235e9e7a2b471520e419
-record_sha256: 5983644d91d23c7d9f23fa7700f9d64f2302a16ba194d3f1184f6ba28e16f6ff
+    datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
+    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+record_sha256: 11e580e8559cb5c3532b3942746ae8a96c476cb8c7114e23f49c3a6692c2a27c

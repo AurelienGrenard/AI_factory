@@ -159,6 +159,22 @@ int main() {
     prices.download(graph_prices, 2U);
     errors.download(graph_errors, 2U);
     gradients.download(graph_gradients, 8U);
+    require(cache.prepared_for(workspace.value),
+            "Gaussian FFT cache was not retained in the workspace.");
+    Graph::launch(host, cache, launch, outputs, stencil_outputs,
+                  execution, workspace.value, execution.bytes);
+    check_cuda(cudaDeviceSynchronize(), "Gaussian cached graph sync");
+    float cached_prices[2]{}, cached_errors[2]{}, cached_gradients[8]{};
+    prices.download(cached_prices, 2U);
+    errors.download(cached_errors, 2U);
+    gradients.download(cached_gradients, 8U);
+    for (std::size_t i = 0U; i < 2U; ++i)
+        require(cached_prices[i] == graph_prices[i]
+                && cached_errors[i] == graph_errors[i],
+                "Reusing the FFT cache changed a price moment.");
+    for (std::size_t i = 0U; i < 8U; ++i)
+        require(cached_gradients[i] == graph_gradients[i],
+                "Reusing the FFT cache changed a gradient.");
     for (std::size_t i = 0U; i < 2U; ++i)
         require(std::isfinite(graph_prices[i])
                 && std::isfinite(graph_errors[i])
@@ -259,6 +275,86 @@ int main() {
     for (float value : first_gradient_values)
         require(std::isfinite(value),
                 "Offline aligned FFT row gradient is invalid.");
+
+    // An offline Cartesian batch may straddle two models. Scoped spectra
+    // must reproduce the graph planned with all model spectra at once.
+#if ROUGH_GAUSSIAN_TEST_MODEL == 0
+    const auto cartesian_host = rb::prepare_rough_bergomi_european_option_sensitivities(
+#elif ROUGH_GAUSSIAN_TEST_MODEL == 1
+    const auto cartesian_host = rb::prepare_rough_sabr_european_option_sensitivities(
+#elif ROUGH_GAUSSIAN_TEST_MODEL == 2
+    const auto cartesian_host = rb::prepare_rough_stein_stein_european_option_sensitivities(
+#else
+    const auto cartesian_host = rb::prepare_log_modulated_rough_bergomi_european_option_sensitivities(
+#endif
+        aligned_models, products, PriceConstruction::CartesianProduct,
+        {1.0f / 504.0f, 2U}, selection,
+        {pg::SensitivityOrders::first}
+    );
+    auto complete_cartesian = launch;
+    complete_cartesian.result_count = 4U;
+    FirstGraph::Cache global_cache;
+    const auto global_plan = FirstGraph::plan(
+        cartesian_host, global_cache, complete_cartesian
+    );
+    DeviceBuffer<unsigned char> global_workspace(global_plan.bytes);
+    DeviceBuffer<float> global_prices(4U), global_errors(4U),
+        global_gradients(16U), global_gradient_errors(16U);
+    DeviceBuffer<pg::SensitivityStencil<4U>> global_stencils(16U);
+    pg::SensitivityOutputs global_outputs{
+        global_prices.value, global_errors.value,
+        global_gradients.value, global_gradient_errors.value,
+        nullptr, nullptr, 4U, 16U
+    };
+    mcpg::DevicePreparedStencilOutputs<4U> global_stencil_outputs{
+        global_stencils.value, 16U, nullptr
+    };
+    auto crossing = launch;
+    crossing.result_offset = 1U;
+    crossing.result_count = 2U;
+    FirstGraph::launch(
+        cartesian_host, global_cache, crossing, global_outputs,
+        global_stencil_outputs, global_plan,
+        global_workspace.value, global_plan.bytes
+    );
+    check_cuda(cudaDeviceSynchronize(), "Gaussian global Cartesian sync");
+    float expected_prices[4]{}, expected_gradients[16]{};
+    global_prices.download(expected_prices, 4U);
+    global_gradients.download(expected_gradients, 16U);
+
+    offline::pricing::price_gradients::RoughGraphExecution<FirstGraph>
+        scoped_execution(1.0f, 1.0f / 504.0f);
+    const auto scoped_bytes = scoped_execution.workspace_bytes(
+        cartesian_host, crossing
+    );
+    DeviceBuffer<unsigned char> scoped_workspace(scoped_bytes);
+    DeviceBuffer<float> scoped_prices(4U), scoped_errors(4U),
+        scoped_gradients(16U), scoped_gradient_errors(16U);
+    DeviceBuffer<pg::SensitivityStencil<4U>> scoped_stencils(16U);
+    mcpg::DevicePreparedStencilOutputs<4U> scoped_stencil_outputs{
+        scoped_stencils.value, 16U, nullptr
+    };
+    const pg::Outputs scoped_outputs{
+        scoped_prices.value, scoped_errors.value,
+        scoped_gradients.value, scoped_gradient_errors.value, 4U, 16U
+    };
+    scoped_execution.launch(
+        cartesian_host, nullptr, scoped_stencil_outputs, crossing,
+        scoped_outputs, scoped_workspace.value, scoped_bytes
+    );
+    check_cuda(cudaDeviceSynchronize(), "Gaussian scoped Cartesian sync");
+    float actual_prices[4]{}, actual_gradients[16]{};
+    scoped_prices.download(actual_prices, 4U);
+    scoped_gradients.download(actual_gradients, 16U);
+    for (std::size_t row_index = 1U; row_index <= 2U; ++row_index) {
+        require(actual_prices[row_index] == expected_prices[row_index],
+                "Scoped FFT cache changed a Cartesian price.");
+        for (std::size_t sensitivity = 0U; sensitivity < 4U; ++sensitivity) {
+            const auto index = row_index * 4U + sensitivity;
+            require(actual_gradients[index] == expected_gradients[index],
+                    "Scoped FFT cache changed a Cartesian gradient.");
+        }
+    }
 
     DeviceBuffer<rb::ModelParameters> device_models(1U);
     DeviceBuffer<product::EuropeanOptionParameters> device_products(2U);

@@ -160,7 +160,7 @@ def inventory(
             raise ValueError(f"Recipe output contradicts manifest: {recipe_path}")
         if recipe.get("generation_output") != spec.generation_yaml_path:
             raise ValueError(f"Generation output contradicts manifest: {recipe_path}")
-        if recipe.get("url") != spec.url:
+        if spec.dataset_kind != "price_gradients" and recipe.get("url") != spec.url:
             raise ValueError(f"Recipe URL contradicts manifest: {recipe_path}")
         if recipe.get("row_count") != spec.row_count:
             raise ValueError(f"Recipe row count contradicts manifest: {recipe_path}")
@@ -207,10 +207,11 @@ def inventory(
                      "model": spec.model, "generator": spec.generator_path,
                      "recipe": recipe_path, "generation": spec.generation_yaml_path,
                      "dataset": spec.dataset_path,
-                     "url": spec.url,
+                     "url": None if spec.dataset_kind == "price_gradients" else spec.url,
                      "inputs": inputs, "sample_shape": shape,
                      "rng_stream_seeds": {name: domain.seed(name) for name in domain.streams} if domain else {},
                      "row_count": recipe["row_count"],
+                     "curve_assignment": recipe.get("curve_assignment"),
                      "declared_method": {
                          "engine": spec.engine,
                          "profile": spec.numerical_profile,
@@ -254,25 +255,47 @@ def finite_values(value):
 
 
 def check_samples(path: Path, job: dict, recipe: dict) -> None:
-    """Verify the native line-streamed sample format without a multi-million-row DOM."""
+    """Verify compact streamed samples without materializing all observations."""
     with path.open() as stream:
-        prefix = []
-        for line in stream:
-            if line.strip() == '"results": [':
-                break
-            prefix.append(line)
-        else:
-            raise ValueError("Missing native results array")
-        envelope = json.loads("".join(prefix).rstrip().rstrip(",") + "}")
-        finite_values(envelope)
-        expected_keys = {
-            "database_id", "model_family", "catalog", "url", "row_count",
-            "time_convention", "timing",
+        if stream.readline().strip() != "{":
+            raise ValueError("Invalid sample JSON opening")
+        expected_header = {
+            "database_id": recipe["dataset_id"],
+            "catalog": str(Path(job["generation"]).parent),
+            "url": recipe["url"],
+            "row_count": job["rows"],
         }
-        if set(envelope) != expected_keys:
-            raise ValueError("Sample envelope contains non-public generation metadata")
-        if envelope["row_count"] != job["rows"] or envelope["database_id"] != Path(job["dataset"]).stem:
-            raise ValueError("Sample envelope contradicts its recipe")
+        for key in ("database_id", "model_family", "catalog", "url", "row_count"):
+            line = stream.readline().strip()
+            try:
+                record = json.loads("{" + line.removesuffix(",") + "}")
+            except (ValueError, TypeError) as error:
+                raise ValueError(f"Invalid sample header: {key}") from error
+            if (not line.endswith(",") or list(record) != [key]
+                    or (key == "model_family" and
+                        (not isinstance(record[key], str) or not record[key]))
+                    or (key != "model_family" and record[key] != expected_header[key])):
+                raise ValueError(f"Sample header contradicts recipe: {key}")
+        if stream.readline().strip() != '"parameters": [':
+            raise ValueError("Missing sample parameter table")
+        parameter_count = 0
+        for line in stream:
+            if line.strip() == "],":
+                break
+            row = json.loads(line.rstrip().removesuffix(","))
+            parameter_count += 1
+            if (set(row) != {"id", "values"}
+                    or row["id"] != f"{parameter_count:06d}"
+                    or not isinstance(row["values"], dict)
+                    or not row["values"]):
+                raise ValueError(f"Invalid sample parameter row {parameter_count}")
+            finite_values(row)
+        else:
+            raise ValueError("Unfinished sample parameter table")
+        if parameter_count != recipe["shape"]["parameter_count"]:
+            raise ValueError("Sample parameter count contradicts recipe")
+        if stream.readline().strip() != '"results": [':
+            raise ValueError("Missing sample results array")
         bounds = recipe["maturity_sampling"]
         count = 0
         for line in stream:
@@ -280,18 +303,19 @@ def check_samples(path: Path, job: dict, recipe: dict) -> None:
                 break
             row = json.loads(line.rstrip().removesuffix(","))
             count += 1
-            if line.rstrip().endswith(",") != (count < job["rows"]):
-                raise ValueError(f"Invalid sample separator at row {count}")
-            finite_values(row)
-            days = row["maturity_days"]
-            if (row["id"] != f"{count:06d}" or not row["parameters"] or not row["values"]
-                    or not isinstance(row["parameters"], dict) or not isinstance(row["values"], dict)
+            expected_parameter = (count - 1) // recipe["shape"]["paths_per_parameter"] + 1
+            days = row.get("maturity_days")
+            if (set(row) != {"parameter_id", "maturity_days", "values"}
+                    or row["parameter_id"] != f"{expected_parameter:06d}"
+                    or not isinstance(row["values"], dict)
+                    or not row["values"]
                     or type(days) is not int
                     or not bounds["minimum_days"] <= days <= bounds["maximum_days"]
-                    or not math.isclose(row["T"], days / 252, rel_tol=1e-7)):
+                    or line.rstrip().endswith(",") != (count < job["rows"])):
                 raise ValueError(f"Invalid sample row {count}")
+            finite_values(row)
         else:
-            raise ValueError("Unfinished sample array")
+            raise ValueError("Unfinished sample results array")
         if count != job["rows"] or stream.read().strip() != "}":
             raise ValueError("Incomplete sample artifact")
 
@@ -304,8 +328,9 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
     validate_document(recipe, "recipe", job["recipe"])
     if (recipe.get("dataset_id") != Path(job["dataset"]).stem
             or recipe.get("output") != {"path": job["dataset"], "format": "json"}
-            or recipe.get("url") != job["url"]):
-        raise ValueError("Recipe identity/output/URL contradicts the frozen selection")
+            or (job["kind"] != "price_gradients"
+                and recipe.get("url") != job["url"])):
+        raise ValueError("Recipe identity/output contradicts the frozen selection")
     if (generation.get("schema_version") != 1
             or generation.get("status") != "complete"
             or generation.get("artifact", {}).get("row_count") != job["rows"]
@@ -344,43 +369,76 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             )
         document = json.loads(contained_path(work, job["dataset"]).read_text())
         finite_values(document)
-        if document.get("url") != job["url"]:
+        if job["kind"] == "prices" and document.get("url") != job["url"]:
             raise ValueError("Dataset URL contradicts the frozen recipe")
+        curve_assignment = recipe.get("curve_assignment")
+        if curve_assignment is not None:
+            if (not job["declared_method"]["has_curve"]
+                    or job["declared_method"]["construction"] != "cartesian"
+                    or curve_assignment != {
+                        "method": "splitmix64_modulo",
+                        "seed": 20261014,
+                        "sampling": "with_replacement",
+                        "key": "zero_based_result_index",
+                    }):
+                raise ValueError("Curve assignment contradicts the frozen recipe")
         expected_construction = (
             {
                 "method": "Cartesian product",
                 "order": (
-                    "model, curve, product"
+                    "model, product"
+                    if curve_assignment is not None
+                    else "model, curve, product"
                     if job["declared_method"]["has_curve"]
                     else "model, product"
                 ),
+                **({"curve_assignment": curve_assignment}
+                   if curve_assignment is not None else {}),
             }
             if job["declared_method"]["construction"] == "cartesian"
             else {"method": "Aligned"}
         )
-        if document.get("price_construction", expected_construction) != expected_construction:
-            raise ValueError("Price construction contradicts the frozen recipe")
         if job["kind"] == "price_gradients":
             from tools.datasets.price_gradients.contract import check_outputs as check_gradients
-            check_gradients(job, document, document)
-        if (document["row_count"] != job["rows"] or len(document["results"]) != job["rows"]
-                or document["database_id"] != recipe["dataset_id"]):
-            raise ValueError("Price artifact identity/row count mismatch")
-        for index, row in enumerate(document["results"], 1):
-            if row["id"] != f"{index:06d}" or type(row["outputs"]["price"]) not in (int, float):
-                raise ValueError(f"Invalid price row {index}")
-            error = row["outputs"].get("standard_error", None if expected_paths else 0)
-            if type(error) not in (int, float) or error < 0:
-                raise ValueError(f"Missing or invalid standard error at row {index}")
+            frozen = {
+                "sensitivity": recipe.get("sensitivity"),
+                "option_side": recipe.get("option_side"),
+                job["time_key"]: recipe.get(job["time_key"]),
+                "exercise_replay": recipe.get("exercise_replay"),
+                "summary": generation["execution"],
+            }
+            check_gradients(job, frozen, document)
+            input_documents = {
+                name: json.loads(contained_path(work, path).read_text())
+                for name, path in recipe["inputs"].items()
+            }
+            def input_reference(name):
+                source = input_documents[name]
+                return {"id": source["database_id"],
+                        "catalog": source["catalog"]}
+            if (document["database_id"] != recipe["dataset_id"]
+                    or document["catalog"] != str(Path(job["generation"]).parent)
+                    or document["row_count"] != job["rows"]
+                    or document["model_family"] != input_documents["model"]["model_family"]
+                    or document["product_family"] != input_documents["product"]["product_family"]
+                    or ("curve" in input_documents and document["curve_family"]
+                        != input_documents["curve"]["curve_family"])
+                    or any(document[name + "_dataset"] != input_reference(name)
+                           for name in recipe["inputs"])):
+                raise ValueError("Gradient dataset header contradicts frozen inputs")
+        else:
+            if document.get("price_construction", expected_construction) != expected_construction:
+                raise ValueError("Price construction contradicts the frozen recipe")
+            if (document["row_count"] != job["rows"] or len(document["results"]) != job["rows"]
+                    or document["database_id"] != recipe["dataset_id"]):
+                raise ValueError("Price artifact identity/row count mismatch")
+            for index, row in enumerate(document["results"], 1):
+                if row["id"] != f"{index:06d}" or type(row["outputs"]["price"]) not in (int, float):
+                    raise ValueError(f"Invalid price row {index}")
+                error = row["outputs"].get("standard_error", None if expected_paths else 0)
+                if type(error) not in (int, float) or error < 0:
+                    raise ValueError(f"Missing or invalid standard error at row {index}")
     else:
-        document_url = None
-        with contained_path(work, job["dataset"]).open() as stream:
-            for line in stream:
-                if '"url"' in line:
-                    document_url = json.loads("{" + line.strip().rstrip(",") + "}")["url"]
-                    break
-        if document_url != job["url"]:
-            raise ValueError("Dataset URL contradicts the frozen recipe")
         check_samples(contained_path(work, job["dataset"]), job, recipe)
     return [{"path": path, "sha256": digest(contained_path(work, path)),
              "previous_sha256": job["previous"][path]}
@@ -490,9 +548,27 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
         construction = job["declared_method"].get("construction", "aligned")
         if construction == "aligned" and len(counts) != 1:
             raise ValueError(f"Unaligned parameter inputs: {job['target']}")
-        rows = (math.prod(input_counts)
-                if construction == "cartesian"
-                else input_counts[0])
+        curve_assignment = job.get("curve_assignment")
+        if curve_assignment is not None:
+            if (construction != "cartesian"
+                    or not job["declared_method"]["has_curve"]
+                    or curve_assignment != {
+                        "method": "splitmix64_modulo",
+                        "seed": 20261014,
+                        "sampling": "with_replacement",
+                        "key": "zero_based_result_index",
+                    }):
+                raise ValueError(f"Invalid sampled-curve construction: {job['target']}")
+            curve_positions = [i for i, name in enumerate(job["inputs"])
+                               if Path(name).parts[:2] == ("datasets", "curve")]
+            if len(curve_positions) != 1:
+                raise ValueError(f"Expected one curve input: {job['target']}")
+            rows = math.prod(count for i, count in enumerate(input_counts)
+                             if i != curve_positions[0])
+        else:
+            rows = (math.prod(input_counts)
+                    if construction == "cartesian"
+                    else input_counts[0])
         inspector = [str(binaries / "inspect_pricing_launch_plan"), job["identity"], str(rows)]
         if job.get("paths_per_price"):
             inspector.append(str(job["paths_per_price"]))
@@ -648,10 +724,11 @@ def compare_matching_prices(state: dict, job: dict, work: Path) -> dict | None:
     different = outside_budget = 0
     maximum_absolute = maximum_budget_ratio = 0.0
     for index, (price, gradient) in enumerate(zip(price_rows, gradient_rows), 1):
-        if price["id"] != gradient["id"]:
+        if any(price.get(key) != gradient.get(key)
+               for key in ("model_id", "product_id", "curve_id")):
             raise ValueError(f"Central price row identity differs at row {index}")
         left = price["outputs"]["price"]
-        right = gradient["outputs"]["price"]
+        right = gradient["price"]
         difference = abs(left - right)
         budget = 2e-6 + 2e-5 * max(abs(left), abs(right))
         different += struct.pack("!d", left) != struct.pack("!d", right)
@@ -740,12 +817,16 @@ def gpu_observation() -> dict:
     """Record environment without turning telemetry into an execution veto."""
     try:
         result = subprocess.run([
-            "nvidia-smi", "--query-gpu=index,name,uuid,driver_version,pstate,temperature.gpu,power.draw,power.limit,clocks.sm,clocks.mem",
+            "nvidia-smi", "--query-gpu=index,name,uuid,compute_cap,memory.total,driver_version,pstate,temperature.gpu,power.draw,power.limit,clocks.sm,clocks.mem",
             "--format=csv"], text=True, capture_output=True, timeout=10)
-        return {"unix_time": time.time(), "returncode": result.returncode,
+        return {"unix_time": time.time(), "hostname": os.uname().nodename,
+                "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+                "returncode": result.returncode,
                 "stdout": result.stdout, "stderr": result.stderr}
     except (OSError, subprocess.TimeoutExpired) as error:
-        return {"unix_time": time.time(), "unavailable": str(error)}
+        return {"unix_time": time.time(), "hostname": os.uname().nodename,
+                "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+                "unavailable": str(error)}
 
 
 def execute(run: Path, state: dict) -> None:

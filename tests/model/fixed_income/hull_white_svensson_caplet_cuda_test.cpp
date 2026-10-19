@@ -66,7 +66,7 @@ double caplet_price(
 
 }  // namespace
 
-// Verify aligned pricing and the three-input construction count.
+// Verify aligned and paired-curve Cartesian pricing against FP64.
 int main() {
     using namespace ai_factory::workbench;
 
@@ -184,6 +184,48 @@ int main() {
                     < 5.0e-6,
                 "Caplet CUDA price differs from the FP64 formula"
             );
+        }
+        constexpr std::size_t paired_rows = row_count * row_count;
+        check_cuda(cudaFree(device_prices), "caplet test cudaFree aligned prices");
+        device_prices = nullptr;
+        check_cuda(
+            cudaMalloc(&device_prices, paired_rows * sizeof(float)),
+            "caplet test cudaMalloc paired prices"
+        );
+        model::fixed_income::hull_white::svensson::
+            launch_hull_white_svensson_rate_option_cuda<OptionSide::call>(
+                device_models, row_count,
+                device_curves, row_count,
+                device_products, row_count,
+                PriceConstruction::PairedModelCurveCartesianProduct,
+                paired_rows, 0U, paired_rows,
+                static_cast<float>(kDayFraction),
+                32U, 1U, device_prices
+            );
+        std::vector<float> paired_prices(paired_rows);
+        check_cuda(
+            cudaMemcpy(
+                paired_prices.data(), device_prices,
+                paired_rows * sizeof(float), cudaMemcpyDeviceToHost
+            ),
+            "caplet test cudaMemcpy paired prices"
+        );
+        for (std::size_t model_row = 0U; model_row < row_count; ++model_row) {
+            for (std::size_t product_row = 0U;
+                 product_row < row_count; ++product_row) {
+                const auto row = model_row * row_count + product_row;
+                const double expected = caplet_price(
+                    models[model_row], curves[model_row],
+                    products[product_row]
+                );
+                require(
+                    std::isfinite(paired_prices[row])
+                        && std::fabs(
+                            static_cast<double>(paired_prices[row]) - expected
+                        ) < 5.0e-6,
+                    "Paired model-curve caplet differs from the FP64 formula"
+                );
+            }
         }
     } catch (...) {
         if (device_models != nullptr) cudaFree(device_models);

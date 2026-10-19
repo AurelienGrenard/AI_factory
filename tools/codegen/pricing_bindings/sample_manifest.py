@@ -53,6 +53,28 @@ EQUITY_COMMON = (
     u("dividend_yield", 0.0, 0.06),
 )
 
+# Match the core pricing G2 law: order the mean reversions, then draw
+# stationary factor dispersions and reconstruct instantaneous volatilities.
+G2_CORE_UNIFORMS = (
+    u("mean_reversion_x", .03, .35),
+    u("mean_reversion_gap", .10, 1.),
+    u("stationary_standard_deviation_x", .0025, .018),
+    u("stationary_standard_deviation_y", .0015, .012),
+    u("correlation", -.75, -.05),
+)
+G2_CORE_DERIVED = (
+    "const float mean_reversion_y = mean_reversion_x + mean_reversion_gap; "
+    "const float volatility_x = stationary_standard_deviation_x * "
+    "std::sqrt(2.0f * mean_reversion_x); "
+    "const float volatility_y = stationary_standard_deviation_y * "
+    "std::sqrt(2.0f * mean_reversion_y);"
+)
+G2_CORE_DERIVED_LAWS = (
+    ("mean_reversion_y", "mean_reversion_y = mean_reversion_x + mean_reversion_gap."),
+    ("volatility_x", "volatility_x = stationary_standard_deviation_x * sqrt(2 * mean_reversion_x)."),
+    ("volatility_y", "volatility_y = stationary_standard_deviation_y * sqrt(2 * mean_reversion_y)."),
+)
+
 
 SAMPLE_MODELS = (
     SampleModelSpec(
@@ -199,8 +221,8 @@ SAMPLE_MODELS = (
          ("rho", "rho"), ("beta", "beta")),
         (u("spot", .25, 4.), u("risk_free_rate", .001, .08),
          u("dividend_yield", 0., .06), u("initial_volatility", .08, .50),
-         u("volatility_of_volatility", .10, 2.), u("rho", -.90, .20),
-         u("beta", .30, 1.)),
+         u("volatility_of_volatility", .10, 1.50), u("rho", -.90, -.20),
+         u("beta", .50, .95)),
         "{spot, risk_free_rate, dividend_yield, initial_volatility, "
         "volatility_of_volatility, rho, beta}",
         pricing_numerical_method="Lamperti SABR Euler",
@@ -217,7 +239,7 @@ SAMPLE_MODELS = (
          ("correlation", "correlation")),
         EQUITY_COMMON + (u("initial_volatility", .08, .45),
         u("mean_reversion", .30, 5.), u("long_run_volatility", .08, .45),
-        u("volatility_of_volatility", .03, .60), u("correlation", -.90, .30)),
+        u("volatility_of_volatility", .03, .60), u("correlation", -.90, -.10)),
         "{spot, risk_free_rate, dividend_yield, initial_volatility, "
         "mean_reversion, long_run_volatility, volatility_of_volatility, correlation}",
         pricing_numerical_method="exact OU factor with log-spot Euler",
@@ -317,7 +339,7 @@ SAMPLE_MODELS = (
          ("hurst_exponent", "hurst_exponent"), ("rho", "rho")),
         EQUITY_COMMON + (u("volatility_level", .10, .35),
         u("mean_reversion", .2, 4.), u("volatility_of_volatility", .05, .50),
-        u("hurst_exponent", .03, .25), u("rho", -.90, .10)),
+        u("hurst_exponent", .03, .25), u("rho", -.90, -.10)),
         "{spot, risk_free_rate, dividend_yield, volatility_level, mean_reversion, "
         "volatility_of_volatility, hurst_exponent, rho}",
         kernel="volterra::FractionalResolventHybridKernelPolicy",
@@ -357,10 +379,10 @@ SAMPLE_MODELS = (
          ("feedback_rate", "feedback_rate"),
          ("feedback_volatility", "feedback_volatility"),
          ("hurst_exponent", "hurst_exponent")),
-        EQUITY_COMMON + (u("initial_feedback", .03, .20),
-        u("quadratic_scale", .10, .80), u("quadratic_shift", .02, .20),
-        u("variance_floor", .0005, .02), u("feedback_rate", .30, 3.),
-        u("feedback_volatility", .30, 2.), u("hurst_exponent", .01, .20)),
+        EQUITY_COMMON + (u("initial_feedback", .02, .15),
+        u("quadratic_scale", .02, .12), u("quadratic_shift", .02, .15),
+        u("variance_floor", .0005, .015), u("feedback_rate", .10, .80),
+        u("feedback_volatility", .10, .60), u("hurst_exponent", .05, .20)),
         "{spot, risk_free_rate, dividend_yield, initial_feedback, quadratic_scale, "
         "quadratic_shift, variance_floor, feedback_rate, feedback_volatility, "
         "hurst_exponent}",
@@ -394,14 +416,14 @@ SAMPLE_MODELS = (
          ("correlation", "process.correlation"),
          ("initial_state_x", "initial_state.state_x"),
          ("initial_state_y", "initial_state.state_y")),
-        (u("mean_reversion_x", .03, .35), u("mean_reversion_y", .10, 1.),
-         u("volatility_x", .0025, .018), u("volatility_y", .0015, .012),
-         u("correlation", -.75, .25), u("initial_state_x", .001, .05),
-         u("initial_state_y", .001, .03)),
+        G2_CORE_UNIFORMS + (u("initial_state_x", .001, .05),
+                            u("initial_state_y", .001, .03)),
         "{{mean_reversion_x, volatility_x, mean_reversion_y, volatility_y, "
         "correlation}, {initial_state_x, initial_state_y}}",
+        derived=G2_CORE_DERIVED,
         pricing_numerical_method="exact correlated Gaussian transition",
         analytics_contract="standalone two-factor affine provider",
+        derived_parameter_laws=G2_CORE_DERIVED_LAWS,
     ),
     SampleModelSpec(
         "g2_plus_plus", "G2++", "fixed_income", "", "markovian", "exact",
@@ -411,14 +433,14 @@ SAMPLE_MODELS = (
          ("mean_reversion_y", "process.mean_reversion_y"),
          ("volatility_y", "process.volatility_y"),
          ("correlation", "process.correlation")),
-        (u("mean_reversion_x", .03, .35), u("mean_reversion_y", .10, 1.),
-         u("volatility_x", .0025, .018), u("volatility_y", .0015, .012),
-         u("correlation", -.75, .25)),
+        G2_CORE_UNIFORMS,
         "{{mean_reversion_x, volatility_x, mean_reversion_y, volatility_y, correlation}}",
+        derived=G2_CORE_DERIVED,
         extra_dynamics_include="#include \"model/fixed_income/g2/dynamics_impl.cuh\"\n",
         pricing_numerical_method="exact correlated Gaussian transition",
         analytics_contract="curve-fitted two-factor affine provider",
         renderer_alias="g2pp",
+        derived_parameter_laws=G2_CORE_DERIVED_LAWS,
     ),
     SampleModelSpec(
         "hull_white", "Hull-White", "fixed_income", "", "markovian", "exact",

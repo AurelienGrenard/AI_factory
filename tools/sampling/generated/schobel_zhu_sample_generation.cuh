@@ -33,7 +33,7 @@ inline std::vector<ModelParameters> generate_core_parameters(
         const float mean_reversion = uniform({0.3f, 5.0f}, uniforms);
         const float long_run_volatility = uniform({0.08f, 0.45f}, uniforms);
         const float volatility_of_volatility = uniform({0.03f, 0.6f}, uniforms);
-        const float correlation = uniform({-0.9f, 0.3f}, uniforms);
+        const float correlation = uniform({-0.9f, -0.1f}, uniforms);
         if (!(true)) continue;
         parameters.push_back({spot, risk_free_rate, dividend_yield, initial_volatility, mean_reversion, long_run_volatility, volatility_of_volatility, correlation});
     }
@@ -86,7 +86,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"mean_reversion", {0.3f, 5.0f}},
                 {"long_run_volatility", {0.08f, 0.45f}},
                 {"volatility_of_volatility", {0.03f, 0.6f}},
-                {"correlation", {-0.9f, 0.3f}}
+                {"correlation", {-0.9f, -0.1f}}
             }},
             {"acceptance", "true"}
         },

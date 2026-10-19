@@ -1,6 +1,8 @@
 // Public path-product bindings: mono and node-graph sensitivities are bitwise equal.
 #include "model/equity/markovian/black_scholes/product/asian_option_price_gradients.cuh"
+#include "model/equity/markovian/black_scholes/product/up_and_in_option_price_gradients.cuh"
 #include "model/equity/markovian/bates/product/range_accrual_price_gradients.cuh"
+#include "model/equity/markovian/bates/product/up_and_in_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/asian_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/athena_autocall_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/forward_start_option_price_gradients.cuh"
@@ -8,6 +10,7 @@
 #include "product/athena_autocall/parameters.hpp"
 #include "product/forward_start_option/parameters.hpp"
 #include "product/range_accrual/parameters.hpp"
+#include "product/up_and_in_option/parameters.hpp"
 #include "diagonal_cuda_test_support.cuh"
 
 #include <cuda_runtime.h>
@@ -246,25 +249,84 @@ void check_bates_range_accrual(std::size_t paths) {
     );
 }
 
+void check_dense_maturity_barrier(std::size_t paths) {
+    const std::vector<product::UpAndInOptionParameters> products{{
+        1.0f, 1.05f, 12U
+    }};
+    const pg::PriceGradientConfiguration selection{{
+        {"model.spot", {.005f, pg::BumpScale::relative}},
+        {"product.barrier", {.005f, pg::BumpScale::relative}},
+        {"product.maturity_years",
+         {1.0f / 252.0f, pg::BumpScale::absolute}},
+    }};
+    const std::vector<bs::ModelParameters> bs_models{{
+        1.0f, 0.02f, 0.01f, 0.30f
+    }};
+    const auto bs_plan =
+        bs::prepare_black_scholes_up_and_in_option_sensitivities(
+            bs_models, products, PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U}, selection, {orders}
+        );
+    price_gradient_test::require_mono_node_graph_parity(
+        bs_plan,
+        bs::launch_black_scholes_up_and_in_option_diagonal_sensitivities_cuda<
+            OptionSide::call, orders>,
+        bs::black_scholes_up_and_in_option_node_graph_workspace_bytes<
+            OptionSide::call, orders>,
+        bs::launch_black_scholes_up_and_in_option_node_graph_sensitivities_cuda<
+            OptionSide::call, orders>,
+        paths, 4141U, "black_scholes.up_and_in two-step maturity"
+    );
+
+    const std::vector<bates::ModelParameters> bates_models{{
+        1.0f, 0.02f, 0.01f, 0.04f, 1.5f, 0.04f, 0.30f, -0.7f,
+        0.25f, -0.05f, 0.15f
+    }};
+    const auto bates_plan =
+        bates::prepare_bates_up_and_in_option_sensitivities(
+            bates_models, products, PriceConstruction::Aligned,
+            {1.0f / 504.0f, 2U}, selection, {orders}
+        );
+    price_gradient_test::require_mono_node_graph_parity(
+        bates_plan,
+        bates::launch_bates_up_and_in_option_diagonal_sensitivities_cuda<
+            OptionSide::call, orders>,
+        bates::bates_up_and_in_option_node_graph_workspace_bytes<
+            OptionSide::call, orders>,
+        bates::launch_bates_up_and_in_option_node_graph_sensitivities_cuda<
+            OptionSide::call, orders>,
+        paths, 4151U, "bates.up_and_in two-step maturity"
+    );
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
     try {
         std::size_t paths = 1025U;
+        const bool dense_only = argc == 2
+            && std::string_view(argv[1]) == "--dense-maturity";
         if (argc == 2 && std::string_view(argv[1]) == "--sanitizer") {
             paths = 257U;
-        } else if (argc != 1) {
-            throw std::invalid_argument("Usage: test [--sanitizer]");
+        } else if (argc != 1 && !dense_only) {
+            throw std::invalid_argument(
+                "Usage: test [--sanitizer|--dense-maturity]"
+            );
         }
         int devices = 0;
         if (cudaGetDeviceCount(&devices) != cudaSuccess || devices == 0) {
             return 77;
+        }
+        if (dense_only) {
+            check_dense_maturity_barrier(paths);
+            return 0;
         }
         check_black_scholes_asian(paths);
         check_heston_asian(paths);
         check_merton_athena(paths);
         check_merton_forward_start(paths);
         check_bates_range_accrual(paths);
+        check_dense_maturity_barrier(paths);
         std::cout << "Dense, regular, calendar and jump path bindings are "
                      "bitwise equal between mono and node_graph\n";
         return 0;

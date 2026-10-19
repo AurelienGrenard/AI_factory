@@ -36,10 +36,18 @@ struct GaussianFftKernelEntry {
 };
 
 template<typename KernelPolicy>
+struct GaussianFftDeviceKernel {
+    typename KernelPolicy::PreparedKernel kernel{};
+    float2* spectrum = nullptr;
+    float* variances = nullptr;
+};
+
+template<typename KernelPolicy>
 class GaussianFftKernelCache {
 public:
     using Parameters = typename KernelPolicy::Parameters;
     using Entry = GaussianFftKernelEntry<KernelPolicy>;
+    using DeviceKernel = GaussianFftDeviceKernel<KernelPolicy>;
     static_assert(std::is_trivially_copyable_v<Parameters>);
 
     std::uint32_t index(
@@ -74,23 +82,32 @@ public:
             throw std::overflow_error("Gaussian FFT cache index overflow.");
         }
         const auto result = static_cast<std::uint32_t>(entries_.size());
+        reset_prepared();
         entries_.push_back({parameters, time_step, length / 2U, length});
         indices_.emplace(std::move(key), result);
         return result;
     }
 
     const std::vector<Entry>& entries() const noexcept { return entries_; }
+    void reset_prepared() noexcept {
+        prepared_workspace_ = nullptr;
+        device_descriptors_.clear();
+    }
+    std::vector<DeviceKernel>& device_descriptors() noexcept {
+        return device_descriptors_;
+    }
+    bool prepared_for(const void* workspace) const noexcept {
+        return prepared_workspace_ == workspace;
+    }
+    void mark_prepared(const void* workspace) noexcept {
+        prepared_workspace_ = workspace;
+    }
 
 private:
+    const void* prepared_workspace_ = nullptr;
+    std::vector<DeviceKernel> device_descriptors_;
     std::unordered_map<std::string, std::uint32_t> indices_;
     std::vector<Entry> entries_;
-};
-
-template<typename KernelPolicy>
-struct GaussianFftDeviceKernel {
-    typename KernelPolicy::PreparedKernel kernel{};
-    float2* spectrum = nullptr;
-    float* variances = nullptr;
 };
 
 template<typename Scenario, std::size_t MaximumSensitivities>
@@ -321,6 +338,7 @@ auto plan_gaussian_fft_node_graph(
     if (cache.entries().empty()) {
         throw std::invalid_argument("Empty Gaussian-FFT kernel cache.");
     }
+    cache.reset_prepared();
     std::size_t maximum_steps = 0U;
     std::size_t spectrum_count = 0U;
     std::size_t variance_count = 0U;
@@ -806,35 +824,42 @@ void launch_gaussian_fft_node_graph(
         mcpg::make_terminal_node_graph_workspace<NodePolicy>(
             storage, storage_bytes, execution.node_layout
         );
-    std::vector<DeviceKernel> device_descriptors(cache.entries().size());
-    auto* spectra = reinterpret_cast<float2*>(
-        base + execution.spectrum_offset
-    );
-    auto* variances = reinterpret_cast<float*>(
-        base + execution.variance_offset
-    );
-    std::size_t spectrum_cursor = 0U;
-    std::size_t variance_cursor = 0U;
-    for (std::size_t index = 0U; index < cache.entries().size(); ++index) {
-        device_descriptors[index].spectrum = spectra + spectrum_cursor;
-        device_descriptors[index].variances = variances + variance_cursor;
-        spectrum_cursor += cache.entries()[index].fft_length;
-        variance_cursor += cache.entries()[index].maximum_steps;
-    }
-    if (spectrum_cursor != execution.spectrum_capacity
-        || variance_cursor != execution.variance_capacity) {
-        throw std::invalid_argument(
-            "Gaussian-FFT cache layout changed after planning."
+    // The dataset writer launches one row per call into the same workspace.
+    // FFT spectra depend on the model and grid, not on the product row or
+    // Philox path. Prepare the complete planned cache only once.
+    auto& device_descriptors = cache.device_descriptors();
+    if (!cache.prepared_for(storage)) {
+        device_descriptors.resize(cache.entries().size());
+        auto* spectra = reinterpret_cast<float2*>(
+            base + execution.spectrum_offset
         );
+        auto* variances = reinterpret_cast<float*>(
+            base + execution.variance_offset
+        );
+        std::size_t spectrum_cursor = 0U;
+        std::size_t variance_cursor = 0U;
+        for (std::size_t index = 0U; index < cache.entries().size(); ++index) {
+            device_descriptors[index].spectrum = spectra + spectrum_cursor;
+            device_descriptors[index].variances = variances + variance_cursor;
+            spectrum_cursor += cache.entries()[index].fft_length;
+            variance_cursor += cache.entries()[index].maximum_steps;
+        }
+        if (spectrum_cursor != execution.spectrum_capacity
+            || variance_cursor != execution.variance_capacity) {
+            throw std::invalid_argument(
+                "Gaussian-FFT cache layout changed after planning."
+            );
+        }
+        check_cuda(cudaMemcpy(
+            device_cache, device_descriptors.data(),
+            device_descriptors.size() * sizeof(DeviceKernel),
+            cudaMemcpyHostToDevice
+        ), "Gaussian graph cache descriptor upload");
+        prepare_gaussian_fft_kernel_cache<
+            KernelPolicy, ModelPathPolicy, ProductPolicy
+        >(cache, device_cache);
+        cache.mark_prepared(storage);
     }
-    check_cuda(cudaMemcpy(
-        device_cache, device_descriptors.data(),
-        device_descriptors.size() * sizeof(DeviceKernel),
-        cudaMemcpyHostToDevice
-    ), "Gaussian graph cache descriptor upload");
-    prepare_gaussian_fft_kernel_cache<
-        KernelPolicy, ModelPathPolicy, ProductPolicy
-    >(cache, device_cache);
     const auto prepared_count = cache.entries().size();
     const auto output_count =
         mcpg::terminal_node_graph_output_count<Orders>(

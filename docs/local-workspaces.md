@@ -41,7 +41,7 @@ work/experiments/<asset-class>/<model>/<study-id>/
 `manifest.yaml` records the study ID, purpose, inputs, commands and output
 locations. A nested generation action may create or refer to a campaign under
 `work/generation/`; it does not make the entire experiment a generation run.
-Performance evidence remains under `artifacts/performance/`, and independent
+Performance evidence remains under `project_journal/evidence/performance/`, and independent
 price validation remains under `validation/`.
 
 The main CMake graph never discovers local experiments implicitly. A study
@@ -65,7 +65,7 @@ profilers; they are absent from the delivered build unless
 ## Publication boundary
 
 `datasets/` contains datasets only. Experiment inputs, campaign manifests,
-logs, notebooks, checkpoints and reports belong under `work/` or `artifacts/`.
+logs, notebooks, checkpoints and reports belong under `work/` or `project_journal/evidence/`.
 To retain an experimental result, give it a stable dataset ID and canonical
 catalogue `recipe.yaml`, then publish it through the normal clean-revision
 workflow. Otherwise it remains disposable.

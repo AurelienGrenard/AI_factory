@@ -89,8 +89,10 @@ class GenerationTests(unittest.TestCase):
                                        (gradient_work, "gradients", 0.1)):
             output = directory / "datasets" / f"{name}.json"
             output.parent.mkdir(parents=True)
-            output.write_text(json.dumps({"results": [
-                {"id": "000001", "outputs": {"price": value}}]}))
+            row = ({"id": "000001", "model_id": "000001", "product_id": "000001",
+                    "outputs": {"price": value}} if name == "prices" else
+                   {"model_id": "000001", "product_id": "000001", "price": value})
+            output.write_text(json.dumps({"results": [row]}))
         source = {"kind": "prices", "recipe": "catalog/prices/recipe.yaml",
                   "target": "generate_prices", "state": "complete", "inputs": ["models.json"],
                   "work": str(price_work), "dataset": "datasets/prices.json"}
@@ -108,13 +110,13 @@ class GenerationTests(unittest.TestCase):
         source["artifacts"][0]["sha256"] = digest(price_work / source["dataset"])
         output = gradient_work / gradient["dataset"]
         output.write_text(json.dumps({"results": [
-            {"id": "000001", "outputs": {"price": 0.10000000000000002}}]}))
+            {"model_id": "000001", "product_id": "000001", "price": 0.10000000000000002}]}))
         rounded = campaign.compare_matching_prices(state, gradient, gradient_work)
         self.assertEqual(rounded["different_rows"], 1)
         self.assertEqual(rounded["outside_budget_rows"], 0)
         self.assertEqual(rounded["status"], "within_budget")
         output.write_text(json.dumps({"results": [
-            {"id": "000001", "outputs": {"price": 0.2}}]}))
+            {"model_id": "000001", "product_id": "000001", "price": 0.2}]}))
         material = campaign.compare_matching_prices(state, gradient, gradient_work)
         self.assertEqual(material["outside_budget_rows"], 1)
         self.assertEqual(material["status"], "review_required")
@@ -149,23 +151,25 @@ class GenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unpublished, unamended"):
             campaign.amend_verifier(self.run, self.state, self.root / "checkout")
 
-    def test_generation_receipt_cites_verifier_amendment(self):
+    def test_generation_receipt_keeps_technical_facts_without_campaign_hashes(self):
         from tools.datasets.dataset_provenance import attach_generation
         work = self.root / "receipt_work"
         dataset = work / self.job["dataset"]
         dataset.parent.mkdir(parents=True)
         dataset.write_text(json.dumps(self.document))
+        recipe = work / self.job["recipe"]
+        recipe.parent.mkdir(parents=True)
+        recipe.write_text(yaml.safe_dump(self.recipe))
         receipt = work / self.job["generation"]
-        receipt.parent.mkdir(parents=True)
         receipt.write_text(yaml.safe_dump(self.receipt))
-        amendment = {"kind": "central_price_comparison_report_only",
-                     "controller": "tools/datasets/generate_catalog.py",
-                     "previous_sha256": "a" * 64, "sha256": "b" * 64,
-                     "snapshot": "amendments/generate_catalog-b.py"}
-        self.state["controller_amendments"] = [amendment]
+        self.state["controller_amendments"] = [{"sha256": "b" * 64}]
         attach_generation(work, self.job, self.state)
         record = yaml.safe_load(receipt.read_text())
-        self.assertEqual(record["provenance"]["controller_amendments"], [amendment])
+        self.assertEqual(record["schema_version"], 2)
+        self.assertEqual(record["artifact"]["sha256"], digest(dataset))
+        self.assertEqual(record["inputs"], {})
+        self.assertNotIn("record_sha256", record)
+        self.assertNotIn("provenance", record)
 
     def test_inventory(self):
         jobs = campaign.inventory(campaign.ROOT, {"prices", "samples"}, set(), set())
@@ -186,11 +190,20 @@ class GenerationTests(unittest.TestCase):
         self.assertTrue(all(job["paths_per_price"] == 1 << 20 for job in stochastic))
         self.assertTrue(any("/markovian/" in job["recipe"] for job in stochastic))
         self.assertTrue(any("/rough/" in job["recipe"] for job in stochastic))
-        self.assertTrue(any("/fixed_income/" in job["recipe"] for job in stochastic))
         self.assertEqual(
-            sum("zero_coupon_bond_up_and_out_calls" in job["target"] for job in stochastic),
-            13,
+            sum(job["kind"] == "price_gradients"
+                and "/equity/rough/" in job["recipe"]
+                for job in stochastic),
+            174,
         )
+        self.assertTrue(any("/fixed_income/" in job["recipe"] for job in stochastic))
+        for kind in ("prices", "price_gradients"):
+            self.assertEqual(
+                sum(job["kind"] == kind
+                    and "zero_coupon_bond_up_and_out_calls" in job["target"]
+                    for job in stochastic),
+                13,
+            )
 
     def test_price_plan_uses_recipe_path_count(self):
         inputs = self.root / "price-inputs"
@@ -386,7 +399,7 @@ class GenerationTests(unittest.TestCase):
                   (self.run / self.job["progress_journal"]).read_text().splitlines()]
         self.assertEqual(events[-1]["event"], "job_complete")
         metadata = yaml.safe_load((Path(self.job["work"]) / self.job["generation"]).read_text())
-        self.assertEqual(metadata["schema_version"], 1)
+        self.assertEqual(metadata["schema_version"], 2)
         self.assertEqual(metadata["artifact"]["sha256"], digest(Path(self.job["work"]) / self.job["dataset"]))
         self.assertFalse((self.root / self.job["dataset"]).exists())
         (Path(self.job["work"]) / self.job["dataset"]).write_text("changed")
@@ -493,17 +506,22 @@ class GenerationTests(unittest.TestCase):
 
     def test_streamed_samples(self):
         path = self.root / "samples.json"
-        job = {"rows": 2, "dataset": "samples.json", "sample_shape": [1, 2]}
-        recipe = {"maturity_sampling": {"minimum_days": 63, "maximum_days": 504}}
-        envelope = {
-            "database_id": "samples", "model_family": "Test", "catalog": "catalog/test",
-            "url": "https://datasets.ai-factory.example/test/samples.json", "row_count": 2,
-            "time_convention": {"unit": "business_day", "days_per_year": 252},
-            "timing": {"wall_seconds": 0.1, "kernel_seconds": 0.01},
-        }
-        rows = [{"id": f"{i:06d}", "parameters": {"x": 1.0}, "values": {"spot": 1.1},
-                 "maturity_days": 252, "T": 1.0} for i in (1, 2)]
-        contents = json.dumps(envelope)[:-1] + ',\n  "results": [\n'
+        job = {"rows": 2, "dataset": "samples.json", "generation": "catalog/samples/generation.yaml",
+               "sample_shape": [1, 2]}
+        recipe = {"dataset_id": "samples", "url": "https://datasets.ai-factory.example/samples.json",
+                  "shape": {"parameter_count": 1, "paths_per_parameter": 2},
+                  "maturity_sampling": {"minimum_days": 63, "maximum_days": 504}}
+        rows = [{"parameter_id": "000001", "maturity_days": 252,
+                 "values": {"spot": 1.1}} for _ in range(2)]
+        contents = '{\n'
+        contents += '  "database_id": "samples",\n'
+        contents += '  "model_family": "Test model",\n'
+        contents += '  "catalog": "catalog/samples",\n'
+        contents += '  "url": "https://datasets.ai-factory.example/samples.json",\n'
+        contents += '  "row_count": 2,\n'
+        contents += '  "parameters": [\n'
+        contents += json.dumps({"id": "000001", "values": {"x": 1.0}})
+        contents += '\n  ],\n  "results": [\n'
         contents += ",\n".join(json.dumps(row) for row in rows) + "\n  ]\n}\n"
         path.write_text(contents)
         campaign.check_samples(path, job, recipe)

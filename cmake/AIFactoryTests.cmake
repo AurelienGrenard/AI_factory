@@ -471,6 +471,12 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
+        flat_fixed_income_cuda
+        tests/price_gradients/flat_fixed_income_cuda_test.cu
+        price_gradients
+        30
+    )
+    add_cuda_workbench_test(
         hull_white_rate_options_cuda
         tests/model/fixed_income/hull_white_rate_options_cuda_test.cu
         rate_options

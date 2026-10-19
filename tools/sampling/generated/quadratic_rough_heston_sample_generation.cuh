@@ -30,13 +30,13 @@ inline std::vector<ModelParameters> generate_core_parameters(
         const float spot = uniform({1.0f, 1.0f}, uniforms);
         const float risk_free_rate = uniform({0.001f, 0.08f}, uniforms);
         const float dividend_yield = uniform({0.0f, 0.06f}, uniforms);
-        const float initial_feedback = uniform({0.03f, 0.2f}, uniforms);
-        const float quadratic_scale = uniform({0.1f, 0.8f}, uniforms);
-        const float quadratic_shift = uniform({0.02f, 0.2f}, uniforms);
-        const float variance_floor = uniform({0.0005f, 0.02f}, uniforms);
-        const float feedback_rate = uniform({0.3f, 3.0f}, uniforms);
-        const float feedback_volatility = uniform({0.3f, 2.0f}, uniforms);
-        const float hurst_exponent = uniform({0.01f, 0.2f}, uniforms);
+        const float initial_feedback = uniform({0.02f, 0.15f}, uniforms);
+        const float quadratic_scale = uniform({0.02f, 0.12f}, uniforms);
+        const float quadratic_shift = uniform({0.02f, 0.15f}, uniforms);
+        const float variance_floor = uniform({0.0005f, 0.015f}, uniforms);
+        const float feedback_rate = uniform({0.1f, 0.8f}, uniforms);
+        const float feedback_volatility = uniform({0.1f, 0.6f}, uniforms);
+        const float hurst_exponent = uniform({0.05f, 0.2f}, uniforms);
         if (!(true)) continue;
         parameters.push_back({spot, risk_free_rate, dividend_yield, initial_feedback, quadratic_scale, quadratic_shift, variance_floor, feedback_rate, feedback_volatility, hurst_exponent});
     }
@@ -87,13 +87,13 @@ inline datasets::ModelSampleRecipe recipe(
                 {"spot", {1.0f, 1.0f}},
                 {"risk_free_rate", {0.001f, 0.08f}},
                 {"dividend_yield", {0.0f, 0.06f}},
-                {"initial_feedback", {0.03f, 0.2f}},
-                {"quadratic_scale", {0.1f, 0.8f}},
-                {"quadratic_shift", {0.02f, 0.2f}},
-                {"variance_floor", {0.0005f, 0.02f}},
-                {"feedback_rate", {0.3f, 3.0f}},
-                {"feedback_volatility", {0.3f, 2.0f}},
-                {"hurst_exponent", {0.01f, 0.2f}}
+                {"initial_feedback", {0.02f, 0.15f}},
+                {"quadratic_scale", {0.02f, 0.12f}},
+                {"quadratic_shift", {0.02f, 0.15f}},
+                {"variance_floor", {0.0005f, 0.015f}},
+                {"feedback_rate", {0.1f, 0.8f}},
+                {"feedback_volatility", {0.1f, 0.6f}},
+                {"hurst_exponent", {0.05f, 0.2f}}
             }},
             {"acceptance", "true"},
             {"kernel_preparation", {

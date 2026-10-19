@@ -1,63 +1,123 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
-$id: "https://ai-factory.example/schemas/dataset-generation-v1"
-title: AI Factory dataset generation receipt
+$id: "https://ai-factory.example/schemas/dataset-generation"
+title: AI Factory dataset generation metadata
 type: object
-required:
-  - schema_version
-  - status
-  - recipe
-  - artifact
-  - execution
-  - timing
-  - record_sha256
+required: [schema_version, status, recipe, artifact]
 properties:
   schema_version:
-    const: 1
+    enum: [1, 2]
   status:
     const: complete
   recipe:
     type: object
-    required: [path, sha256]
+    required: [path]
     properties:
       path:
         type: string
         pattern: '^(?:catalog|work)/.+/recipe\.yaml$'
       sha256:
         type: string
-        pattern: "^[0-9a-f]{64}$"
-    additionalProperties: false
+        pattern: '^[0-9a-f]{64}$'
   artifact:
     type: object
     required: [row_count]
     properties:
+      path:
+        type: string
+        pattern: '^datasets/.+\.json$'
       row_count:
         type: integer
         minimum: 1
       sha256:
         type: string
-        pattern: "^[0-9a-f]{64}$"
-    additionalProperties: true
+        pattern: '^[0-9a-f]{64}$'
   inputs:
     type: object
+  environment:
+    type: object
+    required: [hardware, software]
+    properties:
+      hardware:
+        type: object
+        required: [device]
+        properties:
+          device:
+            enum: [cpu, gpu]
+      software:
+        type: object
+        required: [cmake, cxx_compiler, cuda_compiler]
+        properties:
+          cmake:
+            type: string
+          cxx_compiler:
+            type: string
+          cuda_compiler:
+            type: string
   execution:
     type: object
   timing:
     type: object
-    required: [wall_seconds, kernel_seconds]
     properties:
       wall_seconds:
-        type: [number, "null"]
+        type: [number, 'null']
         minimum: 0
       kernel_seconds:
-        type: [number, "null"]
+        type: [number, 'null']
         minimum: 0
-    additionalProperties: true
   provenance:
     type: object
   record_sha256:
     type: string
-    pattern: "^[0-9a-f]{64}$"
+    pattern: '^[0-9a-f]{64}$'
+  curation:
+    type: object
+    required: [source_sha256, removed_gradients]
+    properties:
+      source_sha256:
+        type: string
+        pattern: '^[0-9a-f]{64}$'
+      removed_gradients:
+        type: array
+        uniqueItems: true
+        items:
+          type: string
+    additionalProperties: false
 allOf:
+  - if:
+      properties:
+        schema_version:
+          const: 1
+    then:
+      required: [execution, timing, record_sha256]
+  - if:
+      properties:
+        schema_version:
+          const: 2
+    then:
+      required: [inputs, environment]
+      properties:
+        recipe:
+          not:
+            required: [sha256]
+        artifact:
+          required: [path, row_count, sha256]
+        inputs:
+          additionalProperties:
+            type: object
+            required: [path, sha256]
+            properties:
+              path:
+                type: string
+                pattern: '^datasets/.+\.json$'
+              sha256:
+                type: string
+                pattern: '^[0-9a-f]{64}$'
+            additionalProperties: false
+      not:
+        anyOf:
+          - required: [record_sha256]
+          - required: [execution]
+          - required: [provenance]
   - not:
       anyOf:
         - required: [dataset_id]
