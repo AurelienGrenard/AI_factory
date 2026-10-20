@@ -31,4 +31,4 @@ S(t;T_0,T_n)
 Product-specific schedules, sides, strikes and payoffs remain owned by
 [`src/product`](../../product/README.md). The canonical device interfaces that
 evaluate these quantities are defined by the
-[analytics contract](../../../docs/cuda/model-analytics-contract.md).
+[analytics contract](../../../project_journal/reference/cuda/model-analytics-contract.md).

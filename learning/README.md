@@ -72,7 +72,7 @@ Hessian methods compose registered loss terms over the same training engine.
 Diagonal second derivatives use exact PyTorch autograd on the published
 coordinates and are reported in raw units. The normative rules, including nested
 training subsets and fixed held-out rows, are in the
-[deep-pricing learning contract](../docs/deep-pricing-learning-contract.md).
+[deep-pricing learning contract](../project_journal/reference/deep-pricing-learning-contract.md).
 
 The complete configurable example is part of the optional local Heston study at
 `work/experiments/equity/heston/european_call_price_delta_v1/training/single_run_example/config.yaml`.

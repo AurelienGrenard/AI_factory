@@ -55,4 +55,4 @@ coefficient becomes `eta/2` in `alpha=sqrt(xi)`, which also preserves the
 exact rough-Bergomi `beta=1` limit.
 
 Related contracts: [rough-family entry point](../README.md) ·
-[pricing composition](../../../../../docs/cuda/pricing-policy-composition.md).
+[pricing composition](../../../../../project_journal/reference/cuda/pricing-policy-composition.md).

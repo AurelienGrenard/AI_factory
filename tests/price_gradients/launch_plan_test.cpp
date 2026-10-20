@@ -169,7 +169,7 @@ int main() {
                     && fixed_income.blocks_for(16U)
                         == tuning::kFixedIncomeLsmBlocksPerPrice
                     && fixed_income.profile.evidence
-                        == "docs/cuda/fixed-income-price-gradients-contract.md",
+                        == "project_journal/reference/cuda/fixed-income-price-gradients-contract.md",
                 "Fixed-income gradient planner lost native LSM geometry."
             );
             const auto fixed_income_metadata =

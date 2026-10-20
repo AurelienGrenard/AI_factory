@@ -35,4 +35,4 @@ The model follows Bayer, Friz and Gatheral (2016). The simulation follows the
 hybrid scheme of Bennedsen, Lunde and Pakkanen (2017).
 
 Related contracts: [rough-family entry point](../README.md) ·
-[pricing composition](../../../../../docs/cuda/pricing-policy-composition.md).
+[pricing composition](../../../../../project_journal/reference/cuda/pricing-policy-composition.md).

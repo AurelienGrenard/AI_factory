@@ -232,7 +232,7 @@ void run() {
     };
     const std::vector<product::AmericanOptionParameters> products{
         {1.00f, 63U, 7U},
-        {1.00f, 21U, 7U},
+        {1.00f / .15f, 21U, 7U},
         {1.10f, 20U, 7U},
     };
     const auto time = pg::TimeConfiguration{
@@ -249,8 +249,13 @@ void run() {
         );
     };
 
-    DeviceArray<heston::ModelParameters> device_models(models);
-    DeviceArray<product::AmericanOptionParameters> device_products(products);
+    // The selected plan resolves strike ratios against each central spot.
+    // The legacy price-delta launcher expects those absolute contracts.
+    const auto reference = prepare({{spot}});
+    DeviceArray<heston::ModelParameters> device_models(reference.models);
+    DeviceArray<product::AmericanOptionParameters> device_products(
+        reference.products
+    );
     DeviceArray<float> legacy(4U * rows);
 
     for (unsigned int threads : {128U, 256U}) {
@@ -263,13 +268,13 @@ void run() {
         );
         const auto delta_launch =
             heston::launch_heston_american_option_price_delta_cuda<Side>(
-                models.data(),
+                reference.models.data(),
                 device_models.data,
-                rows,
-                products.data(),
+                reference.models.size(),
+                reference.products.data(),
                 device_products.data,
-                rows,
-                PriceConstruction::Aligned,
+                reference.products.size(),
+                reference.construction,
                 rows,
                 paths,
                 time.dt,
@@ -286,25 +291,25 @@ void run() {
         longstaff_schwartz::validate_regression_diagnostics(
             delta_launch, "Heston American price-delta reference"
         );
-        const auto reference = legacy.read();
+        const auto legacy_values = legacy.read();
         for (std::size_t row = 0U; row < rows; ++row) {
             same(price_only.prices[row], selected_spot.prices[row],
                  "Empty American selection changed central price");
             same(price_only.price_errors[row], selected_spot.price_errors[row],
                  "Empty American selection changed central error");
-            same(selected_spot.prices[row], reference[row],
+            same(selected_spot.prices[row], legacy_values[row],
                  "American central price differs from price-delta");
-            same(selected_spot.price_errors[row], reference[rows + row],
+            same(selected_spot.price_errors[row], legacy_values[rows + row],
                  "American central error differs from price-delta");
             close_relative(
                 selected_spot.gradients[row],
-                reference[2U * rows + row],
+                legacy_values[2U * rows + row],
                 5.0e-6f,
                 "American selected spot gradient differs from price-delta"
             );
             close_relative(
                 selected_spot.gradient_errors[row],
-                reference[3U * rows + row],
+                legacy_values[3U * rows + row],
                 5.0e-5f,
                 "American selected spot error differs from price-delta"
             );
@@ -605,7 +610,8 @@ void run() {
         }
 
         if constexpr (Side == OptionSide::put) {
-            require(selected_spot.prices[1] == 1.0f - models[1].spot,
+            require(selected_spot.prices[1]
+                    == reference.products[1].strike - models[1].spot,
                     "American put fixture must exercise initially.");
             require(selected_spot.price_errors[1] == 0.0f
                     && selected_spot.gradient_errors[1] == 0.0f,
@@ -614,7 +620,7 @@ void run() {
             require(extended.gradients[first] == -1.0f
                     && extended.gradients[
                         first + full.sensitivities.size() - 1U
-                    ] == 1.0f,
+                    ] == models[1].spot,
                     "Initial exercise used dynamics instead of time-zero payoff.");
             for (std::size_t sensitivity = 1U;
                  sensitivity + 1U < full.sensitivities.size();

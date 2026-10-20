@@ -83,8 +83,8 @@ inline PriceGradientLaunchPlan make_price_gradient_launch_plan(
     profile.qualification = "gradient candidate; bounded resource checks, not performance-qualified";
     profile.evidence = identity.family == PricingFamily::gaussian_rate_lsm
             || identity.family == PricingFamily::terminal_forward_lsm
-        ? "docs/cuda/fixed-income-price-gradients-contract.md"
-        : "docs/cuda/equity-price-gradients-contract.md";
+        ? "project_journal/reference/cuda/fixed-income-price-gradients-contract.md"
+        : "project_journal/reference/cuda/equity-price-gradients-contract.md";
     return {
         make_pricing_launch_plan(identity, rows, paths, profile, limits),
         sensitivities

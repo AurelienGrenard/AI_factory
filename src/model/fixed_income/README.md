@@ -51,20 +51,20 @@ coordinate of these fitted models.
 
 ## Authoritative references
 
-- [Model reference index](../../../docs/model-and-curve-reference-index.md)
+- [Model reference index](../../../project_journal/reference/model-and-curve-reference-index.md)
   links every maintained mathematical note.
 - [Product entry point](../../product/README.md) explains product-owned rows,
   schedules, and pricing policies.
-- [Dynamics contract](../../../docs/cuda/model-dynamics-contract.md) and
-  [analytics contract](../../../docs/cuda/model-analytics-contract.md) define
+- [Dynamics contract](../../../project_journal/reference/cuda/model-dynamics-contract.md) and
+  [analytics contract](../../../project_journal/reference/cuda/model-analytics-contract.md) define
   common model interfaces.
 - [Shared fixed-income rate identities](../../common/fixed_income/fixed-income-rate-identities-reference.md)
   define model-independent forward and swap quantities.
-- [Correlated multi-asset short rates](../../../docs/cuda/cross-asset-stochastic-rate.md)
+- [Correlated multi-asset short rates](../../../project_journal/reference/cuda/cross-asset-stochastic-rate.md)
   explains the rate adapters and curve selection.
-- [Closed-form and Monte Carlo contract](../../../docs/cuda/closed-form-and-monte-carlo-pricing-contract.md)
+- [Closed-form and Monte Carlo contract](../../../project_journal/reference/cuda/closed-form-and-monte-carlo-pricing-contract.md)
   defines ordinary pricing composition.
-- [American and Bermudan contract](../../../docs/cuda/american-and-bermudan-pricing-contract.md)
+- [American and Bermudan contract](../../../project_journal/reference/cuda/american-and-bermudan-pricing-contract.md)
   defines early-exercise composition.
 - [Capability manifest](../../../tools/codegen/pricing_bindings/capability_manifest.py)
   is the source of truth for model, curve, product, engine, and binding support.

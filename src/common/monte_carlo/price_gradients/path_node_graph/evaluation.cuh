@@ -387,11 +387,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
             );
         };
         const auto transition_equal_horizon = [&](unsigned int interval) {
-            if constexpr (
-                requires(typename Dynamics::RandomContext& context) {
-                    Dynamics::draw_equal_horizon(context);
-                }
-            ) {
+            if constexpr (requires { Dynamics::draw_equal_horizon(random); }) {
                 Innovations innovations{};
                 if (group.local_lane == 0U) {
                     innovations = Dynamics::draw_equal_horizon(random);
@@ -403,9 +399,7 @@ __device__ __forceinline__ void evaluate_nodes_body(
                      ++slot) {
                     if (!owns[slot] || !simulates[slot]) continue;
                     Dynamics::transition(
-                        owned_dynamics[interval][slot],
-                        innovations,
-                        nullptr,
+                        owned_dynamics[interval][slot], innovations, nullptr,
                         states[slot]
                     );
                 }
@@ -498,15 +492,31 @@ __device__ __forceinline__ void evaluate_nodes_body(
                  ++observation) {
                 // Observe every grid point, and use the same per-step
                 // innovations as the scalar path evaluator.
-                transition_prepared(
-                    dynamics[0U],
-                    owned_dynamics[0U],
-                    [&](unsigned int slot) {
-                        return observation < terminal.nodes[
-                            owned_nodes[slot]
-                        ].transition_count;
-                    }
-                );
+                if constexpr (requires {
+                    Dynamics::draw_equal_horizon(random);
+                }) {
+                    node_graph_detail::simulate_coupled_variable_interval<
+                        node_capacity, Dynamics, GroupSize, NodesPerWorker
+                    >(
+                        group, random, dynamics[0U],
+                        static_cast<std::uint16_t>(node_count), 1U,
+                        [&](unsigned int node) {
+                            return observation
+                                < terminal.nodes[node].transition_count
+                                ? 1U : 0U;
+                        },
+                        owned_nodes, owns, simulates, states, group_scratch
+                    );
+                } else {
+                    transition_prepared(
+                        dynamics[0U], owned_dynamics[0U],
+                        [&](unsigned int slot) {
+                            return observation < terminal.nodes[
+                                owned_nodes[slot]
+                            ].transition_count;
+                        }
+                    );
+                }
                 observe(observation);
             }
         } else {

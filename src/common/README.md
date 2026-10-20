@@ -21,6 +21,6 @@ Top-level files own cross-cutting runtime services such as Philox, CUDA launch
 checks and diagnostics. Their public names must describe that responsibility;
 model-specific equations and product-specific rules remain in their owners.
 
-Use the [CUDA documentation map](../../docs/cuda/README.md) for normative
+Use the [CUDA documentation map](../../project_journal/reference/cuda/README.md) for normative
 interfaces. Shared mathematical notes are indexed in the
-[model and curve reference index](../../docs/model-and-curve-reference-index.md).
+[model and curve reference index](../../project_journal/reference/model-and-curve-reference-index.md).

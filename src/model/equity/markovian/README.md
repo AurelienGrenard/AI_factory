@@ -25,13 +25,13 @@ it does not copy the product matrix or generic payoff definitions.
 
 ## Authoritative references
 
-- [Model reference index](../../../../docs/model-and-curve-reference-index.md)
+- [Model reference index](../../../../project_journal/reference/model-and-curve-reference-index.md)
   links every maintained mathematical note.
 - [Product entry point](../../../product/README.md) explains product-owned
   parameters, schedules, payoffs, and policies.
-- [Dynamics contract](../../../../docs/cuda/model-dynamics-contract.md) defines
+- [Dynamics contract](../../../../project_journal/reference/cuda/model-dynamics-contract.md) defines
   the common simulation interface and Philox mapping.
-- [Pricing contract](../../../../docs/cuda/closed-form-and-monte-carlo-pricing-contract.md)
+- [Pricing contract](../../../../project_journal/reference/cuda/closed-form-and-monte-carlo-pricing-contract.md)
   defines ordinary closed-form and Monte Carlo composition.
 - [Capability manifest](../../../../tools/codegen/pricing_bindings/capability_manifest.py)
   is the source of truth for supported models, products, engines, and generated

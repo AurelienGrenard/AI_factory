@@ -125,7 +125,7 @@ inline PricingLaunchPlan make_equity_price_delta_launch_plan(
         throw std::invalid_argument("Unsupported equity price-delta launch family.");
     }
     profile.qualification = "inherited candidate; MC capped at 256 threads; not delta-tuned";
-    profile.evidence = "docs/cuda/equity-price-delta-contract.md";
+    profile.evidence = "project_journal/reference/cuda/equity-price-delta-contract.md";
     return make_pricing_launch_plan(identity, price_count, paths_per_price, profile, limits);
 }
 

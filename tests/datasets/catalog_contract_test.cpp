@@ -49,16 +49,24 @@ void validate_recipe(const std::filesystem::path& path) {
 void validate_generation(const std::filesystem::path& path) {
     const std::string generation = read_text(path);
     for (const std::string& key : {
-             "schema_version", "status", "recipe", "artifact"
+             "schema_version", "status", "inputs", "output", "hardware"
          }) {
         require(
             has_key(generation, key),
             "generation receipt lacks " + key + ": " + path.string()
         );
     }
+    require(
+        generation.find("schema_version: 4") != std::string::npos
+            && generation.find("status: complete") != std::string::npos
+            && generation.find("\n  path:") != std::string::npos
+            && generation.find("\n  sha256:") != std::string::npos,
+        "generation receipt is not a completed v4 artifact: " + path.string()
+    );
     for (const std::string& forbidden : {
-             "dataset_id", "database_id", "validation", "outputs",
-             "sensitivity", "time_grid", "price_construction"
+             "recipe", "artifact", "dataset_id", "database_id",
+             "validation", "outputs", "sensitivity", "time_grid",
+             "price_construction"
          }) {
         require(
             !has_key(generation, forbidden),
