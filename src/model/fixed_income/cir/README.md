@@ -63,7 +63,7 @@ For Bermudan swaptions, `forward_measure.cuh` supplies exact transitions under
 the last-exercise bond measure. Only exercise dates are simulated; payoffs are
 normalized by `P(0,T*) / P(t,T*)`. The product binding composes the shared LSM
 engine and a scalar-rate continuation state, with no short-rate integral.
-See the [early-exercise contract](../../../../docs/cuda/american-and-bermudan-pricing-contract.md#numéraire-terminal-pour-cir).
+See the [early-exercise contract](../../../../project_journal/reference/cuda/american-and-bermudan-pricing-contract.md#numéraire-terminal-pour-cir).
 
 | Symbol | Dataset field | Meaning |
 |---:|---|---|
@@ -122,7 +122,7 @@ launchers reject second-order requests explicitly. Small finite-difference
 bumps amplify nodal-price roundoff; an independent CIR T-forward reference
 and QuantLib cross-check established incorrect second-order outputs on both
 ordinary and stress cases. See the
-[fixed-income sensitivity contract](../../../../docs/cuda/fixed-income-price-gradients-contract.md).
+[fixed-income sensitivity contract](../../../../project_journal/reference/cuda/fixed-income-price-gradients-contract.md).
 
 ## Related contracts
 

@@ -108,7 +108,7 @@ first-order-only requests remain available to the gradient code generator for
 experiments, without owning permanent catalogue recipes. CRN aliases preserve
 price-only seeds, and production MC/LSM uses 2^20 paths.
 See the
-[implementation contract](../../../docs/cuda/equity-price-delta-contract.md).
+[implementation contract](../../../project_journal/reference/cuda/equity-price-delta-contract.md).
 `PRICE_GRADIENT_BINDING_SPECS` also declares its preparation strategy. Equity
 European terminal bindings select one of the compact device-prepared closed
 form, fixed-step MC, or exact-terminal MC templates. Heston American and CIR
@@ -178,7 +178,7 @@ from `tools/cuda/tuning_profile.hpp`, through the shared host launch planner.
 `pricing_launch_family()` derives each binding's family from its declared
 engine and dynamics. The generated `pricing_launch_families` inventory is
 consumed by `inspect_pricing_launch_plan`; it contains no tuning numbers.
-See the [launch-plan contract](../../../docs/cuda/launch-validation-and-kernel-diagnostics.md#planifier-le-pricing-du-catalogue)
+See the [launch-plan contract](../../../project_journal/reference/cuda/launch-validation-and-kernel-diagnostics.md#planifier-le-pricing-du-catalogue)
 for inspection and native memory ownership. Regeneration changes source
 recipes, not already-published datasets or their truthful historical YAML.
 

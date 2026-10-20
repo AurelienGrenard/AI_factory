@@ -25,12 +25,12 @@ document only equations and model-specific numerical choices.
 
 ## Authoritative references
 
-- [Model reference index](../../../../docs/model-and-curve-reference-index.md)
+- [Model reference index](../../../../project_journal/reference/model-and-curve-reference-index.md)
   links every maintained mathematical note.
 - [Product entry point](../../../product/README.md) explains product ownership.
-- [Pricing-policy composition](../../../../docs/cuda/pricing-policy-composition.md)
+- [Pricing-policy composition](../../../../project_journal/reference/cuda/pricing-policy-composition.md)
   distinguishes Volterra FFT and Markovian N-factor execution.
-- [Dynamics contract](../../../../docs/cuda/model-dynamics-contract.md) defines
+- [Dynamics contract](../../../../project_journal/reference/cuda/model-dynamics-contract.md) defines
   common state, time-grid, and Philox rules.
 - [Capability manifest](../../../../tools/codegen/pricing_bindings/capability_manifest.py)
   is the source of truth for available models, engines, products, and bindings.

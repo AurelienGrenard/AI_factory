@@ -11,23 +11,25 @@ in Git.
 
 ## Start here
 
-Choose the shortest path for your task:
+Choose the shortest path for your task. Links into `project_journal/` refer
+to local development notes, which are ignored by Git and absent from a fresh
+clone. Build and source guides in this repository remain available below.
 
 | Goal | Entry point |
 |---|---|
-| Use a price, Greek, SE or dataset as a reference | [Unresolved closures](docs/audit/unresolved-closures.md) and [open findings](docs/audit/response.md) |
+| Use a price, Greek, SE or dataset as a reference | [Unresolved closures](project_journal/audits/unresolved-closures.md) and [open findings](project_journal/audits/response.md) |
 | Build and run a first test | [Quick start](#quick-start) |
-| Understand CMake and the `build/` folder | [CMake build guide](docs/cmake-build-workflow.md) |
-| Understand the repository | [Documentation map](docs/README.md) |
-| Understand CUDA composition | [Pricing-policy composition](docs/cuda/pricing-policy-composition.md) |
-| Add a model, curve, product, or dataset | [Catalogue extension workflow](docs/catalog-extension-and-validation-workflow.md) |
-| Generate model parameters or product rows | [Parameter-dataset contract](docs/model-and-product-parameter-dataset-generation.md) |
-| Generate model-only samples | [Model-sample contract](docs/model-sample-dataset-generation.md) |
+| Understand CMake and the `build/` folder | [CMake build guide](project_journal/reference/cmake-build-workflow.md) |
+| Understand the repository | [Documentation map](project_journal/reference/README.md) |
+| Understand CUDA composition | [Pricing-policy composition](project_journal/reference/cuda/pricing-policy-composition.md) |
+| Add a model, curve, product, or dataset | [Catalogue extension workflow](project_journal/reference/catalog-extension-and-validation-workflow.md) |
+| Generate model parameters or product rows | [Parameter-dataset contract](project_journal/reference/model-and-product-parameter-dataset-generation.md) |
+| Generate model-only samples | [Model-sample contract](project_journal/reference/model-sample-dataset-generation.md) |
 | Train or compare deep pricers | [Learning guide](learning/README.md) |
-| Organize local studies | [Local workspaces](docs/local-workspaces.md) |
-| Run or resume price/sample generation | [Dataset-generation workflow](docs/dataset-generation-workflow.md) |
-| Validate generated prices independently | [Price-validation pipeline](docs/independent-price-validation-pipeline.md) |
-| Diagnose or tune CUDA kernels | [Kernel diagnostics](docs/cuda/launch-validation-and-kernel-diagnostics.md) and [performance protocol](docs/performance-regression-protocol.md) |
+| Organize local studies | [Local workspaces](project_journal/reference/local-workspaces.md) |
+| Run or resume price/sample generation | [Dataset-generation workflow](project_journal/reference/dataset-generation-workflow.md) |
+| Validate generated prices independently | [Price-validation pipeline](project_journal/reference/independent-price-validation-pipeline.md) |
+| Diagnose or tune CUDA kernels | [Kernel diagnostics](project_journal/reference/cuda/launch-validation-and-kernel-diagnostics.md) and [performance protocol](project_journal/reference/performance-regression-protocol.md) |
 | Modify generated bindings | [Code-generation guide](tools/codegen/pricing_bindings/README.md) |
 
 ## Capabilities
@@ -135,7 +137,7 @@ On another machine, also set `CMAKE_CUDA_COMPILER`,
 `AI_FACTORY_MATHDX_ROOT` to its CUDA 12.9/C++20/mathDx CUDA 12 installation.
 
 Before publishing tuning values for another GPU, follow the
-[performance regression protocol](docs/performance-regression-protocol.md) and
+[performance regression protocol](project_journal/reference/performance-regression-protocol.md) and
 record a separate architecture profile.
 
 ## Repository map
@@ -153,7 +155,7 @@ project_journal/  Ignored local decisions, dated reports and retained evidence
 maintainer/   Ignored reusable investigation code and reference tools
 tests/        Host, CUDA, architecture, and performance tests
 cmake/        Build ownership by runtime, catalogue, tests, and performance
-docs/         Public workflows and contracts; historical records are being moved to the local journal
+project_journal/reference/  Local development contracts and workflows; ignored by Git
 ```
 
 The reusable code under `src`, `learning`, and `tools` never depends on a
@@ -168,7 +170,7 @@ Model-product launch units live under each model's `product/` directory.
 defined by `src`.
 
 For the detailed ownership and file conventions, use the
-[documentation map](docs/README.md) rather than inferring them from this
+[documentation map](project_journal/reference/README.md) rather than inferring them from this
 summary.
 
 ## Common workflows
@@ -200,7 +202,7 @@ the generator launcher shown above, for example:
 
 The generator owns its JSON and adjacent YAML output; do not edit generated
 metadata by hand. Use the
-[catalogue extension workflow](docs/catalog-extension-and-validation-workflow.md)
+[catalogue extension workflow](project_journal/reference/catalog-extension-and-validation-workflow.md)
 for the complete publication and validation sequence.
 
 Generated pricing and sampling bindings must round-trip without a diff:
@@ -224,14 +226,14 @@ python3 tools/codegen/pricing_bindings/generate.py \
   only during explicit reference regeneration.
 
 Numerical and CUDA invariants are normative in the contracts under
-[`docs/cuda`](docs/cuda/README.md).
+[`project_journal/reference/cuda`](project_journal/reference/cuda/README.md).
 
 ## Current limitations
 
 Before using numerical outputs or datasets as references, read the
-[unresolved closures](docs/audit/unresolved-closures.md),
-[open audit findings](docs/audit/response.md) and the relevant
-[resolved contract](docs/audit/closed.md). NUM-037 and PERF-027 remain numerically unresolved despite their exclusion
+[unresolved closures](project_journal/audits/unresolved-closures.md),
+[open audit findings](project_journal/audits/response.md) and the relevant
+[resolved contract](project_journal/audits/closed.md). NUM-037 and PERF-027 remain numerically unresolved despite their exclusion
 mask or withdrawn Hessian. Accepted capability limits and tradeoffs are
 recorded with the resolved findings.
 
@@ -240,8 +242,8 @@ recorded with the resolved findings.
   launchers and recipes. Tests cover selected cases. Catalogue-wide delta
   bias and production performance still need qualification. Rough early
   exercise is not implemented.
-  See the [price-delta contract](docs/cuda/equity-price-delta-contract.md) and
-  [open audit work](docs/audit/response.md).
+  See the [price-delta contract](project_journal/reference/cuda/equity-price-delta-contract.md) and
+  [open audit work](project_journal/audits/response.md).
 - Catalogue URLs using `datasets.ai-factory.example` are placeholders until a
   production data host is configured.
 - The checked-in runtime performance baseline covers only the RTX 4090 Laptop
@@ -250,5 +252,5 @@ recorded with the resolved findings.
   available without running GPU kernels.
 
 For every substantial change, start from the relevant workflow in
-[`docs/README.md`](docs/README.md) and build only the affected targets before
+[`project_journal/reference/README.md`](project_journal/reference/README.md) and build only the affected targets before
 running the broader suites.

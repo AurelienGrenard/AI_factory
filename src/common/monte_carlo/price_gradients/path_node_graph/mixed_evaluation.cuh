@@ -290,11 +290,7 @@ __global__ void evaluate_mixed_nodes_kernel(
             );
         };
         const auto transition_equal_horizon = [&] {
-            if constexpr (
-                requires(typename Dynamics::RandomContext& context) {
-                    Dynamics::draw_equal_horizon(context);
-                }
-            ) {
+            if constexpr (requires { Dynamics::draw_equal_horizon(random); }) {
                 typename Dynamics::Innovations innovations{};
                 if (active_path && team.local_lane == 0U) {
                     innovations = Dynamics::draw_equal_horizon(random);
@@ -306,8 +302,7 @@ __global__ void evaluate_mixed_nodes_kernel(
                 for (unsigned int slot = 0U;
                      slot < NodesPerWorker;
                      ++slot) {
-                    if (!active_path
-                        || !owns[slot]
+                    if (!active_path || !owns[slot]
                         || !simulates[slot]) continue;
                     const auto node = owned_nodes[slot];
                     Dynamics::transition(
@@ -415,14 +410,34 @@ __global__ void evaluate_mixed_nodes_kernel(
                  ++observation) {
                 // Match the scalar evaluator's per-step innovations before
                 // checking the barrier at this grid point.
-                transition_prepared([&](unsigned int slot) {
-                    const auto row_node =
-                        local_row * sensitivity_graph.node_capacity
-                        + owned_nodes[slot];
-                    return observation < workspace.terminal_transition_counts[
-                        row_node
-                    ];
-                });
+                if constexpr (requires {
+                    Dynamics::draw_equal_horizon(random);
+                }) {
+                    node_graph_detail::simulate_coupled_variable_interval<
+                        node_capacity, Dynamics, TeamSize, NodesPerWorker
+                    >(
+                        team, random, dynamics, node_count, 1U,
+                        [&](unsigned int node) {
+                            const auto row_node =
+                                local_row * sensitivity_graph.node_capacity
+                                + node;
+                            return observation
+                                < workspace.terminal_transition_counts[row_node]
+                                ? 1U : 0U;
+                        },
+                        owned_nodes, owns, simulates, states,
+                        team_scratch, active_path
+                    );
+                } else {
+                    transition_prepared([&](unsigned int slot) {
+                        const auto row_node =
+                            local_row * sensitivity_graph.node_capacity
+                            + owned_nodes[slot];
+                        return observation < workspace.terminal_transition_counts[
+                            row_node
+                        ];
+                    });
+                }
                 observe(observation);
             }
         } else {

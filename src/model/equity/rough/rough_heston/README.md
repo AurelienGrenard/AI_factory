@@ -37,7 +37,7 @@ contract.
 
 ## Causal FFT experiment
 
-The [causal Volterra FFT engine](../../../../../docs/cuda/causal-volterra-fft.md)
+The [causal Volterra FFT engine](../../../../../project_journal/reference/cuda/causal-volterra-fft.md)
 provides a path-dependent convolution without an N-factor approximation. Its
 FFT result has been checked against direct convolution of the same hybrid
 Euler cell. The time-discretization bias relative to the current N-factor
@@ -90,4 +90,4 @@ capability manifest rather than from a copied list in this page.
 
 Shared schedules, product policies and runtime composition are documented by
 the [rough-family entry point](../README.md) and the
-[pricing composition](../../../../../docs/cuda/pricing-policy-composition.md).
+[pricing composition](../../../../../project_journal/reference/cuda/pricing-policy-composition.md).

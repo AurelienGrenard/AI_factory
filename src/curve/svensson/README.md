@@ -53,5 +53,5 @@ exponentiation for stable ratios. All curve values are FP32 and fast-math is
 forbidden.
 
 Related navigation: [curve catalog](../../../catalog/curve/svensson/),
-[analytics contract](../../../docs/cuda/model-analytics-contract.md), and
+[analytics contract](../../../project_journal/reference/cuda/model-analytics-contract.md), and
 [capability manifest](../../../tools/codegen/pricing_bindings/capability_manifest.py).

@@ -18,4 +18,4 @@ the curve row separate from the stochastic-model row. Supported compositions
 belong to the
 [capability manifest](../../tools/codegen/pricing_bindings/capability_manifest.py).
 Canonical analytics names and provider requirements belong to the
-[analytics contract](../../docs/cuda/model-analytics-contract.md).
+[analytics contract](../../project_journal/reference/cuda/model-analytics-contract.md).

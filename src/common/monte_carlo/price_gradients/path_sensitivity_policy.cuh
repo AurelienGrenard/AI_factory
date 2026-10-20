@@ -351,6 +351,41 @@ __device__ __forceinline__ auto evaluate_path_nodes(
             }
         );
     };
+    const auto dense_transition = [&](std::uint32_t observation) {
+        const auto participates = [&](unsigned int node) {
+            if constexpr (Row::kVariableTerminal) {
+                return simulates(node)
+                    && observation < row.input(node).step_count;
+            }
+            return simulates(node);
+        };
+        if constexpr (requires {
+            Dynamics::draw_equal_horizon(random);
+        }) {
+            // An exact-terminal adapter may draw more normals than one
+            // numerical step: use the canonical single-step stream.
+            simulate_coupled_fixed_step_nodes<NodeCapacity, Dynamics>(
+                random, row.dynamics[0U], row.node_count, 1U,
+                participates,
+                [&](unsigned int node) { return participates(node) ? 1U : 0U; },
+                [&](unsigned int node) -> typename Dynamics::State& {
+                    return states[node];
+                }
+            );
+        } else {
+            draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
+                random, row.dynamics[0U], row.node_count,
+                [&](unsigned int node, const auto& innovations) {
+                    if (participates(node)) {
+                        Dynamics::transition(
+                            row.dynamics[0U][node], innovations, nullptr,
+                            states[node]
+                        );
+                    }
+                }
+            );
+        }
+    };
     const auto observe = [&](std::uint32_t observation) {
         #pragma unroll
         for (unsigned int node = first_node;
@@ -373,22 +408,7 @@ __device__ __forceinline__ auto evaluate_path_nodes(
         for (std::uint32_t observation = 0U;
              observation < row.maximum_terminal_transitions;
              ++observation) {
-            draw_and_apply_node_innovations<NodeCapacity, Dynamics>(
-                random,
-                row.dynamics[0U],
-                row.node_count,
-                [&](unsigned int node, const auto& innovations) {
-                    if (simulates(node)
-                        && observation < row.input(node).step_count) {
-                        Dynamics::transition(
-                            row.dynamics[0U][node],
-                            innovations,
-                            nullptr,
-                            states[node]
-                        );
-                    }
-                }
-            );
+            dense_transition(observation);
             #pragma unroll
             for (unsigned int node = first_node;
                  node < NodeCapacity;
@@ -410,7 +430,7 @@ __device__ __forceinline__ auto evaluate_path_nodes(
             for (std::uint32_t observation = 0U;
                  observation < row.schedule.observation_count;
                  ++observation) {
-                transition(0U);
+                dense_transition(observation);
                 observe(observation);
             }
         } else {

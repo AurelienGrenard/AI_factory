@@ -1,7 +1,7 @@
 # CMake target ownership
 
 For a first explanation of configuration, targets, compilation and the active local
-`builds/local-cuda12-9-0-sm89/` directory, start with the [CMake build guide](../docs/cmake-build-workflow.md).
+`builds/local-cuda12-9-0-sm89/` directory, start with the [CMake build guide](../project_journal/reference/cmake-build-workflow.md).
 
 The root `CMakeLists.txt` owns project-wide configuration and CTest dashboard
 targets, then includes these domain modules. Product target registration and
@@ -30,7 +30,7 @@ ctest --test-dir builds/local-cuda12-9-0-sm89 -N
 
 Generated CMake files are updated through the
 [pricing and sampling code generator](../tools/codegen/pricing_bindings/README.md).
-The [catalogue extension workflow](../docs/catalog-extension-and-validation-workflow.md)
+The [catalogue extension workflow](../project_journal/reference/catalog-extension-and-validation-workflow.md)
 identifies which module and aggregate targets an extension must update.
 
 Maintainer-only benchmarks, audits, and independent references are absent from

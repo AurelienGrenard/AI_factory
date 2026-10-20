@@ -179,7 +179,7 @@ struct PricingProfile {
     std::size_t blocks_per_price = 0U;
     std::size_t path_chunk_size = 0U;
     std::string_view qualification = "reference_default_not_pair_qualified";
-    std::string_view evidence = "docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md";
+    std::string_view evidence = "project_journal/performance/pricing-workload-scaling-sm89-2026-09-07.md";
 };
 
 // Only host-side choices live here. Existing kernels retain their arithmetic.
@@ -192,7 +192,7 @@ inline PricingProfile pricing_profile(PricingIdentity identity, std::size_t pric
         profile.threads_per_block = kAnalyticalThreadsPerBlock;
         profile.block_count_limit = 0U;  // Dense grid.
         profile.prices_per_launch = 0U;  // Caller count, no artificial cap.
-        profile.evidence = "docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md";
+        profile.evidence = "project_journal/performance/closed-form-price-count-scaling-sm89-2026-09-06.md";
         break;
     case PricingFamily::jamshidian:
         profile.distribution = identity.model == "cir"
@@ -201,7 +201,7 @@ inline PricingProfile pricing_profile(PricingIdentity identity, std::size_t pric
             ? 128U : kAnalyticalThreadsPerBlock;
         profile.block_count_limit = 0U;
         profile.prices_per_launch = 0U;
-        profile.evidence = "docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md";
+        profile.evidence = "project_journal/performance/jamshidian-strategy-scaling-sm89-2026-09-08.md";
         // The NUM-021 root correction is qualified numerically. Keep the
         // native geometry until timings of the corrected implementation are confirmed.
         if (identity.model == "cir" || identity.model == "vasicek") {
@@ -231,7 +231,7 @@ inline PricingProfile pricing_profile(PricingIdentity identity, std::size_t pric
     case PricingFamily::fixed_income_mc:
         profile.threads_per_block = kMarkovianCompactThreadsPerBlock;
         profile.prices_per_launch = 256U;
-        profile.evidence = "docs/performance-reports/g2-european-swaption-monte-carlo-sm89-2026-09-08.md";
+        profile.evidence = "project_journal/performance/g2-european-swaption-monte-carlo-sm89-2026-09-08.md";
         break;
     case PricingFamily::equity_lsm:
     case PricingFamily::gaussian_rate_lsm:
@@ -243,7 +243,7 @@ inline PricingProfile pricing_profile(PricingIdentity identity, std::size_t pric
         profile.block_count_limit = 0U;
         profile.prices_per_launch = 0U;  // Owned by the native VRAM planner.
         if (identity.family == PricingFamily::terminal_forward_lsm)
-            profile.evidence = "docs/performance-reports/cir-forward-measure-comparison-sm89-2026-09-08.md";
+            profile.evidence = "project_journal/performance/cir-forward-measure-comparison-sm89-2026-09-08.md";
         break;
     case PricingFamily::rough_n_factor:
         profile.threads_per_block = kNFactorThreadsPerBlock;
