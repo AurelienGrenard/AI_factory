@@ -1,21 +1,20 @@
 # Tableau de bord de l'audit principal
 
 Référentiel courant : **v10.2 — 2026-10-20**. Dernier passage :
-[revue statique ciblée des axes II et III sur le moteur multi-actifs](history/architecture-multi-asset-2026-10-20.md),
-branche main, commit 0c9dace1, arbre propre avant rédaction. Matériel observé :
-RTX 4090 Laptop SM89 ; nvcc 13.3.73 ; CMake 3.22.1. Aucun test, build,
-prix ou profil GPU n'a été exécuté pour ce passage. Les verdicts des autres
-axes restent ceux du passage v10.1 ; les preuves historiques sont dans
-[véracité](history/truth-before-hygiene-2026-10-06.md) et
-[architecture](history/architecture-complete-before-truth-2026-10-06.md).
+[reprise de l'audit des axes II et III du src](history/architecture-src-reprise-2026-10-20.md),
+issue du commit main 050d759d464d39f091da66959eca362ad2b86db0,
+arbre propre avant rédaction. Inspection statique des chemins prix, samples,
+dérivées, multi-actifs, rough, taux, produits, courbes et codegen. Aucun test,
+build, prix ni profil GPU n'a été exécuté. Les autres axes gardent leurs
+verdicts antérieurs.
 
 ## Verdict et portée
 
 | Axe | Couverture courante | Verdict | Motif |
 |---|---|---|---|
-| I. Véracité | produit fixed income à barrière qualifié ; signaux rough rejoués ; portée de l’erreur LSM explicitée | non conforme | `PRODUCT-001`, `NUM-029`, `NUM-036` réglés ; `NUM-037` clos administrativement mais non résolu ; `NUM-028`, `NUM-030` et validation externe ouverts |
-| II. Factorisation | dynamics, samples, prix, dérivées et moteur multi-actifs examinés statiquement | non conforme dans le périmètre | `FACTOR-006` et `FACTOR-007` ouverts ; pas de certification du GPU |
-| III. Arborescence et lisibilité | frontières, parcours de découverte, catalogue et noms du multi-actif examinés | non conforme dans le périmètre | `BOUNDARY-009` ouvert ; les parcours mono historiques restent valables |
+| I. Véracité | ancien périmètre numérique inchangé ; cohérence des taux d'une recette multi-actifs contrôlée statiquement | non conforme | PRODUCT-001, NUM-029 et NUM-036 réglés ; NUM-037 clos administrativement mais non résolu ; NUM-028, NUM-030 et FACTOR-010 ouverts ; validation externe toujours requise |
+| II. Factorisation | unités architecturales du src et recettes multi-actifs revues statiquement | non conforme | FACTOR-006 à FACTOR-010 ouverts ; aucune qualification GPU nouvelle |
+| III. Arborescence et lisibilité | frontières, owners, includes et parcours prix/samples/dérivées/multi revus | non conforme | BOUNDARY-009 et dispersion du planner FACTOR-009 ; les parcours mono historiques restent valables |
 | IV. Performance | comparaisons A/B SM89/CUDA 12.9 complètes ; compromis PERF-024 accepté hors gate | non conforme | `PERF-025` et `PERF-026` ouverts ; aucun gate pour le profil courant |
 | V. CMake | dry-run de fraîcheur seulement | indéterminé | pas de matrice d'incrémentalité |
 | VI. Hygiène et artefacts | dépôt suivi, codegen, builds et racines locales vérifiés ; rétention des preuves classée | conforme | `DOC-004` clos : Quick start autonome et scripts PPTI privés ignorés |
@@ -29,19 +28,20 @@ ont un compromis accepté ou un contrat borné documenté dans
 
 Le verdict VI conserve les contrôles réussis : aucune bibliothèque, aucun exécutable, objet, cache Python ou checkpoint n'est suivi par Git dans les 5 846 entrées inspectées. Trois notebooks suivis ont une fonction de validation ou de rapport. Huit rapports de performance suivis contiennent des chemins absolus historiques ; [la politique locale](../local-artifacts.md) les classe comme références anciennes, sans en faire des commandes actuelles.
 
-## Revue de l'architecture multi-actifs — 2026-10-20
+## Reprise de l'audit d'architecture — 2026-10-20
 
-Trois constats ouverts dans [response.md](response.md) : `FACTOR-006`
-(contrat d'injection du taux implicite et ordonnancement recopié),
-`FACTOR-007` (scans rough homogène et hétérogène dupliqués) et
-`BOUNDARY-009` (exception Range Accrual sous `src/common`). La dynamique
-modèle, les policies produit, le tirage corrélé et les préparations FFT ont
-un propriétaire cohérent. Les kernels prix, gradients, Hessiennes et
-cross-asset portent des topologies différentes ; aucune fusion générale
-n'est justifiée. Les deux scans rough ne seront fusionnés qu'après contrôle
-de parité et mesure GPU. Le [rapport dédié](history/architecture-multi-asset-2026-10-20.md)
-détaille graphe, comparaisons et exercices d'extension. Cette revue ne
-certifie ni résultats numériques, ni vitesse, ni CMake complet.
+Six constats architecturaux restent ouverts dans [response.md](response.md) :
+FACTOR-006 (contrat implicite d'injection du taux), FACTOR-007 (deux scans
+rough voisins), FACTOR-008 (formules rough hybrides recopiées), FACTOR-009
+(planning de graphes de sensibilités dupliqué), FACTOR-010 (taux incohérents
+dans une recette de panier) et BOUNDARY-009 (exception Range Accrual dans
+common). Trois sont nouveaux dans cette reprise ; aucun n'a été résolu.
+La [revue ciblée multi-actifs](history/architecture-multi-asset-2026-10-20.md)
+reste l'état initial, et le [rapport de reprise](history/architecture-src-reprise-2026-10-20.md)
+documente les contrôles complémentaires sur le src. Les kernels prix,
+samples et graphes de dérivées ont des sorties et topologies différentes ;
+une fusion générale n'est pas étayée. Le défaut de taux est établi sur les
+entrées actuelles, sans recalculer ni qualifier les prix déjà publiés.
 
 ## Sélection du catalogue source — 2026-10-07 (étape fixed income)
 
