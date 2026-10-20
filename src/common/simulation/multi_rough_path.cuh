@@ -1,6 +1,7 @@
 // Compile-time composition of heterogeneous rough spot policies.
 #pragma once
 
+#include "common/simulation/concepts.cuh"
 #include "common/simulation/correlated_brownian.cuh"
 #include "common/volterra/causal_fft_core.cuh"
 
@@ -66,7 +67,7 @@ struct MultiRoughPack<Head,Tail...> {
     ) {
         const auto& parameters=input.models[input.scenario_indices[scenario]];
         output.model=Head::prepare_model(parameters,dt);
-        output.nominal_rate_dt=parameters.risk_free_rate*dt;
+        output.nominal_rate_dt=Head::nominal_rate_step(parameters,dt);
         Rest::prepare(output.tail,input.tail,scenario,dt);
     }
 
@@ -116,19 +117,20 @@ struct MultiRoughPack<Head,Tail...> {
         const CorrelatedBrownianStep<Dimension,TeamSize>& brownian,
         float* log_spots,float rate_integral_step,unsigned lane=0U
     ) {
+        static_assert(RateAdjustedRoughSpotPolicy<Head>,
+            "Rough spot policy must declare nominal_rate_step and "
+            "advance_spot_cell_with_rate for cross-asset pricing.");
         constexpr std::size_t factor=Head::kBrownianDimension==1U
             ? AssetOffset : RoughCount+MarkovAndRateFactors+SpotOffset;
         const float shock=brownian.get(factor,lane);
         if(AssetOffset%TeamSize==lane) {
             const float variance=volatility_path[
                 AssetOffset*path_count*steps+slot];
-            auto adjusted=prepared.model;
-            const float shift=rate_integral_step-prepared.nominal_rate_dt;
-            if constexpr (requires { adjusted.drift_time_step; })
-                adjusted.drift_time_step+=shift;
-            else adjusted.drift_dt+=shift;
-            Head::advance_spot_cell(adjusted,variance,
-                shock,log_spots[AssetOffset]);
+            const float carry_shift =
+                rate_integral_step - prepared.nominal_rate_dt;
+            Head::advance_spot_cell_with_rate(
+                prepared.model, variance, shock,
+                log_spots[AssetOffset], carry_shift);
         }
         if constexpr (Rest::kAssetCount>0U)
             Rest::template advance_spots_with_rate<
@@ -151,6 +153,91 @@ struct MultiRoughPack<Head,Tail...> {
             Rest::append_factor_names(external,
                 offset+Head::kBrownianDimension,
                 variance_names,spot_names);
+    }
+};
+
+
+template<typename RoughPolicy, std::size_t Count>
+struct HomogeneousRoughPack {
+    static_assert(Count > 0U);
+    static_assert(RoughPolicy::kBrownianDimension == 1U
+        || RoughPolicy::kBrownianDimension == 2U);
+    static constexpr std::size_t kAssetCount = Count;
+    static constexpr std::size_t kFactorCount =
+        Count * RoughPolicy::kBrownianDimension;
+    static constexpr std::size_t kTwoFactorCount =
+        RoughPolicy::kBrownianDimension == 2U ? Count : 0U;
+    static constexpr bool kAllCausal =
+        requires { typename RoughPolicy::VolatilityState; };
+
+    struct Inputs {
+        const typename RoughPolicy::Parameters* models;
+        const std::uint32_t* scenario_indices;
+    };
+    struct Prepared {
+        typename RoughPolicy::PreparedModel model[Count];
+    };
+
+    __device__ static void prepare(
+        Prepared& output, const Inputs& input,
+        std::uint32_t scenario, float dt
+    ) {
+        for (std::size_t asset = 0U; asset < Count; ++asset) {
+            const auto index =
+                input.scenario_indices[scenario * Count + asset];
+            output.model[asset] =
+                RoughPolicy::prepare_model(input.models[index], dt);
+        }
+    }
+
+    static void append_factor_names(
+        const std::vector<std::string>& external, std::size_t offset,
+        std::vector<std::string>& variance_names,
+        std::vector<std::string>& spot_names
+    ) {
+        for (std::size_t asset = 0U; asset < Count; ++asset) {
+            const auto first = offset
+                + asset * RoughPolicy::kBrownianDimension;
+            variance_names.push_back(external[
+                first + (RoughPolicy::kBrownianDimension == 2U ? 1U : 0U)]);
+            if constexpr (RoughPolicy::kBrownianDimension == 2U) {
+                spot_names.push_back(external[first]);
+            }
+        }
+    }
+
+    template<std::size_t = 0U>
+    __device__ static void initial_logs(
+        float* logs, float* initial, const Prepared& prepared
+    ) {
+        for (std::size_t asset = 0U; asset < Count; ++asset) {
+            logs[asset] = prepared.model[asset].initial_log_spot;
+            initial[asset] = logs[asset];
+        }
+    }
+
+    template<std::size_t Dimension, std::size_t RoughCount,
+             std::size_t MarkovFactors, unsigned TeamSize = 1U>
+    __device__ static void advance_spots(
+        const Prepared& prepared, const float* volatility_path,
+        std::size_t path_count, std::uint32_t steps, std::size_t slot,
+        const CorrelatedBrownianStep<Dimension, TeamSize>& brownian,
+        float* log_spots, unsigned lane = 0U
+    ) {
+        static_assert(RoughCount == Count);
+        constexpr std::size_t spot_offset =
+            RoughPolicy::kBrownianDimension == 1U
+                ? 0U : Count + MarkovFactors;
+        for (std::size_t asset = 0U; asset < Count; ++asset) {
+            const float shock = brownian.get(spot_offset + asset, lane);
+            if (asset % TeamSize == lane) {
+                const float variance = volatility_path[
+                    asset * path_count * steps + slot];
+                RoughPolicy::advance_spot_cell(
+                    prepared.model[asset], variance,
+                    shock, log_spots[asset]);
+            }
+        }
     }
 };
 

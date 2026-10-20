@@ -22,67 +22,6 @@ target_link_libraries(generate_worst_of_calls_01 PRIVATE
 )
 add_dependencies(parameter_generators generate_worst_of_calls_01)
 
-add_executable(generate_correlation_matrices_01 EXCLUDE_FROM_ALL
-    catalog/correlation/correlation_matrices_01/generator.cpp
-)
-target_link_libraries(generate_correlation_matrices_01 PRIVATE
-    ai_factory_artifact_io ai_factory_correlation_dataset
-)
-
-set_source_files_properties(
-    catalog/multi_asset/worst_of_call/bs2_worst_of_calls_01/generator.cpp
-    PROPERTIES LANGUAGE CUDA
-)
-add_executable(generate_bs2_worst_of_calls_01 EXCLUDE_FROM_ALL
-    catalog/multi_asset/worst_of_call/bs2_worst_of_calls_01/generator.cpp
-)
-target_include_directories(generate_bs2_worst_of_calls_01 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-target_link_libraries(generate_bs2_worst_of_calls_01 PRIVATE
-    ai_factory_equity_black_scholes_dataset
-    ai_factory_product_worst_of_call_dataset
-    ai_factory_correlation_dataset
-    ai_factory_multi_asset_price_dataset
-    ai_factory_cuda_tuning
-)
-set_target_properties(generate_bs2_worst_of_calls_01 PROPERTIES
-    CUDA_STANDARD 20 CUDA_STANDARD_REQUIRED YES
-)
-add_dependencies(price_generators generate_bs2_worst_of_calls_01)
-
-add_executable(generate_bs_rough_heston_matrices_01 EXCLUDE_FROM_ALL
-    catalog/correlation/bs_rough_heston_matrices_01/generator.cpp
-)
-target_link_libraries(generate_bs_rough_heston_matrices_01 PRIVATE
-    ai_factory_artifact_io ai_factory_correlation_dataset
-)
-
-set_source_files_properties(
-    catalog/multi_asset/worst_of_call/bs_rough_heston_worst_of_calls_01/generator.cpp
-    PROPERTIES LANGUAGE CUDA
-)
-add_executable(generate_bs_rough_heston_worst_of_calls_01 EXCLUDE_FROM_ALL
-    catalog/multi_asset/worst_of_call/bs_rough_heston_worst_of_calls_01/generator.cpp
-)
-target_include_directories(generate_bs_rough_heston_worst_of_calls_01 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-target_link_libraries(generate_bs_rough_heston_worst_of_calls_01 PRIVATE
-    ai_factory_equity_black_scholes_dataset
-    ai_factory_equity_rough_heston_dataset
-    ai_factory_product_worst_of_call_dataset
-    ai_factory_correlation_dataset
-    ai_factory_multi_asset_price_dataset
-    ai_factory_causal_fft
-)
-set_target_properties(generate_bs_rough_heston_worst_of_calls_01 PROPERTIES
-    CUDA_STANDARD 20 CUDA_STANDARD_REQUIRED YES
-)
-add_dependencies(price_generators generate_bs_rough_heston_worst_of_calls_01)
-
 # Factorized scenarios reuse model loaders and the existing correlated kernels.
 ai_factory_add_dataset_library(
     ai_factory_fixed_income_constant_rate_dataset
@@ -128,34 +67,7 @@ foreach(factor_model IN ITEMS
     add_dependencies(parameter_generators ${factor_target})
 endforeach()
 
-add_executable(generate_bs_heston_vasicek_matrices_01 EXCLUDE_FROM_ALL
-    catalog/correlation/bs_heston_vasicek_matrices_01/generator.cpp
-)
-target_link_libraries(generate_bs_heston_vasicek_matrices_01 PRIVATE
-    ai_factory_artifact_io ai_factory_correlation_dataset
-)
-
-set_source_files_properties(
-    catalog/multi_asset/worst_of_call/bs_heston_vasicek_worst_of_calls_01/generator.cpp
-    PROPERTIES LANGUAGE CUDA
-)
-add_executable(generate_bs_heston_vasicek_worst_of_calls_01 EXCLUDE_FROM_ALL
-    catalog/multi_asset/worst_of_call/bs_heston_vasicek_worst_of_calls_01/generator.cpp
-)
-target_include_directories(generate_bs_heston_vasicek_worst_of_calls_01 PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-target_link_libraries(generate_bs_heston_vasicek_worst_of_calls_01 PRIVATE
-    ai_factory_equity_black_scholes_dataset
-    ai_factory_equity_heston_dataset
-    ai_factory_fixed_income_vasicek_dataset
-    ai_factory_product_worst_of_call_dataset
-    ai_factory_correlation_dataset
-    ai_factory_multi_asset_price_dataset
-    ai_factory_causal_fft
-)
-set_target_properties(generate_bs_heston_vasicek_worst_of_calls_01 PROPERTIES
-    CUDA_STANDARD 20 CUDA_STANDARD_REQUIRED YES
-)
-add_dependencies(price_generators generate_bs_heston_vasicek_worst_of_calls_01)
+# Local experiments are present only in a developer work directory.
+if(EXISTS "${CMAKE_SOURCE_DIR}/work/cmake/AIFactoryMultiAssetExperiments.cmake")
+    include("${CMAKE_SOURCE_DIR}/work/cmake/AIFactoryMultiAssetExperiments.cmake")
+endif()

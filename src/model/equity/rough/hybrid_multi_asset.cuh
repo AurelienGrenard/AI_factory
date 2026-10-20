@@ -1,7 +1,6 @@
 // The four Gaussian-Volterra equity models share the same correlated FFT scan.
 #pragma once
 
-#include "common/equity/absorbing_lamperti.cuh"
 #include "common/volterra/fractional_hybrid_kernel.cuh"
 #include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
 #include "common/volterra/log_modulated_hybrid_kernel.cuh"
@@ -31,20 +30,33 @@ struct HybridPolicy<rough_bergomi::PathPolicy> {
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
     }
+    __device__ static float nominal_rate_step(
+        const Parameters& parameters, float dt
+    ) {
+        return parameters.risk_free_rate * dt;
+    }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.initial_variance;
     }
     __device__ static float map_volatility(
-        const PreparedModel& p,float value,float variance
+        const PreparedModel& model, float value, float variance
     ) {
-        return expf(p.log_initial_variance+p.eta*value
-                    -p.half_eta_squared*variance);
+        return rough_bergomi::map_volatility(model, value, variance);
+    }
+    __device__ static void advance_spot_cell_with_rate(
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot, float carry_shift
+    ) {
+        auto adjusted = model;
+        adjusted.drift_time_step += carry_shift;
+        rough_bergomi::advance_spot_cell(
+            adjusted, volatility, normal, log_spot);
     }
     __device__ static void advance_spot_cell(
-        const PreparedModel& p,float variance,float normal,float& log_spot
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot
     ) {
-        log_spot=fmaf(sqrtf(variance)*p.sqrt_time_step,normal,
-            log_spot+p.drift_time_step-0.5f*variance*p.time_step);
+        rough_bergomi::advance_spot_cell(model, volatility, normal, log_spot);
     }
 };
 
@@ -62,20 +74,35 @@ struct HybridPolicy<log_modulated_rough_bergomi::PathPolicy> {
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
     }
+    __device__ static float nominal_rate_step(
+        const Parameters& parameters, float dt
+    ) {
+        return parameters.risk_free_rate * dt;
+    }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.initial_variance;
     }
     __device__ static float map_volatility(
-        const PreparedModel& p,float value,float variance
+        const PreparedModel& model, float value, float variance
     ) {
-        return expf(p.log_initial_variance+p.eta*value
-                    -p.half_eta_squared*variance);
+        return log_modulated_rough_bergomi::map_volatility(
+            model, value, variance);
+    }
+    __device__ static void advance_spot_cell_with_rate(
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot, float carry_shift
+    ) {
+        auto adjusted = model;
+        adjusted.drift_time_step += carry_shift;
+        log_modulated_rough_bergomi::advance_spot_cell(
+            adjusted, volatility, normal, log_spot);
     }
     __device__ static void advance_spot_cell(
-        const PreparedModel& p,float variance,float normal,float& log_spot
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot
     ) {
-        log_spot=fmaf(sqrtf(variance)*p.sqrt_time_step,normal,
-            log_spot+p.drift_time_step-0.5f*variance*p.time_step);
+        log_modulated_rough_bergomi::advance_spot_cell(
+            model, volatility, normal, log_spot);
     }
 };
 
@@ -93,27 +120,33 @@ struct HybridPolicy<rough_sabr::PathPolicy> {
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
     }
+    __device__ static float nominal_rate_step(
+        const Parameters& parameters, float dt
+    ) {
+        return parameters.risk_free_rate * dt;
+    }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.initial_volatility;
     }
     __device__ static float map_volatility(
-        const PreparedModel& p,float value,float variance
+        const PreparedModel& model, float value, float variance
     ) {
-        return expf(p.log_initial_volatility+p.half_eta*value
-                    -p.quarter_eta_squared*variance);
+        return rough_sabr::map_volatility(model, value, variance);
+    }
+    __device__ static void advance_spot_cell_with_rate(
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot, float carry_shift
+    ) {
+        auto adjusted = model;
+        adjusted.drift_time_step += carry_shift;
+        rough_sabr::advance_spot_cell(
+            adjusted, volatility, normal, log_spot);
     }
     __device__ static void advance_spot_cell(
-        const PreparedModel& p,float volatility,float normal,float& log_spot
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot
     ) {
-        if (p.one_minus_beta<1.0e-4f) {
-            log_spot+=p.drift_time_step
-                -0.5f*volatility*volatility*p.time_step
-                +volatility*p.sqrt_time_step*normal;
-        } else {
-            ::ai_factory::workbench::equity::advance_absorbing_lamperti_log_spot(
-                p.beta,p.one_minus_beta,p.drift_time_step,p.time_step,
-                p.sqrt_time_step,volatility,normal,log_spot);
-        }
+        rough_sabr::advance_spot_cell(model, volatility, normal, log_spot);
     }
 };
 
@@ -131,20 +164,34 @@ struct HybridPolicy<rough_stein_stein::PathPolicy> {
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
     }
+    __device__ static float nominal_rate_step(
+        const Parameters& parameters, float dt
+    ) {
+        return parameters.risk_free_rate * dt;
+    }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.volatility_level;
     }
     __device__ static float map_volatility(
-        const PreparedModel& p,float value,float
+        const PreparedModel& model, float value, float variance
     ) {
-        return p.volatility_level+p.volatility_of_volatility*value;
+        return rough_stein_stein::map_volatility(model, value, variance);
+    }
+    __device__ static void advance_spot_cell_with_rate(
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot, float carry_shift
+    ) {
+        auto adjusted = model;
+        adjusted.drift_time_step += carry_shift;
+        rough_stein_stein::advance_spot_cell(
+            adjusted, volatility, normal, log_spot);
     }
     __device__ static void advance_spot_cell(
-        const PreparedModel& p,float volatility,float normal,float& log_spot
+        const PreparedModel& model, float volatility,
+        float normal, float& log_spot
     ) {
-        log_spot=fmaf(volatility*p.sqrt_time_step,normal,
-            log_spot+p.drift_time_step
-                -0.5f*volatility*volatility*p.time_step);
+        rough_stein_stein::advance_spot_cell(
+            model, volatility, normal, log_spot);
     }
 };
 

@@ -3,7 +3,6 @@
 
 #include "common/price_construction.cuh"
 #include "common/result_index.cuh"
-#include "product/range_accrual/parameters.hpp"
 
 #include <cmath>
 #include <algorithm>
@@ -11,16 +10,22 @@
 #include <stdexcept>
 #include <span>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
 namespace ai_factory::workbench::equity::spot_relative {
 
-// Only the range-accrual barriers are already interpreted as S(t)/S(0).
-// Forward-start moneyness and cliquet returns are also already relative.
+// Products with intrinsic ratios declare their own quote convention.
+template<typename Product>
+inline constexpr bool kAlreadyRelativePriceLevels = [] {
+    if constexpr (requires { Product::kAlreadyRelativePriceLevels; }) {
+        return Product::kAlreadyRelativePriceLevels;
+    }
+    return false;
+}();
+
 template<typename Product>
 constexpr bool is_quoted_coordinate(std::string_view name) {
-    if constexpr (std::is_same_v<Product, product::RangeAccrualParameters>) {
+    if constexpr (kAlreadyRelativePriceLevels<Product>) {
         return false;
     }
     return name == "product.strike"
@@ -36,7 +41,7 @@ constexpr bool is_quoted_coordinate(std::string_view name) {
 
 template<typename Product>
 inline constexpr bool kNeedsSpotResolution =
-    !std::is_same_v<Product, product::RangeAccrualParameters>
+    !kAlreadyRelativePriceLevels<Product>
     && (requires(Product value) { value.strike; }
         || requires(Product value) { value.trigger_strike; }
         || requires(Product value) { value.barrier; }
@@ -63,7 +68,7 @@ Product resolve_product(const Product& quote, float reference_spot) {
         result.payoff_strike = level(quote.payoff_strike);
     if constexpr (requires { result.barrier; }) result.barrier = level(quote.barrier);
     if constexpr (requires { result.lower_barrier; result.upper_barrier; }) {
-        if constexpr (!std::is_same_v<Product, product::RangeAccrualParameters>) {
+        if constexpr (!kAlreadyRelativePriceLevels<Product>) {
             result.lower_barrier = level(quote.lower_barrier);
             result.upper_barrier = level(quote.upper_barrier);
         }

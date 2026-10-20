@@ -40,6 +40,30 @@ __device__ __forceinline__ State initial_state(
     };
 }
 
+__device__ __forceinline__ float map_volatility(
+    const PreparedModel& model, float value, float variance
+) {
+    return expf(
+        model.log_initial_volatility + model.half_eta * value
+        - model.quarter_eta_squared * variance);
+}
+
+__device__ __forceinline__ void advance_spot_cell(
+    const PreparedModel& model, float volatility, float normal,
+    float& log_spot
+) {
+    if (model.one_minus_beta < 1.0e-4f) {
+        log_spot += model.drift_time_step
+            - 0.5f * volatility * volatility * model.time_step
+            + volatility * model.sqrt_time_step * normal;
+    } else {
+        ::ai_factory::workbench::equity::advance_absorbing_lamperti_log_spot(
+            model.beta, model.one_minus_beta, model.drift_time_step,
+            model.time_step, model.sqrt_time_step, volatility, normal,
+            log_spot);
+    }
+}
+
 __device__ __forceinline__ void advance(
     const PreparedModel& prepared_model,
     float volterra_value,
@@ -53,30 +77,10 @@ __device__ __forceinline__ void advance(
         rough_normal,
         prepared_model.orthogonal_correlation * independent_spot_normal
     );
-    if (prepared_model.one_minus_beta < 1.0e-4f) {
-        state.log_spot +=
-            prepared_model.drift_time_step
-            - 0.5f * state.volatility * state.volatility
-                * prepared_model.time_step
-            + state.volatility * prepared_model.sqrt_time_step
-                * correlated_normal;
-    } else {
-        ::ai_factory::workbench::equity::advance_absorbing_lamperti_log_spot(
-            prepared_model.beta,
-            prepared_model.one_minus_beta,
-            prepared_model.drift_time_step,
-            prepared_model.time_step,
-            prepared_model.sqrt_time_step,
-            state.volatility,
-            correlated_normal,
-            state.log_spot
-        );
-    }
-    state.volatility = expf(
-        prepared_model.log_initial_volatility
-        + prepared_model.half_eta * volterra_value
-        - prepared_model.quarter_eta_squared * volterra_variance
-    );
+    advance_spot_cell(prepared_model, state.volatility,
+                      correlated_normal, state.log_spot);
+    state.volatility = map_volatility(
+        prepared_model, volterra_value, volterra_variance);
 }
 
 __device__ __forceinline__ float PathPolicy::kernel_parameters(

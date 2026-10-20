@@ -1,6 +1,7 @@
 // Large factor-count mixed path: one rough Heston and 30 BS positions.
 #include "common/check_cuda.cuh"
 #include "common/monte_carlo/multi_asset_rough_kernel.cuh"
+#include "common/volterra/causal_fft_volatility.cuh"
 #include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
 #include "model/equity/rough/rough_heston/causal_fft_dynamics.cuh"
 #include "product/worst_of_call/pricing_policy.cuh"

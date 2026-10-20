@@ -81,8 +81,7 @@ la grille. Le produit reçoit ensuite les observations de la trajectoire.
 
 ## Recette pilote
 
-La recette
-[`bs2_worst_of_calls_01`](../../catalog/multi_asset/worst_of_call/bs2_worst_of_calls_01/recipe.yaml)
+Le prototype local `bs2_worst_of_calls_01`, rangé sous `work/catalog/multi_asset`,
 utilise deux positions Black-Scholes, le produit worst-of et une matrice de
 corrélation 2 × 2. Sa sortie porte les identifiants ordonnés `model_ids`,
 `product_id`, `correlation_id`, le prix et son erreur standard. Une courbe peut
@@ -100,9 +99,10 @@ cmake --build builds/local-cuda12-9-0-sm89 --target test_multi_asset_cuda
 ctest --test-dir builds/local-cuda12-9-0-sm89 -R '^multi_asset_cuda$' --output-on-failure
 ```
 
-Le lanceur génère au besoin les entrées produit et corrélation dans son dossier
-isolé, puis enrichit les trois reçus de provenance. Ces recettes sont
-inventoriées comme non publiées dans `catalog/manifest.json`.
+Ces recettes et matrices pilotes résident uniquement dans work/catalog et
+work/datasets. Elles sont absentes du catalogue livré et du dépôt distant ;
+les commandes de génération ne s'appliquent qu'à un espace de travail qui
+contient ces prototypes locaux.
 
 ## Mélange markovien et rough causal
 
@@ -169,9 +169,8 @@ complet, avec 4 096 trajectoires et 128 pas, sont :
 | 2 actifs | tous les 16 pas | 0,276 ms |
 | 31 actifs | tous les 4 pas | 1,897 ms |
 
-La recette pilote
-[`bs_rough_heston_worst_of_calls_01`](../../catalog/multi_asset/worst_of_call/bs_rough_heston_worst_of_calls_01/recipe.yaml)
-utilise huit matrices dont la corrélation spot–vol est prise sur la ligne
+Le prototype local `bs_rough_heston_worst_of_calls_01`, rangé sous
+`work/catalog/multi_asset`, utilise huit matrices dont la corrélation spot–vol est prise sur la ligne
 rough correspondante. Pour la générer en dossier isolé :
 
 ```bash
@@ -186,23 +185,21 @@ Les quatre politiques rough à FFT hybride (`rough_bergomi`,
 maintenant `src/common/volterra/hybrid_fft_volatility.cuh` pour convoluer les
 facteurs de volatilité corrélés, puis le même scan conjoint de spots que le
 moteur causal. Les adaptateurs modèle sont réunis dans
-`src/model/equity/rough/hybrid_multi_asset.cuh`. La stratégie
-La même stratégie de préparation des volatilités est utilisée pour ces
+`src/model/equity/rough/hybrid_multi_asset.cuh`. La même stratégie de préparation des volatilités est utilisée pour ces
 quatre politiques. Le test
 `mixed_hybrid_rough_cuda` compare chaque volatilité à une convolution directe
 et chaque payoff à une référence séquentielle ; il couvre aussi deux actifs
 rough Bergomi avec un préfixe de corrélation 2 × 2 et une matrice complète
 5 × 5. Sur 512 trajectoires et 64 pas, sept lancements après échauffement
-ont donné des médianes de 0,23 ms pour deux rough ensemble et 0,30 ms pour
-deux exécutions séparées du même moteur. Cette comparaison porte sur le coût
+ont donné, après fusion du scan, des médianes de 0,22 ms pour deux rough
+ensemble et 0,25 ms pour deux exécutions séparées du même moteur. Cette comparaison porte sur le coût
 de simulation ; les produits des exécutions séparées ne donnent pas le prix
 du panier joint. Ces temps varient avec l'état du GPU.
 
-Pour plusieurs positions du même type rough, le runner homogène conserve son
-kernel optimisé. Le pack `simulation::MultiRoughPack<Policies...>` et
-`tools/pricing/heterogeneous_rough_price_generation.cuh` composent aussi des
-types rough différents dans un même prix. Ils réutilisent les mêmes moteurs
-de volatilité causal et hybride, puis un scan conjoint. L'ordre interne
+Pour plusieurs positions du même type rough, `HomogeneousRoughPack`
+utilise maintenant le même scan GPU et le même runner que
+`MultiRoughPack<Policies...>`, qui compose des types rough différents.
+Les deux packs réutilisent les moteurs de volatilité causal et hybride. L'ordre interne
 reste : toutes les volatilités rough, les facteurs markoviens, puis les
 spots rough qui disposent d'un second Brownien. `mixed_heterogeneous_rough_cuda`
 vérifie rough Heston + rough Bergomi, quadratic rough Heston + rough Bergomi,

@@ -12,6 +12,8 @@ namespace ai_factory::workbench::simulation {
 
 template<typename DynamicsPolicy, std::size_t Count>
 struct RateAdjustedModelGroup : ModelGroup<DynamicsPolicy, Count> {
+    static_assert(RateAdjustedCorrelatedStepDynamicsPolicy<
+        DynamicsPolicy, philox::DomainUniformSequence>);
     using Base = ModelGroup<DynamicsPolicy, Count>;
     using Dynamics = typename Base::Dynamics;
     using Parameters = typename Base::Parameters;
@@ -33,7 +35,7 @@ struct RateAdjustedModelGroup : ModelGroup<DynamicsPolicy, Count> {
         for (std::size_t asset = 0U; asset < Count; ++asset) {
             const auto index = input.scenario_indices[scenario * Count + asset];
             output.nominal_rate_dt[asset] =
-                input.models[index].risk_free_rate * dt;
+                Dynamics::nominal_rate_step(input.models[index], dt);
         }
     }
 
@@ -66,68 +68,22 @@ struct RateAdjustedModelGroup : ModelGroup<DynamicsPolicy, Count> {
         philox::PhiloxKey key, std::uint64_t path,
         std::uint32_t step, unsigned int lane, float rate_integral_step
     ) {
-        static_assert(AssetOffset + Count + 1U <= 255U);
-        const auto innovation=[&](std::size_t asset) {
-            const std::size_t first=FactorOffset
-                +asset*Dynamics::kBrownianDimension;
-            const float spot=brownian.get(first,lane);
-            if constexpr (Dynamics::kBrownianDimension==1U)
-                return typename Dynamics::BrownianStep{spot};
-            else return typename Dynamics::BrownianStep{
-                spot,brownian.get(first+1U,lane)};
-        };
-        const auto transition=[&](
-            std::size_t asset,const typename Dynamics::BrownianStep& shock
+        const auto apply = [&](
+            std::size_t asset,
+            const typename Dynamics::PreparedDynamics& model,
+            const typename Dynamics::BrownianStep& shock,
+            philox::DomainUniformSequence& auxiliary,
+            typename Dynamics::State& state
         ) {
-            const auto source=static_cast<std::uint32_t>(
-                2U+AssetOffset+asset);
-            philox::DomainUniformSequence auxiliary(
-                key,path,(source<<24U)|step);
-            const float shift=rate_integral_step
-                -prepared.nominal_rate_dt[asset];
-            if constexpr (requires {
-                    prepared.equity.model[asset].carry_time_step;
-                }) {
-                auto adjusted=prepared.equity.model[asset];
-                adjusted.carry_time_step+=shift;
-                Dynamics::one_step_transition(
-                    adjusted,shock,auxiliary,states.model[asset]);
-            } else if constexpr (requires {
-                    states.model[asset].spot;
-                }) {
-                auto adjusted=prepared.equity.model[asset];
-                adjusted.drift_dt+=shift;
-                Dynamics::one_step_transition(
-                    adjusted,shock,auxiliary,states.model[asset]);
-            } else {
-                Dynamics::one_step_transition(
-                    prepared.equity.model[asset],shock,auxiliary,
-                    states.model[asset]);
-                states.model[asset].log_spot+=shift;
-            }
+            const float carry_shift =
+                rate_integral_step - prepared.nominal_rate_dt[asset];
+            Dynamics::one_step_transition_with_rate(
+                model, shock, auxiliary, state, carry_shift);
         };
-        bool distributed=TeamSize==1U;
-        if constexpr (TeamSize>1U)
-            distributed=brownian.has_shared_factors();
-        if(distributed) {
-            constexpr std::size_t lane_shift=AssetOffset%TeamSize;
-            constexpr std::size_t local_count=
-                (Count+TeamSize-1U)/TeamSize;
-            for(std::size_t local=0U;local<local_count;++local) {
-                const std::size_t asset=local*TeamSize
-                    +(lane+TeamSize-lane_shift)%TeamSize;
-                const auto shock=innovation(asset<Count ? asset : 0U);
-                if(asset<Count) transition(asset,shock);
-            }
-        } else {
-            for(std::size_t asset=0U;asset<Count;++asset) {
-                const auto shock=innovation(asset);
-                if((AssetOffset+asset)%TeamSize==lane)
-                    transition(asset,shock);
-                if constexpr (TeamSize>1U)
-                    __syncwarp(subgroup_mask<TeamSize>());
-            }
-        }
+        Base::template advance_one_step_with_transition<
+            AssetOffset, FactorOffset, Dimension, TeamSize>(
+                states, prepared.equity, brownian, key, path,
+                step, lane, apply);
     }
 
     template<std::size_t AssetOffset, unsigned int TeamSize>

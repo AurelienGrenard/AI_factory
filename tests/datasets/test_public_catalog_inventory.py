@@ -25,7 +25,7 @@ class PublicCatalogInventoryTest(unittest.TestCase):
         self.assertEqual(len(sources), len(rows))
         self.assertEqual(
             {row["kind"] for row in rows},
-            {"model_parameters", "product_parameters", "curve_parameters", "correlation_parameters",
+            {"model_parameters", "product_parameters", "curve_parameters",
              "prices", "price_gradients", "samples"},
         )
         selected = [
@@ -46,6 +46,8 @@ class PublicCatalogInventoryTest(unittest.TestCase):
             if (ROOT / spec.generator_path).is_file()
         }
         self.assertEqual(sources, expected)
+        self.assertFalse(any(source.startswith(("correlation/", "multi_asset/"))
+                             for source in sources))
         for row in rows:
             leaf = ROOT / row["catalogPath"]
             self.assertTrue((leaf / "generator.cpp").is_file(), leaf)

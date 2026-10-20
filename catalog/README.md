@@ -5,12 +5,13 @@ sources. A leaf has a `generation.yaml` only after its generator has actually
 run. The generated JSON lives in `datasets/`, which is distributed separately
 from this source package.
 
-The current public selection has 1,195 recipes: 25 model parameter sets, 28
-product parameter sets, three curve input sets, 655 aligned prices, and 484
-aligned price-gradient sets. The curves are required by the curve-fitted fixed-income gradients.
-Cartesian recipes and model-sample generators belong to the local
-`work/catalog/` branch. Code generation still knows their typed
-capabilities; they are not needed to run the public aligned-gradient campaign.
+The selected inventory currently has 1,438 recipes: 46 model parameter
+sets, 29 product parameter sets, three curves, 50 sample sets, 655 prices
+and 655 price-gradient sets. The catalogue manifest names the selected
+sources; the presence of a recipe does not imply a computed or qualified
+dataset. Correlation matrices and multi-asset pricing prototypes live only
+under local `work/catalog/` and `work/datasets/`. Their public folders remain empty
+until a production recipe is selected and qualified.
 
 The fixed-income selection has 117 price recipes and 104 price-gradient
 recipes; the latter include 26 Bermudan swaptions with

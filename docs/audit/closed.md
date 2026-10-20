@@ -2971,3 +2971,55 @@ build SM89/CUDA 12.9, les tests et la comparaison complète du codegen.
   différence de sortie.
 - **Réouvrir seulement si :** l'ajout d'un produit equity exige une seconde
   table centrale ou si les capacités Markovian/rough divergent sans règle.
+
+## Clôture de l'architecture multi-actifs — 2026-10-20
+
+Cette clôture répond aux six constats du passage v10.2. Le banc A/B local,
+conservé sous `work/validation/rough_architecture/`, utilise CUDA 12.9/SM89.
+Les deux écarts de parité rencontrés hors de ces six corrections sont
+reproduits à l'identique sur le commit initial `5c59f3d` et suivis comme
+NUM-038 et NUM-039 dans [response.md](response.md).
+
+### FACTOR-006 — Contrat explicite d'injection du taux
+
+- **État :** corrigé et fermé le 2026-10-20.
+- **Correction :** `RateAdjustedCorrelatedStepDynamicsPolicy` exige `nominal_rate_step` et `one_step_transition_with_rate`; les douze dynamics equity markoviennes possèdent leur point d'injection, avant le schéma absorbant pour CEV et avant la transformation pour SABR. Les six politiques rough déclarent l'avance de spot avec taux, vérifiée par `RateAdjustedRoughSpotPolicy`. `RateAdjustedModelGroup` réutilise l'extraction Philox, les chocs et la distribution aux lanes de `ModelGroup` via un appel de transition paramétré. Aucun champ `carry_time_step`, `drift_dt` ou `drift_time_step` n'est inspecté par l'ordonnanceur commun.
+- **Preuve :** comparaison locale de l'ancienne et de la nouvelle transition sur 4 096 chemins × 128 pas : différence finale d'état nulle pour Black–Scholes, CEV, SABR, Heston et rough Heston. `multi_asset_cuda`, `cross_asset_cuda`, `cross_asset_rates_cuda` et `factorized_cross_asset_cuda` passent. Le coût courant de 30 actifs avec taux est compris entre 0,319 et 0,389 ms selon la famille de taux sur le banc existant ; les instanciations BS/Vasicek et rough Heston/G2 inspectées ont `LOCAL:0`. Ce relevé ne prétend pas être un gate A/B complet du moteur de taux.
+- **Réouvrir seulement si :** un nouveau modèle à taux peut être branché sans satisfaire le contrat nommé, ou si une transition ne reproduit plus le schéma avec le même flux Philox.
+
+### FACTOR-007 — Scan et runner rough communs
+
+- **État :** corrigé et fermé le 2026-10-20.
+- **Correction :** `HomogeneousRoughPack<Policy,Count>` fournit les accès de plusieurs rough identiques au scan `heterogeneous_rough_price_kernel`. L'ancien header homogène ne contient plus de kernel global ; son lanceur adapte seulement les inputs. Le runner homogène délègue la validation, les FFT, les chunks et l'agrégation au runner hétérogène. L'ordre des facteurs et les domaines Philox restent ceux des anciens paniers homogènes.
+- **Preuve :** les tests rough homogène, deux rough, quadratique, hybride, hétérogène, Heston/rough, grande dimension et barrière croisée passent. Sur 8 192 chemins × 256 pas, deux spots rough Heston et un BS, l'ancien et le nouveau scan donnent exactement les mêmes payoffs pour `TeamSize=1` et `4`. Ptxas rapporte les mêmes 40/48 registres, 192/448 octets shared et zéro spill pour ancien/nouveau. Sur quatre répétitions, les médianes de processus ancien/nouveau sont 0,256/0,259 ms (`TeamSize=1`) et 1,633/1,618 ms (`TeamSize=4`) ; l'écart est de l'ordre du bruit observé, sans régression matérielle.
+- **Limite :** cette mesure A/B porte sur la boucle de scan ; les tests de runners couvrent séparément la préparation FFT et l'agrégation.
+- **Réouvrir seulement si :** les deux packs divergent en payoff/Philox, ou si une charge représentative montre une régression GPU reproductible.
+
+### FACTOR-008 — Équations rough hybrides possédées par leur modèle
+
+- **État :** corrigé et fermé le 2026-10-20.
+- **Correction :** rough Bergomi, log-modulated rough Bergomi, rough SABR et rough Stein–Stein exposent chacun `map_volatility` et `advance_spot_cell` dans leur `dynamics_impl.cuh`. Leur avance mono et l'adaptateur hybride multi appellent ces mêmes opérations ; l'adaptateur ne conserve que la composition FFT/scan et l'injection explicite du taux.
+- **Preuve :** `mixed_hybrid_rough_cuda` passe pour les quatre modèles, compare volatilités et payoffs à la référence Volterra directe, y compris la branche absorbante SABR, et couvre deux rough et une barrière de panier. Le temps complet observé après fusion est 0,22 ms pour deux rough ensemble contre 0,25 ms pour deux exécutions séparées sur 512 chemins × 64 pas ; le précédent relevé du même test indiquait 0,23/0,30 ms. Aucune dégradation visible sur ce cas.
+- **Réouvrir seulement si :** une formule de projection ou de spot est recopiée dans l'adaptateur, ou si la branche mono et la branche panier divergent avec les mêmes chocs.
+
+### FACTOR-009 — Un seul planner de graphes de sensibilités
+
+- **État :** corrigé et fermé le 2026-10-20, sous les limites numériques distinctes NUM-038 et NUM-039.
+- **Correction :** `common/monte_carlo/price_gradients/node_graph/execution_plan.hpp` possède l'unique calcul de chunk, budget workspace et shards. Un constructeur de layout sélectionne terminal, path ou mixte ; `preserve_complete_path_reduction` conserve la règle LSM. Les launchers equity choisissent seulement la politique de nœuds et les validations métier ; l'ancien planner equity dupliqué est supprimé. Les diagnostics de budget mixtes restent distincts.
+- **Preuve :** comparaison ligne à ligne des règles avant/après : même arrondi, même ordre de réduction rows puis paths, même lecture du nombre de SM et même borne de shards ; aucun appel CUDA hôte supplémentaire n'est ajouté. Les cibles terminal, path, mixte terminal, mixte path, American et Bermudan compilent. Les tests terminal, mixte terminal, mixte path, Bermudan et le sous-cas path `--dense-maturity` passent. Le test path complet et le test American s'arrêtent sur des parités de prix antérieures à la comparaison des graphes ; ces échecs sont identiques sur `5c59f3d` et restent ouverts sous NUM-038/039.
+- **Réouvrir seulement si :** une géométrie ou un workspace diffère pour les mêmes entrées, ou si un launcher recalcule la sélection des shards.
+
+### FACTOR-010 — Prototypes non qualifiés sortis du catalogue public
+
+- **État :** constat reclassé et fermé le 2026-10-20. Le désaccord de taux observé dans le prototype local n'est pas qualifié comme défaut d'une recette de production.
+- **Correction :** les trois recettes pilotes de prix multi-actifs et les trois recettes de corrélation, avec leurs générateurs, reçus et JSON présents, sont sous `work/catalog/` et `work/datasets/`. Les dossiers publics `catalog/multi_asset/` et `catalog/correlation/` ne contiennent qu'un placeholder ; leurs dossiers de datasets sont vides et ignorés. Leurs cibles CMake et leurs specs de lancement résident sous `work`, chargées conditionnellement. Le manifeste public ne les sélectionne plus. Les bases publiques `factor_parameters` restent séparées du taux et de la corrélation ; l'API mono complète reste intacte.
+- **Preuve :** le manifeste public contient 1 438 lignes et zéro recette de corrélation ou de prix multi-actifs. Ses cinq tests d'inventaire passent ; `run_generator.py --list` retrouve les six prototypes seulement dans l'environnement local doté de `work`. Le test dataset multi-actifs construit sa corrélation synthétique sans lire les anciens JSON publics. Les reçus déplacés ne sont pas considérés comme des prix qualifiés ; les six entrées locales sont marquées non prêtes dans le manifeste de `work`.
+- **Limite :** aucun nouveau prix BS/rough Heston n'est publié ni qualifié. Une future recette publique devra prendre les paramètres factorisés, une source de taux unique et une matrice de corrélation indépendante.
+- **Réouvrir seulement si :** une recette non qualifiée réapparaît dans le manifeste public, ou si une nouvelle recette publiée admet des drifts et un discount incohérents.
+
+### BOUNDARY-009 — La convention Range Accrual appartient au produit
+
+- **État :** corrigé et fermé le 2026-10-20.
+- **Correction :** `RangeAccrualParameters` déclare `kAlreadyRelativePriceLevels`. La résolution commune lit ce trait pour les coordonnées, les lignes cartésiennes et les barrières ; aucun header de produit concret n'est inclus sous `src/common`.
+- **Preuve :** `price_gradients_configuration` vérifie les mêmes barrières Range Accrual, les strikes et barrières en ratio de `S0`, et l'ordre compact/cartésien. `price_gradients_mixed_path_node_graph_cuda` couvre aussi Range Accrual. Le test path complet est limité par NUM-038, avant le cas Range Accrual ; ce défaut se reproduit sur le commit initial.
+- **Réouvrir seulement si :** une convention de quote propre à un produit est de nouveau codée par test de type dans `common`, ou si les niveaux et lignes résolus changent.

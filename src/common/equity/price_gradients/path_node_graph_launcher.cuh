@@ -1,7 +1,7 @@
 // Shared host composition and workspace planning for path node graphs.
 #pragma once
 
-#include "common/equity/price_gradients/node_graph_execution_plan.hpp"
+#include "common/monte_carlo/price_gradients/node_graph/execution_plan.hpp"
 #include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
 #include "common/monte_carlo/price_gradients/device_prepared_path_node_graph.cuh"
 
@@ -31,7 +31,7 @@ std::size_t path_node_graph_workspace_bytes(
         typename HostPlan::Preparation,
         Schedule
     >;
-    return make_node_graph_execution_plan<
+    return mcpg::make_node_graph_execution_plan<
         Orders,
         NodePolicy,
         MaximumSensitivities,
@@ -79,7 +79,7 @@ void launch_path_node_graph_sensitivities(
         typename HostPlan::Preparation,
         Schedule
     >;
-    const auto execution = make_node_graph_execution_plan<
+    const auto execution = mcpg::make_node_graph_execution_plan<
         Orders,
         NodePolicy,
         MaximumSensitivities,

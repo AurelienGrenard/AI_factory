@@ -81,8 +81,8 @@ originaux nécessaires aux IDs du dataset de prix. Chaque résultat conserve
 ainsi les IDs de tous ses modèles, du taux, du produit et de la matrice de
 corrélation.
 
-La [recette Black–Scholes + Heston + Vasicek](../../catalog/multi_asset/worst_of_call/bs_heston_vasicek_worst_of_calls_01/recipe.yaml)
-illustre les trois sources de paramètres et une matrice à quatre facteurs.
+Le prototype local Black–Scholes + Heston + Vasicek, rangé sous
+`work/catalog/multi_asset/`, illustre les trois sources de paramètres et une matrice à quatre facteurs.
 Son ordre externe est `BS.spot, Heston.spot, Heston.variance, rate.factor`.
 Les variantes rough passent par le même assembleur : avant la première passe
 FFT, les facteurs de volatilité rough sont placés en tête de l'ordre interne ;
