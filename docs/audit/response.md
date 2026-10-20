@@ -1,18 +1,19 @@
 # Constats d'audit non résolus
 
-Référentiel courant : **v10.2 — 2026-10-20**. Revue statique ciblée des axes
-II et III sur le moteur multi-actifs fusionné dans main ; les autres constats
-proviennent des passages antérieurs sous **v10.1**. Le [rapport de passage](history/architecture-multi-asset-2026-10-20.md)
-fixe le snapshot et la portée.
+Référentiel courant : **v10.2 — 2026-10-20**. Revue statique des axes II et
+III sur les unités architecturales du src et les recettes multi-actifs. Le
+[rapport de reprise](history/architecture-src-reprise-2026-10-20.md) fixe le
+snapshot et la portée ; les autres constats proviennent des passages v10.1.
 
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).
 
 ## Report vers le référentiel v10
 
-Ce registre contient **sept constats ouverts** : `FACTOR-006`, `FACTOR-007`
-et `BOUNDARY-009` pour l'architecture, `PERF-025` et `PERF-026` pour la
-performance, `NUM-028` et `NUM-030` pour les prix rough.
+Ce registre contient **dix constats ouverts** : six pour l'architecture et
+la composition multi-actifs (FACTOR-006 à FACTOR-010, BOUNDARY-009), deux
+pour la performance (PERF-025, PERF-026) et deux pour les prix rough
+(NUM-028, NUM-030).
 `PERF-024` est réglé par acceptation explicite du compromis mémoire/temps,
 sans passage du gate de performance. `NUM-029` a été corrigé et publié ;
 `NUM-036` a défini la portée de la SE LSM ; ces constats sont dans
@@ -53,6 +54,9 @@ au snapshot, puis :
 | `PERF-026` | IV. Performance | V. CMake |
 | `FACTOR-006` | II. Factorisation | III. Lisibilité |
 | `FACTOR-007` | II. Factorisation | IV. Performance |
+| `FACTOR-008` | II. Factorisation | I. Véracité |
+| `FACTOR-009` | II. Factorisation | III. Arborescence |
+| `FACTOR-010` | II. Factorisation | I. Véracité ; III. Lisibilité |
 | `BOUNDARY-009` | II. Factorisation | III. Arborescence |
 
 L'absence de constat reporté ayant V ou VI comme axe principal ne constitue
@@ -87,6 +91,35 @@ pas un verdict de conformité. La couverture courante est publiée dans
 - **Autre explication examinée :** la résolution est volontairement commune au prix et aux dérivées, et cette mutualisation doit rester. STRUCT-001 historique concernait des policies de prix concrètes dans common ; ce constat porte sur une exception de représentation des quotes dans une primitive distincte.
 - **Correction minimale :** faire déclarer au produit ses coordonnées de quote et sa règle de résolution via un trait ou une policy produit, consommé par la résolution commune ; conserver l'algorithme de dépliage des lignes et son ordre dans common.
 - **Clôture :** aucun include de produit concret dans src/common, quotes et lignes identiques pour Range Accrual et des produits à strike/barrière, prix et dérivées raccordés à la même règle. **Limite :** aucun replay numérique pendant cet audit statique.
+
+## Reprise de l'audit du src — 2026-10-20
+
+### FACTOR-008 — Posséder les équations rough une seule fois par modèle
+
+- **Axes :** II. Factorisation ; secondaire I. Véracité. **État :** ouvert le 2026-10-20. **Propriétaire :** src/model/equity/rough. **Sévérité :** moyenne. **Priorité :** haute avant extension des paniers rough hybrides. **Confiance :** prouvée sur la duplication ; divergence numérique future seulement potentielle.
+- **Contrat et preuve :** src/model/equity/rough/hybrid_multi_asset.cuh:21-150 réimplémente map_volatility et advance_spot_cell pour rough Bergomi, log-modulated rough Bergomi, rough SABR et rough Stein–Stein. Les mêmes exponentielles, termes de drift et diffusion, ainsi que la branche absorbante Lamperti SABR, existent dans leurs quatre dynamics_impl.cuh : rough_bergomi:38-59, log_modulated_rough_bergomi:43-66, rough_sabr:47-79 et rough_stein_stein:42-60. L'adaptateur multi-actifs inclut ces fichiers mais ne délègue pas les calculs aux fonctions du modèle.
+- **Conséquence :** une correction du schéma mono peut laisser la variante multi avec une équation antérieure. Le risque est particulièrement sensible pour la branche absorbante rough SABR et l'ordre spot puis volatilité. Les quatre policies sont exercées par tests/simulation/mixed_hybrid_rough_cuda_test.cu : l'adaptateur est actif.
+- **Autre explication examinée :** le moteur FFT multi-actifs doit séparer le calcul de volatilité du scan spot, alors que PathPolicy::advance mono effectue les deux. Cette différence de phase est réelle ; elle ne requiert pas deux propriétaires des formules.
+- **Correction minimale :** exposer sous chaque modèle ses opérations élémentaires de projection Volterra et d'avancée spot, puis les appeler depuis advance mono et l'adaptateur multi. Conserver les choix de FFT et le scan dans leurs owners actuels, et mesurer l'inlining.
+- **Clôture :** une seule définition de chaque formule modèle, parité mono/multi des quatre modèles et du cas absorbant SABR, absence de régression GPU non acceptée. **Limite :** audit statique, sans exécution de test.
+
+### FACTOR-009 — Unifier la planification des graphes de nœuds
+
+- **Axes :** II. Factorisation ; secondaire III. Arborescence. **État :** ouvert le 2026-10-20. **Propriétaire :** src/common/monte_carlo/price_gradients/node_graph et launchers equity. **Sévérité :** moyenne. **Priorité :** moyenne. **Confiance :** prouvée.
+- **Contrat et preuve :** src/common/equity/price_gradients/node_graph_execution_plan.hpp:21-145, terminal_node_graph_launcher.cuh:20-147 et src/common/monte_carlo/price_gradients/node_graph/execution_plan.hpp:22-161 définissent trois plans de même paire configuration/workspace et répètent l'arrondi du chunk de chemins, la lecture du nombre de SM, la réduction itérative au budget mémoire et le calcul des shards. Le dernier ajoute preserve_complete_path_reduction pour LSM ; le même fichier répète encore le squelette pour le plan mixte, lignes 167-265. Path, terminal, mixte et LSM utilisent effectivement ces variantes.
+- **Conséquence :** corriger une borne, un overflow, une règle de résidence ou un budget impose plusieurs éditions dans common. Les propriétaires presque synonymes sous equity et monte_carlo rendent l'autorité du calcul ambiguë.
+- **Autre explication examinée :** terminal, path, mixte et LSM ont des NodePolicy et layouts distincts ; LSM doit parfois préserver toute la réduction de chemins. Ces variations sont réelles et leurs kernels ne sont pas visés par une fusion.
+- **Correction minimale :** une seule routine de géométrie et de sélection des shards sous monte_carlo/price_gradients/node_graph, paramétrée par le layout et le besoin de réduction complète. Garder les validations métier et le choix de NodePolicy dans chaque launcher.
+- **Clôture :** un seul calcul de chunk/budget/shards, configurations et workspaces conservés pour path, terminal, mixte et LSM, compilation des consommateurs et coût hôte contrôlé. **Limite :** aucun gain de vitesse revendiqué.
+
+### FACTOR-010 — Imposer un taux commun aux scénarios multi-actifs sélectionnés
+
+- **Axes :** II. Factorisation ; secondaires I. Véracité et III. Lisibilité. **État :** ouvert le 2026-10-20. **Propriétaire :** catalog/multi_asset et tools/pricing. **Sévérité :** haute. **Priorité :** haute avant régénération du panier BS/rough Heston. **Confiance :** prouvée sur les entrées ; aucun nouveau prix calculé.
+- **Contrat et preuve :** catalog/multi_asset/worst_of_call/bs_rough_heston_worst_of_calls_01/generator.cpp:22-78 charge deux bases de modèles complets et actualise au risk_free_rate Black–Scholes. black_scholes/dynamics_impl.cuh:19 et rough_heston/causal_fft_dynamics.cuh:54 utilisent chacun le risk_free_rate de leur propre ligne dans le drift. Sur les huit paires sélectionnées, les taux diffèrent tous ; l'écart rough moins BS va de -0,069921 à +0,063557 par an. execute_mixed_rough_prices vérifie rho et la matrice mais pas l'unicité du taux. La recette BS2 charge aussi des paramètres complets ; seule BS/Heston/Vasicek utilise factor_parameters et assemble_factorized_scenarios pour imposer une source de taux explicite.
+- **Conséquence :** la recette BS/rough Heston ne représente pas un panier d'actions sous un même taux sans risque : le discount suit seulement l'un des deux drifts. Les bases factor_parameters ne garantissent donc pas encore le contrat de toutes les recettes multi-actifs. Les datasets existants peuvent venir de paramètres antérieurs : le constat porte sur une régénération avec les entrées actuelles, sans qualifier leur historique.
+- **Autre explication examinée :** des rendements de dividendes propres à chaque action sont légitimes ; aucun modèle de devise ni numéraire distinct ne justifie ici deux risk_free_rate sous le même payoff domestique. La vérification de rho ne règle pas ce point.
+- **Correction minimale :** faire passer les recettes pilotes par une source de taux unique explicite, constant ou stochastique, et les bases factor_parameters en réutilisant l'assemblage existant. Si le runner accepte encore des modèles complets, vérifier l'égalité de leurs taux et la cohérence du discount. Préserver l'API mono complète.
+- **Clôture :** BS2 et BS/rough Heston déclarent une source de taux commune, drifts et discount l'utilisent, les huit scénarios BS/rough Heston n'ont plus d'écart de taux, et les prix sont rejoués et qualifiés avant publication. **Limite :** aucun prix ni build pendant cet audit.
 
 ## Sélection du catalogue source — 2026-10-07 (étape fixed income)
 
