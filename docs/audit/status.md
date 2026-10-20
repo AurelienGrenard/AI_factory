@@ -1,16 +1,21 @@
 # Tableau de bord de l'audit principal
 
-Référentiel courant : **v10.2 — 2026-10-20**. Les verdicts ci-dessous
-proviennent du passage sous **v10.1** et restent à réévaluer sur le moteur
-multi-actifs. Dernier passage examiné : **2026-10-08, contrôle des datasets fixed income, des samples et préparation equity** ; auparavant, reprise des dix constats hors rough, axe IV — performance, axe VI — hygiène et reprise de PRODUCT-001 et NUM-028 à NUM-030. Les preuves détaillées des passages précédents sont dans [véracité](history/truth-before-hygiene-2026-10-06.md) et [architecture](history/architecture-complete-before-truth-2026-10-06.md). Le passage hygiène s'est déroulé pendant ce chantier ; ses observations de génération correspondent au worktree au moment de leur exécution.
+Référentiel courant : **v10.2 — 2026-10-20**. Dernier passage :
+[revue statique ciblée des axes II et III sur le moteur multi-actifs](history/architecture-multi-asset-2026-10-20.md),
+branche main, commit 0c9dace1, arbre propre avant rédaction. Matériel observé :
+RTX 4090 Laptop SM89 ; nvcc 13.3.73 ; CMake 3.22.1. Aucun test, build,
+prix ou profil GPU n'a été exécuté pour ce passage. Les verdicts des autres
+axes restent ceux du passage v10.1 ; les preuves historiques sont dans
+[véracité](history/truth-before-hygiene-2026-10-06.md) et
+[architecture](history/architecture-complete-before-truth-2026-10-06.md).
 
 ## Verdict et portée
 
 | Axe | Couverture courante | Verdict | Motif |
 |---|---|---|---|
 | I. Véracité | produit fixed income à barrière qualifié ; signaux rough rejoués ; portée de l’erreur LSM explicitée | non conforme | `PRODUCT-001`, `NUM-029`, `NUM-036` réglés ; `NUM-037` clos administrativement mais non résolu ; `NUM-028`, `NUM-030` et validation externe ouverts |
-| II. Factorisation | reprise ciblée des frontières LSM et du concept de régression | indéterminé | cinq constats architecturaux corrigés ; nouvelle revue complète nécessaire pour certifier l’axe |
-| III. Arborescence et lisibilité | reprise des graphes rough et de la source de vérité equity | indéterminé | aucun des cinq constats ciblés encore ouvert ; couverture globale à réévaluer |
+| II. Factorisation | dynamics, samples, prix, dérivées et moteur multi-actifs examinés statiquement | non conforme dans le périmètre | `FACTOR-006` et `FACTOR-007` ouverts ; pas de certification du GPU |
+| III. Arborescence et lisibilité | frontières, parcours de découverte, catalogue et noms du multi-actif examinés | non conforme dans le périmètre | `BOUNDARY-009` ouvert ; les parcours mono historiques restent valables |
 | IV. Performance | comparaisons A/B SM89/CUDA 12.9 complètes ; compromis PERF-024 accepté hors gate | non conforme | `PERF-025` et `PERF-026` ouverts ; aucun gate pour le profil courant |
 | V. CMake | dry-run de fraîcheur seulement | indéterminé | pas de matrice d'incrémentalité |
 | VI. Hygiène et artefacts | dépôt suivi, codegen, builds et racines locales vérifiés ; rétention des preuves classée | conforme | `DOC-004` clos : Quick start autonome et scripts PPTI privés ignorés |
@@ -23,6 +28,20 @@ ont un compromis accepté ou un contrat borné documenté dans
 [closed.md](closed.md).
 
 Le verdict VI conserve les contrôles réussis : aucune bibliothèque, aucun exécutable, objet, cache Python ou checkpoint n'est suivi par Git dans les 5 846 entrées inspectées. Trois notebooks suivis ont une fonction de validation ou de rapport. Huit rapports de performance suivis contiennent des chemins absolus historiques ; [la politique locale](../local-artifacts.md) les classe comme références anciennes, sans en faire des commandes actuelles.
+
+## Revue de l'architecture multi-actifs — 2026-10-20
+
+Trois constats ouverts dans [response.md](response.md) : `FACTOR-006`
+(contrat d'injection du taux implicite et ordonnancement recopié),
+`FACTOR-007` (scans rough homogène et hétérogène dupliqués) et
+`BOUNDARY-009` (exception Range Accrual sous `src/common`). La dynamique
+modèle, les policies produit, le tirage corrélé et les préparations FFT ont
+un propriétaire cohérent. Les kernels prix, gradients, Hessiennes et
+cross-asset portent des topologies différentes ; aucune fusion générale
+n'est justifiée. Les deux scans rough ne seront fusionnés qu'après contrôle
+de parité et mesure GPU. Le [rapport dédié](history/architecture-multi-asset-2026-10-20.md)
+détaille graphe, comparaisons et exercices d'extension. Cette revue ne
+certifie ni résultats numériques, ni vitesse, ni CMake complet.
 
 ## Sélection du catalogue source — 2026-10-07 (étape fixed income)
 

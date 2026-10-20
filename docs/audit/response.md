@@ -1,16 +1,18 @@
 # Constats d'audit non résolus
 
-Référentiel courant : **v10.2 — 2026-10-20**. Constats issus des passages
-antérieurs sous **v10.1** ; aucune réévaluation multi-actifs n’est encore
-revendiquée.
+Référentiel courant : **v10.2 — 2026-10-20**. Revue statique ciblée des axes
+II et III sur le moteur multi-actifs fusionné dans main ; les autres constats
+proviennent des passages antérieurs sous **v10.1**. Le [rapport de passage](history/architecture-multi-asset-2026-10-20.md)
+fixe le snapshot et la portée.
 
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).
 
 ## Report vers le référentiel v10
 
-Ce registre contient **quatre constats ouverts** : `PERF-025` et
-`PERF-026` pour la performance, `NUM-028` et `NUM-030` pour les prix rough.
+Ce registre contient **sept constats ouverts** : `FACTOR-006`, `FACTOR-007`
+et `BOUNDARY-009` pour l'architecture, `PERF-025` et `PERF-026` pour la
+performance, `NUM-028` et `NUM-030` pour les prix rough.
 `PERF-024` est réglé par acceptation explicite du compromis mémoire/temps,
 sans passage du gate de performance. `NUM-029` a été corrigé et publié ;
 `NUM-036` a défini la portée de la SE LSM ; ces constats sont dans
@@ -49,10 +51,42 @@ au snapshot, puis :
 | `NUM-030` | I. Véracité | IV. Performance |
 | `PERF-025` | IV. Performance | — |
 | `PERF-026` | IV. Performance | V. CMake |
+| `FACTOR-006` | II. Factorisation | III. Lisibilité |
+| `FACTOR-007` | II. Factorisation | IV. Performance |
+| `BOUNDARY-009` | II. Factorisation | III. Arborescence |
 
 L'absence de constat reporté ayant V ou VI comme axe principal ne constitue
 pas un verdict de conformité. La couverture courante est publiée dans
 [status.md](status.md).
+
+## Architecture multi-actifs — 2026-10-20
+
+### FACTOR-006 — Déclarer le contrat d'injection du taux dans les dynamics
+
+- **Axes :** II. Factorisation ; secondaire III. Lisibilité. **État :** ouvert le 2026-10-20. **Propriétaire :** src/common/simulation et adapters des modèles equity. **Sévérité :** moyenne. **Priorité :** haute pour l'ajout d'un modèle cross-asset. **Confiance :** prouvée sur le défaut de contrat ; aucun prix faux démontré pour les modèles actuels.
+- **Contrat et preuve :** CorrelatedStepDynamicsPolicy dans src/common/simulation/concepts.cuh ne requiert que one_step_transition. Pourtant RateAdjustedModelGroup::prepare lit Parameters::risk_free_rate et advance_one_step_with_rate dans src/common/simulation/rate_adjusted_equity_path.cuh choisit le mécanisme de taux selon l'existence de PreparedDynamics::carry_time_step, puis de State::spot et PreparedDynamics::drift_dt, sinon ajoute shift à State::log_spot après la transition. Les spots rough dans src/common/simulation/multi_rough_path.cuh choisissent encore drift_time_step ou drift_dt par introspection. ModelGroup::advance_one_step et le groupe ajusté répètent aussi l'extraction des facteurs, le domaine auxiliaire Philox et la distribution des actifs aux lanes.
+- **Conséquence :** un nouveau modèle conforme au concept corrélé peut échouer tard à la compilation du panier à taux ou recevoir le taux au mauvais stade si son état/préparé possède un champ homonyme de sémantique différente. CEV exige une modification avant son schéma absorbant ; SABR utilise carry_time_step avant sa transformation ; Heston peut ajouter le terme déterministe au log spot. Ces choix appartiennent au modèle, pas à l'ordonnanceur générique.
+- **Autre explication examinée :** les branches actuelles correspondent aux modèles inspectés. Le constat porte sur le contrat et le coût d'extension, pas sur une erreur numérique établie ni sur l'obligation d'un kernel supplémentaire.
+- **Correction minimale :** exposer une opération explicite de transition avec intégrale de taux sur les policies equity concernées, ou un adapter modèle qui transforme le préparé selon un contrat nommé. Mutualiser l'extraction des chocs et l'ordonnancement de ModelGroup, sans virtualisation ni copie d'état inutile.
+- **Clôture :** concept/diagnostic explicites, plus aucune détection de champs carry_time_step/drift_dt/log_spot dans le groupe commun ; parité à tolérance motivée pour CEV, SABR, Heston, Black–Scholes et un rough représentatif ; coût kernel mesuré. **Limite :** passage statique, sans profil ni rejeu financier.
+
+### FACTOR-007 — Réunir le scan spot rough homogène et hétérogène après qualification
+
+- **Axes :** II. Factorisation ; secondaire IV. Performance. **État :** ouvert le 2026-10-20. **Propriétaire :** src/common/monte_carlo et tools/pricing. **Sévérité :** moyenne. **Priorité :** moyenne. **Confiance :** élevée sur la duplication, moyenne sur le bénéfice net d'une fusion.
+- **Contrat et preuve :** joint_rough_price_kernel dans src/common/monte_carlo/multi_asset_rough_kernel.cuh et heterogeneous_rough_price_kernel dans multi_asset_heterogeneous_rough_kernel.cuh utilisent tous deux 128 threads, un résultat par lancement, une matrice triangulaire en shared, les mêmes cellules Browniennes Philox, le même scan Markov + spot rough, la même observation du produit et la même réduction PartialMoments. Ils diffèrent surtout par la représentation des modèles rough (tableau d'une policy contre MultiRoughPack). Les runners execute_mixed_rough_prices et execute_heterogeneous_rough_prices répètent validation des facteurs, préparation FFT, lancement par chunks et agrégation. La version homogène a un consommateur dans le catalogue et plusieurs tests ; l'hétérogène est exercée par tests/simulation/mixed_heterogeneous_rough_cuda_test.cu.
+- **Conséquence :** toute correction du scan, de l'ordre des facteurs ou du monitoring doit être reportée dans deux kernels et deux runners de même topologie. Le nouveau taux ajoute une troisième variante du scan ; la divergence devient plus probable.
+- **Autre explication examinée :** le pack homogène peut produire un code plus compact ou plus rapide ; la version hétérogène est une capacité d'extension testée, pas du code mort. Le kernel cross-asset a une autre topologie de lots et de mémoire : il n'est pas visé par la fusion.
+- **Correction minimale :** faire porter les variations d'accès rough à un pack statique et partager une seule boucle de scan pour les deux cas, en gardant des launchers distincts si leurs besoins hôtes le justifient. Préserver une instanciation optimisée homogène si les mesures montrent un avantage matériel.
+- **Clôture :** parité des trajectoires/prix et des domaines Philox sur les deux runners, couverture d'un panier homogène à plusieurs rough et d'un panier hétérogène, puis mesure GPU du temps complet, registres/spills et shared sur les charges représentatives ; aucune régression de performance acceptée sans décision explicite. **Limite :** gain de vitesse non établi.
+
+### BOUNDARY-009 — Sortir l'exception Range Accrual de la primitive commune de quotes
+
+- **Axes :** II. Factorisation ; secondaire III. Arborescence. **État :** ouvert le 2026-10-20. **Propriétaire :** src/common/equity et src/product/range_accrual. **Sévérité :** moyenne. **Priorité :** moyenne. **Confiance :** prouvée.
+- **Contrat et preuve :** src/common/equity/spot_relative_product.hpp:6 inclut product/range_accrual/parameters.hpp. is_quoted_coordinate, kNeedsSpotResolution et resolve_product y testent explicitement RangeAccrualParameters pour garder ses barrières déjà relatives. C'est l'unique include direct src/common → product relevé. La même primitive est appelée par tools/pricing/equity_price_generation.cuh, src/common/price_gradients/device_prepared_plan.hpp et src/common/equity/price_gradients/terminal_device_preparation.cuh.
+- **Conséquence :** la sémantique d'un produit concret est possédée par common et la dépendance va dans le mauvais sens. Ajouter un produit à quotes déjà relatives impose de modifier cette primitive générique ; prix et dérivées partagent alors une exception cachée.
+- **Autre explication examinée :** la résolution est volontairement commune au prix et aux dérivées, et cette mutualisation doit rester. STRUCT-001 historique concernait des policies de prix concrètes dans common ; ce constat porte sur une exception de représentation des quotes dans une primitive distincte.
+- **Correction minimale :** faire déclarer au produit ses coordonnées de quote et sa règle de résolution via un trait ou une policy produit, consommé par la résolution commune ; conserver l'algorithme de dépliage des lignes et son ordre dans common.
+- **Clôture :** aucun include de produit concret dans src/common, quotes et lignes identiques pour Range Accrual et des produits à strike/barrière, prix et dérivées raccordés à la même règle. **Limite :** aucun replay numérique pendant cet audit statique.
 
 ## Sélection du catalogue source — 2026-10-07 (étape fixed income)
 
