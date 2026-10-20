@@ -33,7 +33,6 @@ inline datasets::ModelSampleRecipe recipe(
         "$display",
         "datasets/model/$source_folder/samples/" + id + ".json",
         "catalog/model/$source_folder/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v2/model/$source_folder/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -42,10 +41,10 @@ inline datasets::ModelSampleRecipe recipe(
         "$numerical",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"distribution", "$sampling_distribution"},
             {"proposal_draw_order", {$proposal_draw_order}},
             {"latent_uniform_bounds", $sample_bounds},
-            {"acceptance", "$escaped_acceptance"}$derived_parameter_metadata$preparation_metadata
+            {"acceptance", "$escaped_acceptance"}$derived_parameter_metadata$fixed_model_inputs_metadata$preparation_metadata
         },
         {
             $output_metadata
@@ -55,7 +54,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
-$native_block_declaration
+$native_block_declaration$device_bounds_declaration
     return $generate_call(
         argc,
         argv,
@@ -66,7 +65,6 @@ $native_block_declaration
             "$backend_samples"$native_block_argument
         },
         {$output_names},
-        generate_core_parameters,$prepare_argument
         parameter_json,
         $launch_lambda
     );

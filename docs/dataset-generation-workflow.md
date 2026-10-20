@@ -107,8 +107,8 @@ and select `--kind price_gradients`. Building `price_generators` alone still bui
 only price-only recipes. Generated `recipe.yaml` describes planned settings;
 the native generator produces a minimal `generation.yaml` receipt during
 execution. The controller checks it against the frozen campaign and publishes a compact
-version-2 receipt with current input/output SHA256, observed hardware and
-available compiler versions. Campaign hashes remain in the work journal.
+version-4 receipt with paths and SHA256 values for inputs consumed and the
+published JSON, observed hardware and available compiler versions. Campaign hashes remain in the work journal.
 The recipes reuse the price-only launch profile as a candidate, not as a
 gradient-specific performance qualification. See the [price-gradient contract](cuda/equity-price-gradients-contract.md)
 for CRN seed sharing, derivative errors, frozen LSM dates and bias limitations.

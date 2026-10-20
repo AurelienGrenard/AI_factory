@@ -28,9 +28,9 @@ class GenerationTests(unittest.TestCase):
                     "row_count": 2,
                     "launch_plan": {"paths_per_price": 32}, "state": "pending", "previous": {}}
         self.recipe = {"schema_version": 1, "kind": "prices", "dataset_id": "test",
-                       "generator": "generator.cpp",
+                       "generator": self.job["generator"],
                        "output": {"path": self.job["dataset"], "format": "json"},
-                       "generation_output": self.job["generation"], "url": self.job["url"],
+                       "generation_details": self.job["generation"],
                        "row_count": 2}
         self.receipt = {"schema_version": 1, "status": "complete",
                         "artifact": {"row_count": 2},
@@ -165,8 +165,8 @@ class GenerationTests(unittest.TestCase):
         self.state["controller_amendments"] = [{"sha256": "b" * 64}]
         attach_generation(work, self.job, self.state)
         record = yaml.safe_load(receipt.read_text())
-        self.assertEqual(record["schema_version"], 2)
-        self.assertEqual(record["artifact"]["sha256"], digest(dataset))
+        self.assertEqual(record["schema_version"], 4)
+        self.assertEqual(record["output"]["sha256"], digest(dataset))
         self.assertEqual(record["inputs"], {})
         self.assertNotIn("record_sha256", record)
         self.assertNotIn("provenance", record)
@@ -399,8 +399,8 @@ class GenerationTests(unittest.TestCase):
                   (self.run / self.job["progress_journal"]).read_text().splitlines()]
         self.assertEqual(events[-1]["event"], "job_complete")
         metadata = yaml.safe_load((Path(self.job["work"]) / self.job["generation"]).read_text())
-        self.assertEqual(metadata["schema_version"], 2)
-        self.assertEqual(metadata["artifact"]["sha256"], digest(Path(self.job["work"]) / self.job["dataset"]))
+        self.assertEqual(metadata["schema_version"], 4)
+        self.assertEqual(metadata["output"]["sha256"], digest(Path(self.job["work"]) / self.job["dataset"]))
         self.assertFalse((self.root / self.job["dataset"]).exists())
         (Path(self.job["work"]) / self.job["dataset"]).write_text("changed")
         with self.assertRaisesRegex(ValueError, "Completed output changed"):
@@ -507,8 +507,9 @@ class GenerationTests(unittest.TestCase):
     def test_streamed_samples(self):
         path = self.root / "samples.json"
         job = {"rows": 2, "dataset": "samples.json", "generation": "catalog/samples/generation.yaml",
+               "url": "https://datasets.ai-factory.example/samples.json",
                "sample_shape": [1, 2]}
-        recipe = {"dataset_id": "samples", "url": "https://datasets.ai-factory.example/samples.json",
+        recipe = {"dataset_id": "samples",
                   "shape": {"parameter_count": 1, "paths_per_parameter": 2},
                   "maturity_sampling": {"minimum_days": 63, "maximum_days": 504}}
         rows = [{"parameter_id": "000001", "maturity_days": 252,
@@ -517,7 +518,6 @@ class GenerationTests(unittest.TestCase):
         contents += '  "database_id": "samples",\n'
         contents += '  "model_family": "Test model",\n'
         contents += '  "catalog": "catalog/samples",\n'
-        contents += '  "url": "https://datasets.ai-factory.example/samples.json",\n'
         contents += '  "row_count": 2,\n'
         contents += '  "parameters": [\n'
         contents += json.dumps({"id": "000001", "values": {"x": 1.0}})

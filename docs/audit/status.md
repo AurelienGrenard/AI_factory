@@ -1,6 +1,8 @@
 # Tableau de bord de l'audit principal
 
-Référentiel actif : **v10.1 — 2026-10-02**. Dernier passage examiné : **2026-10-08, contrôle des datasets fixed income, des samples et préparation equity** ; auparavant, reprise des dix constats hors rough, axe IV — performance, axe VI — hygiène et reprise de PRODUCT-001 et NUM-028 à NUM-030. Les preuves détaillées des passages précédents sont dans [véracité](history/truth-before-hygiene-2026-10-06.md) et [architecture](history/architecture-complete-before-truth-2026-10-06.md). Le passage hygiène s'est déroulé pendant ce chantier ; ses observations de génération correspondent au worktree au moment de leur exécution.
+Référentiel courant : **v10.2 — 2026-10-20**. Les verdicts ci-dessous
+proviennent du passage sous **v10.1** et restent à réévaluer sur le moteur
+multi-actifs. Dernier passage examiné : **2026-10-08, contrôle des datasets fixed income, des samples et préparation equity** ; auparavant, reprise des dix constats hors rough, axe IV — performance, axe VI — hygiène et reprise de PRODUCT-001 et NUM-028 à NUM-030. Les preuves détaillées des passages précédents sont dans [véracité](history/truth-before-hygiene-2026-10-06.md) et [architecture](history/architecture-complete-before-truth-2026-10-06.md). Le passage hygiène s'est déroulé pendant ce chantier ; ses observations de génération correspondent au worktree au moment de leur exécution.
 
 ## Verdict et portée
 

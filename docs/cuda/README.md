@@ -11,6 +11,8 @@ catalogue, de publication et de validation indépendante restent dans
 |---|---|
 | Comprendre l'assemblage complet d'un prix ou d'un sample | [Composition des politiques de pricing](pricing-policy-composition.md) |
 | Ajouter ou modifier une dynamique | [Contrat des dynamiques](model-dynamics-contract.md) |
+| Composer plusieurs actifs corrélés | [Monte Carlo multi-actifs](multi-asset-monte-carlo.md) |
+| Actualiser un panier equity avec un taux Vasicek corrélé | [Taux stochastique multi-actifs](cross-asset-stochastic-rate.md) |
 | Préparer la migration de l'adressage Philox interne | [Plan des domaines Philox](philox-domain-migration-plan.md) |
 | Préparer les gradients des modèles à sauts | [Plan des gradients de saut](jump-price-gradient-migration-plan.md) |
 | Étendre les gradients à tous les moteurs puis retirer `price_delta` | [Plan de migration prix-gradients](price-gradients-migration-plan.md) |

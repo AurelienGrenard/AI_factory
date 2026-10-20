@@ -66,6 +66,8 @@ struct DynamicsPolicy {
     using PreparedDynamics = bates::PreparedDynamics;
     using RandomContext = philox::DomainRandomContext;
     using State = bates::State;
+    using BrownianStep = heston::BrownianStep;
+    static constexpr unsigned int kBrownianDimension = 2U;
 
     static constexpr bool kNativeLogSpot = true;
     static constexpr bool kPartitionInvariantAdvance = false;
@@ -80,6 +82,13 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics,
         RandomContext& random,
+        State& state
+    );
+    template<typename AuxiliaryRandom>
+    __device__ __forceinline__ static void one_step_transition(
+        const PreparedDynamics& dynamics,
+        BrownianStep brownian,
+        AuxiliaryRandom& auxiliary,
         State& state
     );
     __device__ __forceinline__ static void advance(

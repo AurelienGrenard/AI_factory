@@ -710,6 +710,52 @@ def compose_datasets(price_datasets, bindings):
     )
 
 
+# Explicitly audited spot scaling. CEV is excluded: with fixed sigma its
+# sigma*S**beta diffusion does not scale linearly with the initial spot.
+SPOT_HOMOGENEOUS_MODELS = frozenset({
+    "bates", "black_scholes", "heston", "heston_3_2", "kou",
+    "merton", "normal_inverse_gaussian", "sabr", "schobel_zhu",
+    "stein_stein", "variance_gamma", "rough_bergomi", "rough_sabr",
+    "log_modulated_rough_bergomi", "rough_stein_stein",
+    "rough_heston", "quadratic_rough_heston",
+})
+
+
+def reconstructible_sensitivities(model, product):
+    """First derivatives recoverable from the published price and parameters.
+
+    The formulas also determine the estimator's standard error. Derivatives
+    requiring another noisy gradient (notably terminal r/q via delta) are
+    intentionally excluded from this list.
+    """
+    rules = {}
+    if product in {"digital_option", "up_no_touch", "up_one_touch"}:
+        rules["product.cash_payoff"] = {
+            "formula": "price / product.cash_payoff",
+            "standard_error": "standard_error / product.cash_payoff",
+        }
+    if product == "range_accrual":
+        rules["product.coupon_rate"] = {
+            "formula": (
+                "(price - exp(-model.risk_free_rate * "
+                "product.maturity / 252)) / product.coupon_rate"
+            ),
+            "standard_error": "standard_error / product.coupon_rate",
+        }
+    if model in SPOT_HOMOGENEOUS_MODELS:
+        if product == "forward_start_option":
+            rules["model.spot"] = {
+                "formula": "price / model.spot",
+                "standard_error": "standard_error / model.spot",
+            }
+        elif product == "cliquet":
+            rules["model.spot"] = {
+                "formula": "0",
+                "standard_error": "0",
+            }
+    return rules
+
+
 def default_sensitivities(
     model,
     product="european_option",

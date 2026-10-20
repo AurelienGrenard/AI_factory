@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.datasets.artifact_publication import contained_path, digest, publish_pair, save_json
 from tools.datasets.dataset_provenance import (
+    cpu_model,
     attach_generation,
     fingerprint,
     input_fingerprints,
@@ -158,10 +159,10 @@ def inventory(
             raise ValueError(f"Recipe identity contradicts manifest: {recipe_path}")
         if recipe.get("output") != {"path": spec.dataset_path, "format": "json"}:
             raise ValueError(f"Recipe output contradicts manifest: {recipe_path}")
-        if recipe.get("generation_output") != spec.generation_yaml_path:
-            raise ValueError(f"Generation output contradicts manifest: {recipe_path}")
-        if spec.dataset_kind != "price_gradients" and recipe.get("url") != spec.url:
-            raise ValueError(f"Recipe URL contradicts manifest: {recipe_path}")
+        if recipe.get("generator") != spec.generator_path:
+            raise ValueError(f"Recipe generator contradicts manifest: {recipe_path}")
+        if recipe.get("generation_details") != spec.generation_yaml_path:
+            raise ValueError(f"Generation details contradict manifest: {recipe_path}")
         if recipe.get("row_count") != spec.row_count:
             raise ValueError(f"Recipe row count contradicts manifest: {recipe_path}")
         if spec.dataset_kind == "price_gradients":
@@ -262,10 +263,9 @@ def check_samples(path: Path, job: dict, recipe: dict) -> None:
         expected_header = {
             "database_id": recipe["dataset_id"],
             "catalog": str(Path(job["generation"]).parent),
-            "url": recipe["url"],
             "row_count": job["rows"],
         }
-        for key in ("database_id", "model_family", "catalog", "url", "row_count"):
+        for key in ("database_id", "model_family", "catalog", "row_count"):
             line = stream.readline().strip()
             try:
                 record = json.loads("{" + line.removesuffix(",") + "}")
@@ -274,7 +274,9 @@ def check_samples(path: Path, job: dict, recipe: dict) -> None:
             if (not line.endswith(",") or list(record) != [key]
                     or (key == "model_family" and
                         (not isinstance(record[key], str) or not record[key]))
-                    or (key != "model_family" and record[key] != expected_header[key])):
+                    or (key != "model_family"
+                        and expected_header[key] is not None
+                        and record[key] != expected_header[key])):
                 raise ValueError(f"Sample header contradicts recipe: {key}")
         if stream.readline().strip() != '"parameters": [':
             raise ValueError("Missing sample parameter table")
@@ -328,8 +330,8 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
     validate_document(recipe, "recipe", job["recipe"])
     if (recipe.get("dataset_id") != Path(job["dataset"]).stem
             or recipe.get("output") != {"path": job["dataset"], "format": "json"}
-            or (job["kind"] != "price_gradients"
-                and recipe.get("url") != job["url"])):
+            or recipe.get("generator") != job["generator"]
+            or recipe.get("generation_details") != job["generation"]):
         raise ValueError("Recipe identity/output contradicts the frozen selection")
     if (generation.get("schema_version") != 1
             or generation.get("status") != "complete"
@@ -339,6 +341,7 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
         raise ValueError("Invalid native generation receipt")
     forbidden = {
         "database_id", "dataset_id", "model_dataset", "curve_dataset",
+        "rate_model_dataset",
         "product_dataset", "price_construction", "validation", "outputs",
         "seeds", "sensitivity", "time_grid", "time_representation",
     }
@@ -821,11 +824,13 @@ def gpu_observation() -> dict:
             "--format=csv"], text=True, capture_output=True, timeout=10)
         return {"unix_time": time.time(), "hostname": os.uname().nodename,
                 "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+                "cpu_model": cpu_model(),
                 "returncode": result.returncode,
                 "stdout": result.stdout, "stderr": result.stderr}
     except (OSError, subprocess.TimeoutExpired) as error:
         return {"unix_time": time.time(), "hostname": os.uname().nodename,
                 "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
+                "cpu_model": cpu_model(),
                 "unavailable": str(error)}
 
 

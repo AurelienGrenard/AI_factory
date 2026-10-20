@@ -239,6 +239,33 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     );
 }
 
+template<typename AuxiliaryRandom>
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    AuxiliaryRandom& auxiliary,
+    State& state
+) {
+    const auto& heston = dynamics.heston;
+    const float residual = heston.correlation_residual > 0.0f
+        ? (brownian.spot - heston.rho * brownian.variance)
+            / heston.correlation_residual
+        : 0.0f;
+    const float variance_uniform = auxiliary.next();
+    const std::uint32_t jump_count = compound_poisson::draw_count(
+        auxiliary, dynamics.poisson_mean, dynamics.zero_jump_probability
+    );
+    philox::NormalPairCache mark_cache;
+    float jump_normal_sum = 0.0f;
+    for (std::uint32_t event = 0U; event < jump_count; ++event) {
+        jump_normal_sum += philox::next_normal(auxiliary, mark_cache);
+    }
+    bates::one_step_transition(
+        dynamics, brownian.variance, variance_uniform, residual,
+        jump_count, jump_normal_sum, state
+    );
+}
+
 __device__ __forceinline__ void DynamicsPolicy::advance(
     const PreparedDynamics& dynamics,
     std::uint32_t step_count,

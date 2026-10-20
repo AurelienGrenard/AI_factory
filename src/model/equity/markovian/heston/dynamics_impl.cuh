@@ -65,6 +65,8 @@ __device__ __forceinline__ PreparedModel prepare_model(
         kGamma1 * delta_t * (1.0f - rho * rho),
         k4,
         k2 + 0.5f * k4,
+        rho,
+        sqrtf(fmaxf(1.0f - rho * rho, 0.0f)),
     };
 }
 
@@ -227,6 +229,22 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
         random.uniforms,
         random.normals,
         state
+    );
+}
+
+template<typename AuxiliaryRandom>
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    AuxiliaryRandom& auxiliary,
+    State& state
+) {
+    const float residual = dynamics.correlation_residual > 0.0f
+        ? (brownian.spot - dynamics.rho * brownian.variance)
+            / dynamics.correlation_residual
+        : 0.0f;
+    heston::one_step_transition(
+        dynamics, brownian.variance, auxiliary.next(), residual, state
     );
 }
 

@@ -1,6 +1,7 @@
 // Parameter-dataset document assembly and publication.
 #include "tools/datasets/parameter_dataset.hpp"
 #include "tools/datasets/artifact_io.hpp"
+#include "common/dataset_validation.hpp"
 
 #include <stdexcept>
 
@@ -55,16 +56,23 @@ void write_parameter_dataset(
                 : row_key == "curves" ? "curve_parameters"
                 : "product_parameters"},
         {"dataset_id", database_id},
-        {"generator", "generator.cpp"},
+        {"generator", (catalog_path.parent_path() / "generator.cpp").generic_string()},
         {"output", {
             {"path", dataset_path.generic_string()},
             {"format", "json"},
         }},
-        {"generation_output", catalog_path.generic_string()},
-        {"url", url},
+        {"generation_details", catalog_path.generic_string()},
         {family_key, family},
         {"row_count", generated.rows.size()},
     };
+    if (metadata.contains("parameterization")) {
+        recipe["parameterization"] = metadata.at("parameterization");
+    }
+    if (metadata.contains("source_model_dataset")) {
+        recipe["inputs"] = {
+            {"source_model", metadata.at("source_model_dataset")}
+        };
+    }
     if (metadata.contains("time_convention")) {
         recipe["time_convention"] = metadata.at("time_convention");
     }
@@ -100,6 +108,46 @@ void write_model_dataset(
         generated,
         {}
     );
+}
+
+void write_factorized_model_dataset(
+    const std::filesystem::path& source_dataset_path,
+    const std::string& database_id,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url
+) {
+    const auto source = read_json_file(source_dataset_path);
+    validate_model_dataset(source);
+    GeneratedRows generated;
+    nlohmann::ordered_json descriptions =
+        nlohmann::ordered_json::object();
+    for (const auto& row : source.at("models")) {
+        auto parameters = row.at("parameters");
+        parameters.erase("risk_free_rate");
+        parameters.erase("rho");
+        parameters.erase("correlation");
+        if (parameters.empty())
+            throw std::invalid_argument("Empty factorized model row");
+        for (const auto& [name, value] : parameters.items())
+            descriptions[name] = "Model parameter.";
+        generated.rows.push_back(std::move(parameters));
+    }
+    generated.construction = {
+        {"method", "projection of complete model parameters"},
+        {"source_model_dataset", source_dataset_path.generic_string()},
+        {"excluded", {"risk_free_rate", "rho", "correlation"}}
+    };
+    write_parameter_dataset(
+        database_id, source.at("model_family").get<std::string>(),
+        "model_family", "models", "dynamics", dataset_path, catalog_path,
+        url, descriptions,
+        {{"source_model_dataset", source_dataset_path.generic_string()}},
+        generated,
+        {{"parameterization", "factorized"},
+         {"source_model_dataset", source_dataset_path.generic_string()}}
+    );
+    validate_model_dataset_file(dataset_path);
 }
 
 void write_curve_dataset(

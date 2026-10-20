@@ -130,7 +130,6 @@ void validate_recipe(const ModelSampleRecipe& recipe) {
             "A sample recipe requires non-empty identifiers and method."
         );
     }
-    validate_dataset_url(recipe.url);
     (void)checked_sample_count(
         recipe.production_parameter_count,
         recipe.production_paths_per_parameter
@@ -175,7 +174,6 @@ void write_streamed_json(
            << "  \"model_family\": " << nlohmann::json(recipe.model_family).dump() << ",\n"
            << "  \"catalog\": "
            << nlohmann::json(recipe.catalog_path.parent_path().generic_string()).dump() << ",\n"
-           << "  \"url\": " << nlohmann::json(recipe.url).dump() << ",\n"
            << "  \"row_count\": " << row_count << ",\n"
            << "  \"parameters\": [\n";
     for (std::size_t parameter_index = 0U;
@@ -313,14 +311,12 @@ void validate_model_sample_dataset_file(
     std::uint32_t maximum_maturity_days
 ) {
     const nlohmann::ordered_json document = read_json_file(dataset_path);
-    if (document.size() != 7U
+    if (document.size() != 6U
         || document.at("database_id") != dataset_path.stem().string()
         || !document.at("model_family").is_string()
         || document.at("model_family").get<std::string>().empty()
         || !document.at("catalog").is_string()
         || document.at("catalog").get<std::string>().empty()
-        || !document.at("url").is_string()
-        || document.at("url").get<std::string>().empty()
         || document.at("row_count") != expected_row_count
         || !document.contains("parameters")
         || !document.contains("results")

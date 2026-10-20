@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/volterra/fractional_kernel_approximation.hpp"
+#include "common/math/small_matrix_exponential.cuh"
 #include "model/equity/rough/rough_heston/dynamics.cuh"
 
 #include <algorithm>
@@ -18,73 +19,8 @@ namespace ai_factory::workbench::model::equity::rough_heston {
 namespace detail {
 
 template<std::size_t Dimension>
-using Matrix = std::array<double, Dimension * Dimension>;
-
-template<std::size_t Dimension>
-Matrix<Dimension> identity_matrix() {
-    Matrix<Dimension> result{};
-    for (std::size_t index = 0U; index < Dimension; ++index)
-        result[index * Dimension + index] = 1.0;
-    return result;
-}
-
-template<std::size_t Dimension>
-double matrix_one_norm(const Matrix<Dimension>& matrix) {
-    double norm = 0.0;
-    for (std::size_t column = 0U; column < Dimension; ++column) {
-        double sum = 0.0;
-        for (std::size_t row = 0U; row < Dimension; ++row)
-            sum += std::abs(matrix[row * Dimension + column]);
-        norm = std::max(norm, sum);
-    }
-    return norm;
-}
-
-template<std::size_t Dimension>
-Matrix<Dimension> multiply(
-    const Matrix<Dimension>& left,
-    const Matrix<Dimension>& right
-) {
-    Matrix<Dimension> result{};
-    for (std::size_t row = 0U; row < Dimension; ++row) {
-        for (std::size_t column = 0U; column < Dimension; ++column) {
-            double value = 0.0;
-            for (std::size_t inner = 0U; inner < Dimension; ++inner) {
-                value += left[row * Dimension + inner]
-                    * right[inner * Dimension + column];
-            }
-            result[row * Dimension + column] = value;
-        }
-    }
-    return result;
-}
-
-// Scaling/squaring with a converged Taylor series is ample for Dimension<=8
-// and runs only during host preparation. It also handles the augmented affine
-// system without a potentially ill-conditioned explicit matrix inverse.
-template<std::size_t Dimension>
-Matrix<Dimension> matrix_exponential(Matrix<Dimension> matrix) {
-    const double norm = matrix_one_norm<Dimension>(matrix);
-    int scaling = 0;
-    if (norm > 0.5)
-        scaling = static_cast<int>(std::ceil(std::log2(norm / 0.5)));
-    const double divisor = std::ldexp(1.0, scaling);
-    for (double& value : matrix) value /= divisor;
-
-    Matrix<Dimension> result = identity_matrix<Dimension>();
-    Matrix<Dimension> term = result;
-    for (int order = 1; order <= 64; ++order) {
-        term = multiply<Dimension>(term, matrix);
-        const double inverse_order = 1.0 / static_cast<double>(order);
-        for (double& value : term) value *= inverse_order;
-        for (std::size_t index = 0U; index < result.size(); ++index)
-            result[index] += term[index];
-        if (matrix_one_norm<Dimension>(term) < 2.0e-16) break;
-    }
-    for (int square = 0; square < scaling; ++square)
-        result = multiply<Dimension>(result, result);
-    return result;
-}
+using Matrix = math::SmallMatrix<Dimension>;
+using math::matrix_exponential;
 
 inline void validate_model(const ModelParameters& model) {
     if (!std::isfinite(model.spot) || !(model.spot > 0.0f)

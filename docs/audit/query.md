@@ -1,6 +1,6 @@
 # Référentiel d'audit du dépôt C++/CUDA
 
-Version du référentiel : **10.1 — 2026-10-02**.
+Version du référentiel : **10.2 — 2026-10-20**.
 
 Ce document définit les questions, les preuves et les verdicts de l'audit
 principal d'AI Factory. Il ne contient ni les résultats d'un passage précis, ni
@@ -15,7 +15,8 @@ Déterminer si le projet :
 3. se parcourt et se comprend sans mémoire préalable du projet ;
 4. emploie des algorithmes et des stratégies CUDA adaptés à ses charges ;
 5. possède un graphe CMake exact, minimal et reproductible ;
-6. ne conserve aucun fichier, target, exécutable ou artefact sans propriétaire.
+6. ne conserve aucun fichier, target, exécutable ou artefact sans propriétaire ;
+7. décrit recettes, datasets et provenance de manière cohérente par famille.
 
 La justesse précède toute autre qualité. Une optimisation, une factorisation ou
 une simplification qui change silencieusement la quantité calculée est un
@@ -51,9 +52,10 @@ L'audit principal couvre :
 
 - `src` : bibliothèques financières, numériques, CUDA et runtime ;
 - `learning` : code réutilisable de préparation, réseaux et entraînement ;
-- `tools` : codegen, génération, inspection, publication et performance ;
+- `tools` : codegen, génération, inspection et publication nécessaires au livrable ;
+- `maintainer` : outils de diagnostic, expériences et contrôles internes ;
 - `catalog` : recettes permanentes et générateurs minimaux ;
-- `tests` : preuves fonctionnelles, numériques, structurelles et de performance ;
+- `tests` : preuves des contrats fonctionnels, numériques et structurels du livrable ;
 - `cmake`, `CMakeLists.txt` et `CMakePresets.json` ;
 - la documentation maintenue ;
 - le build principal `build/`, les racines locales `work/`, `datasets/` et
@@ -164,6 +166,7 @@ Les particularités comprennent notamment :
 - terminal, dépendant du chemin ou exercice anticipé ;
 - closed form scalaire ou coopérative ;
 - MC markovien, LSM, rough FFT ou rough N-facteurs ;
+- mono-actif, multi-actifs, taux constant ou numéraire stochastique corrélé ;
 - diffusion continue, sauts à activité finie ou changement de temps ;
 - courbe ajustée, mesure risque-neutre ou mesure forward ;
 - gradient, Hessienne diagonale ou dérivées mixtes.
@@ -270,6 +273,26 @@ convolution, reconstruction du processus, payoff et réduction. Les FFT ou
 coefficients réutilisés entre nœuds doivent être mathématiquement identiques
 pour ces nœuds.
 
+### Multi-actifs et taux corrélé
+
+Retracer la chaîne complète : ordre et signification des facteurs déclarés,
+matrice de corrélation, validation et Cholesky, compteur Philox, normales
+indépendantes, normales corrélées, distribution aux transitions, observation du
+panier, numéraire et réduction. Vérifier la cohérence entre corrélations
+internes des modèles et matrice globale, y compris lorsque plusieurs modèles
+proviennent de la même base. Contrôler dimensions, indices et cas sans facteur
+de taux ; distinguer covariance des innovations et corrélation des rendements
+simulés.
+
+Pour un mélange exact, schéma et rough, vérifier la même grille et les mêmes
+incréments couplés aux dates communes. Auditer la préparation des volatilités
+rough, le replay des innovations, leur mémoire et la reconstruction des spots.
+Une première passe sur un sous-vecteur doit reproduire la loi jointe imposée
+par la matrice complète. Vérifier aussi les produits observés en cours de
+chemin, les états conservés entre passes et l'actualisation par l'intégrale du
+taux corrélé. Le pas de diffusion, le calendrier produit et la maturité en
+années sont trois données distinctes.
+
 ## 5. Prix, gradients et Hessiennes
 
 Suivre explicitement la chaîne :
@@ -315,6 +338,11 @@ Vérifier :
 - absence de réutilisation d'une FFT ou d'une trajectoire lorsque le paramètre
   bumpé change effectivement cette primitive.
 
+Pour le multi-actifs, relever explicitement les ordres de dérivation réellement
+implémentés. Auditer la frontière d'extension des gradients et Hessiennes sans
+présenter leur absence comme une erreur de prix, ni recopier à l'avance tout
+le moteur mono-actif.
+
 Cas obligatoires :
 
 - prix seul ;
@@ -355,7 +383,8 @@ domaine. Prouver :
 - isolation des consommations variables seulement lorsqu'elle est nécessaire ;
 - priorité au flux unique lorsque l'ordre fixe suffit ;
 - couplage correct des nœuds et indépendance correcte des répétitions ;
-- provenance versionnée des changements de mapping.
+- provenance versionnée des changements de mapping ;
+- invariance annoncée au nombre de threads par trajectoire et au replay rough.
 
 Un même seed textuel ne prouve pas l'emploi des mêmes innovations.
 
@@ -398,7 +427,8 @@ duplication métier ni abstraction artificielle ?
 | `src/model/**/product` | composition mince du modèle et du produit |
 | `src/curve/<curve>` | paramètres et analytics de courbe |
 | `learning` | briques d'apprentissage réutilisables, sans campagnes particulières |
-| `tools` | opérations offline réutilisables sur les bibliothèques de `src` |
+| `tools` | opérations offline réutilisables et nécessaires au livrable |
+| `maintainer` | expériences, benchmarks, diagnostics et contrôles internes |
 | `catalog` | identité permanente d'une base et générateur minimal |
 | `work` | campagnes, expériences et builds locaux supprimables |
 
@@ -429,6 +459,14 @@ doit pas supporter artificiellement toutes les structures de Hessienne.
 Closed form, MC mono, graphe multi-kernels, LSM et rough peuvent garder des
 pipelines différents tout en partageant les mêmes objets métier.
 
+Comparer les chemins mono-actif et multi-actifs au niveau des transitions,
+innovations, états, produits et statistiques. Pour chaque surcharge de
+`one_step_transition` et chaque adaptateur, identifier son contrat et ses
+consommateurs. Les paramètres endogènes du modèle, le taux commun et les
+corrélations de la matrice globale doivent avoir un propriétaire clair dans
+chaque famille de datasets. Vérifier que l'ajout d'un taux ou d'un actif ne
+force pas à recopier le payoff ou la dynamique.
+
 La philosophie de préparation doit rester reconnaissable : modèle central,
 produit central, courbe éventuelle, spécification demandée, besoin du central,
 contexte, puis ligne prête à calculer. Toute représentation matérialisée en
@@ -446,7 +484,9 @@ Rechercher :
 - concepts qui valident moins que ce que leur consommateur exige ;
 - templates utilisés seulement pour éviter une fonction ordinaire ;
 - paramètres booléens qui cachent plusieurs stratégies ;
-- façades et alias sans consommateur ou sans réduction de complexité.
+- façades et alias sans consommateur ou sans réduction de complexité ;
+- kernels ou launchers qui ne diffèrent que par une politique exprimable
+  clairement, et fusions qui masqueraient des topologies mémoire distinctes.
 
 Une bonne brique possède un invariant exprimable, plusieurs consommateurs
 plausibles ou une frontière publique claire. Le nombre minimal de lignes ou de
@@ -473,7 +513,10 @@ Mesurer le coût conceptuel et les fichiers touchés pour :
 4. ajouter un produit dépendant du chemin ;
 5. ajouter un modèle MC ;
 6. ajouter une formule fermée ou coopérative ;
-7. ajouter une stratégie qui exige de nouvelles innovations ou FFT.
+7. ajouter une stratégie qui exige de nouvelles innovations ou FFT ;
+8. ajouter un actif à un panier, un modèle rough et un taux corrélé ;
+9. ajouter un produit multi-actifs observé sur calendrier ;
+10. exposer une sensibilité multi-actifs sans dupliquer les transitions.
 
 Chaque exercice doit aboutir à un propriétaire évident. Toucher de nombreuses
 listes sans lien métier indique une factorisation insuffisante. Modifier un
@@ -522,6 +565,8 @@ Vérifier :
 - produits absents des dossiers de primitives communes ;
 - code runtime absent des recettes et expériences ;
 - tests rangés par contrat ou domaine, sans racine fourre-tout ;
+- frontières explicites entre `tools`, `tests` et `maintainer` : les deux
+  premiers sont livrés, le dernier héberge le travail interne ;
 - profondeur justifiée et absence de chaînes `common/core/utils` vagues ;
 - README local lorsqu'un dossier constitue une vraie porte d'entrée.
 
@@ -540,6 +585,8 @@ Employer des noms précis et cohérents :
 - unités visibles : `_days`, `_years`, `_bytes`, `_count`, `_offset` ;
 - cardinalités et ownership explicites ;
 - mêmes termes pour les mêmes objets entre prix et dérivées ;
+- distinction visible entre actif, modèle, facteur brownien, scénario,
+  trajectoire et ligne de résultat ;
 - aucun nom permanent tel que `new`, `final`, `misc`, `helper2` ou `workbench`
   sans signification de domaine.
 
@@ -627,6 +674,10 @@ Pour chaque stratégie distincte, relever :
 
 Prix seul, mono-kernel gradient, graphe multi-kernels, LSM, closed form
 coopérative et rough FFT ne sont pas supposés partager une topologie optimale.
+Pour le multi-actifs, inventorier les spécialisations markovienne, rough et
+taux, les deux passes rough, et le coût du produit matriciel par pas. Une
+fusion de kernels se décide sur leur contrat, leurs ressources compilées et
+le temps du pipeline complet.
 
 ## 3. Mémoire et accès
 
@@ -698,7 +749,9 @@ Lorsque présentes dans le mandat, couvrir séparément :
 - modèles à sauts et consommations variables ;
 - rough FFT et N-facteurs ;
 - samples à un et plusieurs chemins par paramètre ;
-- prix, gradient/diagonale et graphe de Hessienne complète.
+- prix, gradient/diagonale et graphe de Hessienne complète ;
+- multi-actifs de petite et grande dimension, avec et sans rough ou taux,
+  sur la grille et le calendrier réellement utilisés par les recettes.
 
 ## Preuve minimale de l'axe
 
@@ -761,7 +814,22 @@ deux sens :
 Les regex de chemin peuvent router une cible ; elles ne doivent pas devenir une
 seconde définition des capacités métier.
 
-## 4. Incrémentalité
+## 4. Minimalité et rangement du graphe
+
+Comparer les modules CMake aux responsabilités de `src`, `tools`, `catalog` et
+`tests`. Vérifier que le multi-actifs, les taux et les gradients n'ont ni
+listes de modèles parallèles ni dépendances circulaires ou trop larges.
+Inventorier les cibles compilées par défaut, les agrégats, les variantes
+expérimentales, les tests et les générateurs ; justifier chaque bibliothèque et
+chaque exécutable. Les cibles `maintainer` restent opt-in et ne conditionnent
+pas une configuration livrable propre.
+
+Mesurer le nombre de cibles, les dépendances transitives et les recompilations
+avant de proposer une fusion de modules. Vérifier qu'une source ou recette
+supprimée disparaît aussi du graphe, et qu'un nouveau modèle, produit ou taux
+peut être branché à un seul endroit prévisible.
+
+## 5. Incrémentalité
 
 Dans un build isolé, vérifier :
 
@@ -778,7 +846,7 @@ Pour chaque mutation, comparer targets attendues et targets réellement
 reconstruites, temps, taille et relink. Les fichiers lus à la configuration
 doivent déclencher la régénération CMake appropriée.
 
-## 5. Coût du build
+## 6. Coût du build
 
 Examiner explosion des instanciations, unités trop larges, headers lourds,
 compilation répétée, taille des objets et liens. Le cache de compilation peut
@@ -815,7 +883,23 @@ propriétaire, un consommateur et une politique de conservation ?
 Ne pas supprimer une preuve comme un cache. Ne pas conserver un cache comme une
 preuve.
 
-## 2. Pollution du dépôt suivi
+## 2. Uniformité du catalogue et des datasets
+
+Comparer les recettes par `kind` et stratégie, pas seulement leurs champs
+communs. Vérifier les noms, unités, champs optionnels, conventions temporelles,
+ordre des modèles et facteurs, et emplacement du taux et des corrélations.
+Toute exception doit représenter une différence de contrat identifiable. Les
+bases factorisées et les bases mono-actif complètes doivent être distinguées
+sans déduire silencieusement `rho` ou `r` d'une autre source.
+
+Comparer chaque `recipe.yaml`, JSON et `generation.yaml` : identité, chemins,
+inputs et hashes, nombre de lignes, méthode, graine, grille, matériel et
+logiciel. Vérifier la même ossature et les mêmes validateurs entre production
+native, génération isolée et publication ; rechercher les reçus absents,
+anciens ou incompatibles. Un reçu cohérent ne certifie pas seul la justesse
+numérique du prix.
+
+## 3. Pollution du dépôt suivi
 
 Rechercher notamment :
 
@@ -829,7 +913,7 @@ Rechercher notamment :
 
 Une exception suivie doit être intentionnelle, documentée et testée.
 
-## 3. Code et fichiers orphelins
+## 4. Code et fichiers orphelins
 
 Croiser plusieurs preuves :
 
@@ -854,7 +938,7 @@ Identifier :
 - anciens launchers, recettes et compatibilités sans usage actif ;
 - copies et variantes historiques qui devraient vivre dans une preuve.
 
-## 4. Builds et exécutables périmés
+## 5. Builds et exécutables périmés
 
 Inventorier `build/`, autres `build-*`, sous-builds de campagnes et exécutables.
 Pour le build principal :
@@ -869,7 +953,7 @@ La date du fichier seule ne prouve pas sa fraîcheur. Un exécutable de campagne
 gelée peut rester volontairement ancien ; il appartient alors à cette campagne,
 pas au build actif.
 
-## 5. Racines locales
+## 6. Racines locales
 
 Le [plan des artefacts locaux](../local-artifacts.md) définit le rôle de
 `build`, `work`, `datasets` et `artifacts`. Vérifier :
@@ -908,7 +992,9 @@ Rechercher :
 - fixtures non représentatives ;
 - tests jamais enregistrés dans CTest ou la suite Python ;
 - skips silencieux et succès sans assertions utiles ;
-- tests bit à bit employés à tort comme référence mathématique.
+- tests bit à bit employés à tort comme référence mathématique ;
+- tests de contrat livrable confondus avec essais de réglage, diagnostics ou
+  campagnes qui appartiennent à `maintainer`.
 
 Une suite doit couvrir les contrats distincts, pas reproduire mécaniquement
 l'arborescence de `src`.

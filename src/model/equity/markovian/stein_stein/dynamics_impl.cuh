@@ -84,13 +84,37 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     const float asset_residual = philox::next_normal(
         random.uniforms, random.normals
     );
-    one_step_transition(
+    stein_stein::one_step_transition(
         dynamics,
         endpoint_normal,
         increment_residual,
         asset_residual,
         state
     );
+}
+
+template<typename AuxiliaryRandom>
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    AuxiliaryRandom& auxiliary,
+    State& state
+) {
+    // Condition the exact OU endpoint on its shared volatility Brownian
+    // increment; the remaining bridge normal uses the auxiliary stream.
+    philox::NormalPairCache cache;
+    const float bridge = philox::next_normal(auxiliary, cache);
+    const float endpoint = fmaf(
+        dynamics.endpoint_increment_correlation, brownian.volatility,
+        dynamics.endpoint_increment_residual * bridge
+    );
+    const float volatility = state.volatility;
+    state.log_spot += dynamics.drift_dt
+        - 0.5f * volatility * volatility
+            * dynamics.sqrt_dt * dynamics.sqrt_dt
+        + volatility * dynamics.sqrt_dt * brownian.spot;
+    state.volatility = volatility * dynamics.volatility_decay
+        + dynamics.volatility_standard_deviation * endpoint;
 }
 
 __device__ __forceinline__ void DynamicsPolicy::advance(

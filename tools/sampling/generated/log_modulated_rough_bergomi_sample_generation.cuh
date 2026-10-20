@@ -17,37 +17,13 @@ namespace model_binding = ai_factory::workbench::model::equity::log_modulated_ro
 using ModelParameters = model_binding::ModelParameters;
 inline constexpr std::size_t factor_count = 7U;
 
-inline std::vector<ModelParameters> generate_core_parameters(
-    std::size_t parameter_count,
-    std::uint64_t seed
-) {
-    std::vector<ModelParameters> parameters;
-    parameters.reserve(parameter_count);
-    std::size_t proposal = 0U;
-    while (parameters.size() < parameter_count) {
-        HostUniformSequence uniforms(seed, proposal++);
-        const float spot = uniform({1.0f, 1.0f}, uniforms);
-        const float risk_free_rate = uniform({0.001f, 0.08f}, uniforms);
-        const float dividend_yield = uniform({0.0f, 0.06f}, uniforms);
-        const float xi_0 = uniform({0.01f, 0.09f}, uniforms);
-        const float eta = uniform({0.5f, 3.0f}, uniforms);
-        const float hurst_exponent = uniform({0.01f, 0.2f}, uniforms);
-        const float rho = uniform({-0.95f, -0.2f}, uniforms);
-        const float log_modulation_scale = uniform({0.03f, 0.3f}, uniforms);
-        const float log_modulation_power = uniform({1.2f, 4.0f}, uniforms);
-        if (!(true)) continue;
-        parameters.push_back({spot, risk_free_rate, dividend_yield, xi_0, eta, hurst_exponent, rho, log_modulation_scale, log_modulation_power});
-    }
-    return parameters;
-}
+
 
 inline nlohmann::ordered_json parameter_json(
     const ModelParameters& parameters
 ) {
     return {
         {"spot", parameters.spot},
-        {"risk_free_rate", parameters.risk_free_rate},
-        {"dividend_yield", parameters.dividend_yield},
         {"xi_0", parameters.xi_0},
         {"eta", parameters.eta},
         {"hurst_exponent", parameters.hurst_exponent},
@@ -69,7 +45,6 @@ inline datasets::ModelSampleRecipe recipe(
         "Log-modulated rough-Bergomi",
         "datasets/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + ".json",
         "catalog/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v2/model/equity/rough/log_modulated_rough_bergomi/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -78,12 +53,10 @@ inline datasets::ModelSampleRecipe recipe(
         "block-cooperative hybrid FFT at dt=1/504",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
-            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "xi_0", "eta", "hurst_exponent", "rho", "log_modulation_scale", "log_modulation_power"}},
+            {"distribution", "independent Philox uniform proposals with counter-local rejection per parameter row"},
+            {"proposal_draw_order", {"spot", "xi_0", "eta", "hurst_exponent", "rho", "log_modulation_scale", "log_modulation_power"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
-                {"risk_free_rate", {0.001f, 0.08f}},
-                {"dividend_yield", {0.0f, 0.06f}},
                 {"xi_0", {0.01f, 0.09f}},
                 {"eta", {0.5f, 3.0f}},
                 {"hurst_exponent", {0.01f, 0.2f}},
@@ -91,7 +64,8 @@ inline datasets::ModelSampleRecipe recipe(
                 {"log_modulation_scale", {0.03f, 0.3f}},
                 {"log_modulation_power", {1.2f, 4.0f}}
             }},
-            {"acceptance", "true"}
+            {"acceptance", "true"},
+            {"fixed_model_inputs", {{"risk_free_rate", 0.0f}, {"dividend_yield", 0.0f}}}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}
@@ -101,8 +75,10 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
-    const auto native_block = model_binding::log_modulated_rough_bergomi_sample_block_dimensions(value.maximum_maturity_days);
-    return generate_model_sample_dataset<ModelParameters>(
+    const auto native_block = model_binding::log_modulated_rough_bergomi_sample_block_dimensions(value.maximum_maturity_days);    const model_binding::SampleParameterSampler::Configuration bounds{{{1.0f, 1.0f}, {0.01f, 0.09f}, {0.5f, 3.0f}, {0.01f, 0.2f}, {-0.95f, -0.2f}, {0.03f, 0.3f}, {1.2f, 4.0f}}};
+    const std::uint64_t parameter_seed = value.seeds.parameters;
+
+    return generate_device_model_sample_dataset<ModelParameters>(
         argc,
         argv,
         std::move(value),
@@ -112,10 +88,9 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
             "volterra_samples", native_block
         },
         {"spot"},
-        generate_core_parameters,
         parameter_json,
-        [](
-        const auto* device_parameters,
+        [bounds, parameter_seed](
+        auto* device_parameters,
         std::size_t parameter_count,
         std::size_t paths_per_parameter,
         std::uint32_t minimum_maturity_days,
@@ -132,12 +107,12 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
         if (outputs.size() != 1U) {
             throw std::invalid_argument("Log-modulated rough-Bergomi sample output arity mismatch.");
         }
-        model_binding::launch_log_modulated_rough_bergomi_random_terminal_samples_cuda(
-            device_parameters, parameter_count, paths_per_parameter,
-            minimum_maturity_days, maximum_maturity_days, sample_offset,
-            launch_sample_count, block_count, schedule_seed, dynamics_seed,
-            device_maturity_days,
-            outputs[0]
+        model_binding::launch_log_modulated_rough_bergomi_generated_random_terminal_samples_cuda(
+            device_parameters, bounds, parameter_count,
+            paths_per_parameter, minimum_maturity_days,
+            maximum_maturity_days, sample_offset, launch_sample_count,
+            block_count, parameter_seed, schedule_seed, dynamics_seed,
+            device_maturity_days, outputs[0]
         );
     }
     );

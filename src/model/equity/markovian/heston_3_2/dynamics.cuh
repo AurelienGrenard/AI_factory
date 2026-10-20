@@ -46,6 +46,8 @@ struct DynamicsPolicy {
     using PreparedDynamics = heston_3_2::PreparedDynamics;
     using RandomContext = philox::NormalRandomContext;
     using State = heston_3_2::State;
+    struct BrownianStep { float spot; float volatility; };
+    static constexpr unsigned int kBrownianDimension = 2U;
 
     static constexpr bool kNativeLogSpot = true;
     static constexpr bool kPartitionInvariantAdvance = true;
@@ -60,6 +62,13 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics,
         RandomContext& random,
+        State& state
+    );
+    template<typename AuxiliaryRandom>
+    __device__ __forceinline__ static void one_step_transition(
+        const PreparedDynamics& dynamics,
+        BrownianStep brownian,
+        AuxiliaryRandom& auxiliary,
         State& state
     );
     __device__ __forceinline__ static void advance(

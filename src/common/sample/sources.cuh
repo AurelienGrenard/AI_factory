@@ -4,6 +4,7 @@
 #include "common/check_cuda.cuh"
 #include "common/philox.cuh"
 #include "common/sample/concepts.cuh"
+#include "common/sample/parameter_bounds.cuh"
 #include "common/sample/validation.cuh"
 #include "common/simulation/schedule.cuh"
 
@@ -58,6 +59,7 @@ template<ParameterSamplingPolicy Sampler>
 struct GeneratedParameterSource {
     using Parameters = typename Sampler::Parameters;
     typename Sampler::Configuration configuration;
+    Parameters* recorded_parameters = nullptr;
 
     void validate(std::size_t parameter_count) const {
         if (parameter_count == 0U) {
@@ -66,17 +68,67 @@ struct GeneratedParameterSource {
             );
         }
         Sampler::validate(configuration);
+        if (recorded_parameters != nullptr) {
+            validate_device_pointer(
+                recorded_parameters, "device generated sample parameters"
+            );
+        }
     }
 
     __device__ __forceinline__ Parameters load(
         std::size_t parameter_index,
         std::uint64_t seed
     ) const {
-        return Sampler::sample(
+        const Parameters parameters = Sampler::sample(
             configuration,
             philox::make_key(seed ^ kParameterSamplingDomain),
             static_cast<std::uint64_t>(parameter_index)
         );
+        if (recorded_parameters != nullptr) {
+            recorded_parameters[parameter_index] = parameters;
+        }
+        return parameters;
+    }
+};
+
+// Draw one parameter row, then prepare its model-specific numerical state on
+// the device. The preparer receives numerical settings rather than a
+// pre-generated parameter dataset.
+template<ParameterSamplingPolicy Sampler, typename Preparer>
+struct GeneratedPreparedInputSource {
+    using Parameters = typename Sampler::Parameters;
+    typename Sampler::Configuration parameter_configuration;
+    typename Preparer::Configuration preparation_configuration;
+    Parameters* recorded_parameters = nullptr;
+
+    void validate(std::size_t parameter_count) const {
+        if (parameter_count == 0U) {
+            throw std::invalid_argument(
+                "Generated prepared samples require at least one row."
+            );
+        }
+        Sampler::validate(parameter_configuration);
+        Preparer::validate(preparation_configuration);
+        if (recorded_parameters != nullptr) {
+            validate_device_pointer(
+                recorded_parameters, "device generated sample parameters"
+            );
+        }
+    }
+
+    __device__ __forceinline__ typename Preparer::Prepared load(
+        std::size_t parameter_index,
+        std::uint64_t seed
+    ) const {
+        const Parameters parameters = Sampler::sample(
+            parameter_configuration,
+            philox::make_key(seed ^ kParameterSamplingDomain),
+            static_cast<std::uint64_t>(parameter_index)
+        );
+        if (recorded_parameters != nullptr) {
+            recorded_parameters[parameter_index] = parameters;
+        }
+        return Preparer::prepare(parameters, preparation_configuration);
     }
 };
 

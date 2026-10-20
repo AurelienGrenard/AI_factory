@@ -432,6 +432,7 @@ void test_model_bindings() {
 struct GeneratedRun {
     std::vector<float> spots;
     std::vector<std::uint32_t> maturity_days;
+    std::vector<black_scholes::ModelParameters> parameters;
 };
 
 GeneratedRun generate_terminal_rows(
@@ -449,10 +450,15 @@ GeneratedRun generate_terminal_rows(
         sample_count,
         "generated maturity-day allocation"
     );
+    auto* device_generated = allocate_device<black_scholes::ModelParameters>(
+        sample_count,
+        "generated parameter allocation"
+    );
     const sample::GeneratedParameterSource<
         BlackScholesParameterSamplingPolicy
     > parameters{
-        {{0.001f, 0.08f}, {0.0f, 0.06f}, {0.08f, 0.45f}}
+        {{0.001f, 0.08f}, {0.0f, 0.06f}, {0.08f, 0.45f}},
+        device_generated
     };
     const sample::UniformMaturityCalendarSource maturities{
         {63U, 504U},
@@ -483,7 +489,13 @@ GeneratedRun generate_terminal_rows(
             sample_count,
             "generated maturity-day copy"
         ),
+        copy_to_host(
+            device_generated,
+            sample_count,
+            "generated parameter copy"
+        ),
     };
+    check_cuda(cudaFree(device_generated), "generated parameter free");
     check_cuda(cudaFree(device_days), "generated maturity-day free");
     check_cuda(cudaFree(device_spots), "generated spot free");
     return result;
@@ -510,6 +522,14 @@ void test_generated_sources_and_domains() {
     require(
         grid_stride.maturity_days == parameter_blocks.maturity_days,
         "Generated maturities changed with execution strategy."
+    );
+    require(
+        std::memcmp(
+            grid_stride.parameters.data(), parameter_blocks.parameters.data(),
+            grid_stride.parameters.size()
+                * sizeof(black_scholes::ModelParameters)
+        ) == 0,
+        "Recorded generated parameters changed with execution strategy."
     );
     require(
         std::memcmp(

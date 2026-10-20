@@ -34,6 +34,21 @@
       "inherits": "cuda-cxx20-base"
     },
     {
+      "name": "ppti-gpu2",
+      "inherits": "cuda-cxx20-base",
+      "displayName": "PPTI GPU 2 / CUDA 12.9 / C++20 / SM80",
+      "binaryDir": "${sourceDir}/builds/ppti-gpu2",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/g++-14",
+        "CMAKE_CUDA_COMPILER": "/usr/local/cuda-12.9/bin/nvcc",
+        "nlohmann_json_DIR": "$env{HOME}/opt/nlohmann-json-3.10.5/lib/cmake/nlohmann_json",
+        "AI_FACTORY_MATHDX_ROOT": "$env{HOME}/opt/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12",
+        "CUDA_WORKBENCH_ARCHITECTURES": "80",
+        "AI_FACTORY_CUDA_TUNING_PROFILE_ID": "sm80_ppti_unqualified_v1"
+      }
+    },
+    {
       "name": "ppti-sm120-base",
       "hidden": true,
       "inherits": "cuda-cxx20-base",

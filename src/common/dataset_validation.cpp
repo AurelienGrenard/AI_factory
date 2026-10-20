@@ -290,6 +290,18 @@ nlohmann::json read_parameter_dataset(
     switch (family) {
         case ParameterDatasetFamily::Model:
             validate_model_dataset(document);
+            if (document.value("parameterization", std::string("complete"))
+                == "factorized") {
+                for (auto& row : document.at("models")) {
+                    auto& parameters = row.at("parameters");
+                    // Legacy family loaders parse complete rows. These
+                    // neutral values exist only in memory; the correlated
+                    // scenario supplies the actual Brownian correlation.
+                    parameters["risk_free_rate"] = 0.0f;
+                    parameters["rho"] = 0.0f;
+                    parameters["correlation"] = 0.0f;
+                }
+            }
             break;
         case ParameterDatasetFamily::Curve:
             validate_curve_dataset(document);
@@ -304,6 +316,23 @@ nlohmann::json read_parameter_dataset(
 // Validate the common envelope and rows of one model dataset.
 void validate_model_dataset(const nlohmann::json& document) {
     validate_parameter_dataset(document, "Model", "model_family", "models");
+    if (!document.contains("parameterization")) return;
+    const std::string id = database_id(document);
+    if (!document.at("parameterization").is_string())
+        reject("Model", id, "parameterization must be a string.");
+    const auto mode = document.at("parameterization").get<std::string>();
+    if (mode != "complete" && mode != "factorized")
+        reject("Model", id, "unsupported parameterization.");
+    if (mode != "factorized") return;
+    for (const auto& row : document.at("models")) {
+        const auto& parameters = row.at("parameters");
+        if (parameters.contains("risk_free_rate")
+            || parameters.contains("rho")
+            || parameters.contains("correlation"))
+            reject("Model", id, "factorized row id '"
+                + row.at("id").get<std::string>()
+                + "' contains a rate or Brownian correlation.");
+    }
 }
 
 // Validate the common envelope and rows of one curve dataset.
@@ -329,10 +358,29 @@ void validate_price_dataset(const nlohmann::json& document) {
     require_string(document, "catalog", "Price", id);
     require_url(document, "url", "Price", id);
     validate_time_convention(document, "Price", id);
-    validate_dataset_reference(document, "model_dataset", id);
+    const bool multi_asset = document.contains("model_datasets");
+    if (multi_asset) {
+        const auto& references = document.at("model_datasets");
+        if (!references.is_array() || references.empty()) {
+            reject("Price", id, "model_datasets must be a non-empty array.");
+        }
+        for (const auto& reference : references) {
+            const nlohmann::json wrapper = {{"model_dataset", reference}};
+            validate_dataset_reference(wrapper, "model_dataset", id);
+        }
+        validate_dataset_reference(document, "correlation_dataset", id);
+    } else {
+        validate_dataset_reference(document, "model_dataset", id);
+    }
     validate_dataset_reference(document, "product_dataset", id);
     const bool has_curve = document.contains("curve_dataset");
     if (has_curve) validate_dataset_reference(document, "curve_dataset", id);
+    const bool has_rate_model = document.contains("rate_model_dataset");
+    if (has_rate_model) {
+        if (!multi_asset)
+            reject("Price", id, "rate_model_dataset requires model_datasets.");
+        validate_dataset_reference(document, "rate_model_dataset", id);
+    }
 
     if (!document.contains("timing") || !document.at("timing").is_object())
         reject("Price", id, "timing must be an object.");
@@ -365,9 +413,26 @@ void validate_price_dataset(const nlohmann::json& document) {
                 "row id '" + row_id + "' must be unique."
             );
         }
-        require_string(row, "model_id", "Price", id);
+        if (multi_asset) {
+            if (!row.contains("model_ids")
+                || !row.at("model_ids").is_array()
+                || row.at("model_ids").size()
+                    != document.at("model_datasets").size()) {
+                reject("Price", id, "model_ids must match model_datasets.");
+            }
+            for (const auto& model_id : row.at("model_ids")) {
+                if (!model_id.is_string()
+                    || model_id.get<std::string>().empty()) {
+                    reject("Price", id, "model_ids must be non-empty strings.");
+                }
+            }
+            require_string(row, "correlation_id", "Price", id);
+        } else {
+            require_string(row, "model_id", "Price", id);
+        }
         require_string(row, "product_id", "Price", id);
         if (has_curve) require_string(row, "curve_id", "Price", id);
+        if (has_rate_model) require_string(row, "rate_model_id", "Price", id);
         if (!row.contains("outputs") || !row.at("outputs").is_object()
             || row.at("outputs").empty()) {
             reject(

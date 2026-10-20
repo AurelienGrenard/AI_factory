@@ -8,7 +8,7 @@ required:
   - dataset_id
   - generator
   - output
-  - generation_output
+  - generation_details
   - row_count
 properties:
   schema_version:
@@ -20,7 +20,8 @@ properties:
     type: string
     pattern: "^[a-z0-9]+(?:_[a-z0-9]+)*(?:__[a-z0-9]+(?:_[a-z0-9]+)*)*$"
   generator:
-    const: generator.cpp
+    type: string
+    pattern: "^catalog/.+/generator\\.cpp$"
   row_count:
     type: integer
     minimum: 1
@@ -42,12 +43,11 @@ properties:
       format:
         enum: [json, parquet]
     additionalProperties: false
-  generation_output:
+  generation_details:
     type: string
     pattern: "^catalog/.+/generation\\.yaml$"
-  url:
-    type: string
-    pattern: "^https://[^\\s]+\\.json$"
+  generation_output: false
+  url: false
   option_side:
     enum: [call, put, payer, receiver]
 allOf:
@@ -56,13 +56,4 @@ allOf:
         - required: [rng_mapping_version]
         - required: [launch_profile]
         - required: [sensitivity_execution]
-  - if:
-      properties:
-        kind:
-          const: price_gradients
-    then:
-      not:
-        required: [url]
-    else:
-      required: [url]
 additionalProperties: true

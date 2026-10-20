@@ -32,6 +32,13 @@ struct PreparedModel {
     float k3;
     float k4;
     float martingale_a;
+    float rho;
+    float correlation_residual;
+};
+
+struct BrownianStep {
+    float spot;
+    float variance;
 };
 
 using PreparedDynamics = PreparedModel;
@@ -64,6 +71,9 @@ struct DynamicsPolicy {
     using PreparedDynamics = heston::PreparedDynamics;
     using RandomContext = philox::NormalRandomContext;
     using State = heston::State;
+    using BrownianStep = heston::BrownianStep;
+
+    static constexpr unsigned int kBrownianDimension = 2U;
 
     static constexpr bool kNativeLogSpot = true;
     static constexpr bool kPartitionInvariantAdvance = true;
@@ -78,6 +88,13 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics,
         RandomContext& random,
+        State& state
+    );
+    template<typename AuxiliaryRandom>
+    __device__ __forceinline__ static void one_step_transition(
+        const PreparedDynamics& dynamics,
+        BrownianStep brownian,
+        AuxiliaryRandom& auxiliary,
         State& state
     );
     __device__ __forceinline__ static void advance(

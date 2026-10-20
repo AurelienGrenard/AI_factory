@@ -2,6 +2,7 @@
 #pragma once
 
 #include "curve/nelson_siegel/parameters.hpp"
+#include "curve/nelson_siegel/parameter_domain.hpp"
 
 #include <cuda_runtime.h>
 
@@ -47,6 +48,10 @@ __device__ __forceinline__ float forward_rate(
 // Static adapter consumed by fitted short-rate analytics.
 struct AnalyticsProvider {
     using Parameters = NelsonSiegelParameters;
+
+    __host__ static bool valid_parameters(const Parameters& parameters) {
+        return nelson_siegel::valid_parameters(parameters);
+    }
 
     __device__ __forceinline__ static float log_discount_factor(
         const Parameters& parameters,

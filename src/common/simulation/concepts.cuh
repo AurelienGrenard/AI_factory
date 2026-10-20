@@ -107,6 +107,28 @@ concept ExactTransitionDynamicsPolicy =
         } -> std::same_as<void>;
     };
 
+// A correlated-step model receives physical Brownian drivers from the joint
+// engine. Auxiliary laws use a separate path/step/model Philox domain.
+template<typename Dynamics, typename AuxiliaryRandom>
+concept CorrelatedStepDynamicsPolicy =
+    FixedStepDynamicsPolicy<Dynamics>
+    && requires {
+        typename Dynamics::BrownianStep;
+        { Dynamics::kBrownianDimension } -> std::convertible_to<unsigned int>;
+    }
+    && requires(
+        const typename Dynamics::PreparedDynamics& prepared,
+        typename Dynamics::BrownianStep brownian,
+        AuxiliaryRandom& auxiliary,
+        typename Dynamics::State& state
+    ) {
+        {
+            Dynamics::one_step_transition(
+                prepared, brownian, auxiliary, state
+            )
+        } -> std::same_as<void>;
+    };
+
 // A handler receives each contractual observation and decides whether the
 // path must continue. It is statically dispatched and remains path-local.
 template<typename Handler, typename StateProvider>

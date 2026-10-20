@@ -30,7 +30,12 @@ struct CausalFftPathPolicy {
         float feedback;
     };
 
+    struct VolatilityState {
+        float feedback;
+    };
+
     static constexpr bool kNativeLogSpot = true;
+    static constexpr unsigned int kBrownianDimension = 1U;
 
     __device__ __forceinline__ static float kernel_parameters(
         const Parameters& parameters
@@ -52,14 +57,20 @@ struct CausalFftPathPolicy {
         const PreparedModel& model
     ) { return {model.initial_log_spot, model.initial_feedback}; }
 
-    __device__ __forceinline__ static float advance_cell(
+    __device__ __forceinline__ static VolatilityState initial_volatility_state(
+        const PreparedModel& model
+    ) { return {model.initial_feedback}; }
+
+    // The same Brownian factor drives both the quadratic feedback and spot.
+    __device__ __forceinline__ static float advance_volatility_cell(
         const PreparedModel& model,
         const KernelPolicy::PreparedKernel& kernel,
         float far_convolution,
-        philox::PhiloxKey key,
-        std::uint64_t path,
+        float normal,
+        float,
         std::uint32_t step,
-        State& state
+        VolatilityState& state,
+        float& variance_at_step
     ) {
         const float feedback = step == 0U ? model.initial_feedback
             : model.initial_feedback + far_convolution;
@@ -68,9 +79,7 @@ struct CausalFftPathPolicy {
             model.quadratic_scale, centered * centered, model.variance_floor
         );
         const float root_variance = sqrtf(fmaxf(variance, 0.0f));
-        const float normal = volterra::hybrid_fft::normal_at(key, path, step);
-        state.log_spot += model.drift_dt - 0.5f * variance * model.dt
-            + root_variance * sqrtf(model.dt) * normal;
+        variance_at_step = variance;
         state.feedback = feedback;
         const float raw_force = fmaf(
             model.feedback_rate * model.feedback_volatility
@@ -82,6 +91,39 @@ struct CausalFftPathPolicy {
             1.0f, kernel.first_cell_integral * raw_force
         );
         return model.dt * balanced_force;
+    }
+
+    __device__ __forceinline__ static void advance_spot_cell(
+        const PreparedModel& model,
+        float variance_at_step,
+        float spot_normal,
+        float& log_spot
+    ) {
+        log_spot += model.drift_dt - 0.5f * variance_at_step * model.dt
+            + sqrtf(fmaxf(variance_at_step, 0.0f))
+                * sqrtf(model.dt) * spot_normal;
+    }
+
+    // Legacy scalar interface.
+    __device__ __forceinline__ static float advance_cell(
+        const PreparedModel& model,
+        const KernelPolicy::PreparedKernel& kernel,
+        float far_convolution,
+        philox::PhiloxKey key,
+        std::uint64_t path,
+        std::uint32_t step,
+        State& state
+    ) {
+        const float normal = volterra::hybrid_fft::normal_at(key, path, step);
+        VolatilityState volatility{state.feedback};
+        float variance = 0.0f;
+        const float source = advance_volatility_cell(
+            model, kernel, far_convolution, normal, 0.0f,
+            step, volatility, variance
+        );
+        advance_spot_cell(model, variance, normal, state.log_spot);
+        state.feedback = volatility.feedback;
+        return source;
     }
 
     __device__ __forceinline__ static float spot(const State& state) {

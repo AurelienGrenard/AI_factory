@@ -172,6 +172,31 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     );
 }
 
+template<typename AuxiliaryRandom>
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    AuxiliaryRandom& auxiliary,
+    State& state
+) {
+    const auto& transition = dynamics.transition;
+    const std::uint32_t jump_count = compound_poisson::draw_count(
+        auxiliary, transition.poisson_mean,
+        transition.zero_jump_probability
+    );
+    float jump_log_sum = 0.0f;
+    for (std::uint32_t event = 0U; event < jump_count; ++event) {
+        const bool upward = auxiliary.next() < dynamics.model.up_probability;
+        const float magnitude = -logf(auxiliary.next());
+        jump_log_sum += upward
+            ? magnitude * dynamics.model.inverse_positive_jump_rate
+            : -magnitude * dynamics.model.inverse_negative_jump_rate;
+    }
+    kou::one_step_transition(
+        transition, brownian.spot, jump_log_sum, state
+    );
+}
+
 __device__ __forceinline__ void DynamicsPolicy::advance(
     const PreparedDynamics& dynamics,
     std::uint32_t step_count,

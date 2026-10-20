@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import csv
-from datetime import datetime, timezone
 import hashlib
 import json
 import math
@@ -69,7 +68,7 @@ def snapshot_sources(root: Path, destination: Path) -> str:
     return digest(destination)
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 4
 
 
 def _version(command: list[str]) -> str:
@@ -110,12 +109,33 @@ def software_versions(build: Path) -> dict[str, str]:
     return versions
 
 
+def cpu_model() -> str | None:
+    try:
+        for line in Path("/proc/cpuinfo").read_text().splitlines():
+            if line.startswith("model name"):
+                return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return None
+
+
+def known_fields(values: dict | None) -> dict:
+    """Keep only technical facts that were actually recorded."""
+    return {key: value for key, value in (values or {}).items()
+            if value not in (None, "", "unavailable")}
+
+
 def hardware_from_observation(observation: dict | None, *, cpu: bool = False) -> dict:
     observation = observation or {}
     if cpu:
-        return {"device": "cpu", "host": observation.get("hostname", "unavailable"),
-                "model": "unavailable"}
-    result = {"device": "gpu", "host": observation.get("hostname", "unavailable")}
+        result = {"device": "cpu"}
+    else:
+        result = {}
+    for source, target in (("hostname", "host"), ("cpu_model", "cpu_model")):
+        if observation.get(source):
+            result[target] = observation[source]
+    if cpu:
+        return result
     visible = observation.get("cuda_visible_devices")
     if visible is not None:
         result["cuda_visible_devices"] = visible
@@ -125,15 +145,14 @@ def hardware_from_observation(observation: dict | None, *, cpu: bool = False) ->
         row = next((row for row in rows
                     if selected in {row.get("index", "").strip(),
                                     row.get("uuid", "").strip()}), rows[0])
+        if row.get("name"):
+            result["device"] = "gpu"
         for source, target in (("index", "index"), ("name", "name"),
                                ("uuid", "uuid"), ("compute_cap", "compute_capability"),
                                ("driver_version", "driver_version")):
             if row.get(source):
                 result[target] = row[source].strip()
-    if "name" not in result:
-        result["observation"] = "unavailable"
     return result
-
 
 def generation_record(native: dict, recipe_path: str, dataset_path: str,
                       input_paths: dict[str, str], input_root: Path,
@@ -147,19 +166,18 @@ def generation_record(native: dict, recipe_path: str, dataset_path: str,
     record = {
         "schema_version": SCHEMA_VERSION,
         "status": "complete",
-        "recipe": {"path": recipe_path},
-        "artifact": {"path": dataset_path, "row_count": row_count,
-                     "sha256": digest(contained_path(input_root, dataset_path))},
         "inputs": {role: {"path": relative,
                           "sha256": digest(contained_path(input_root, relative))}
                    for role, relative in input_paths.items()},
-        "environment": {"hardware": hardware, "software": software,
-                        "generated_at_utc": datetime.now(timezone.utc).isoformat()},
+        "output": {"path": dataset_path,
+                   "sha256": digest(contained_path(input_root, dataset_path))},
     }
-    if isinstance(native.get("timing"), dict):
-        record["timing"] = {key: native["timing"][key]
-                            for key in ("wall_seconds", "kernel_seconds")
-                            if key in native["timing"]}
+    hardware = known_fields(hardware)
+    software = known_fields(software)
+    if hardware:
+        record["hardware"] = hardware
+    if software:
+        record["software"] = software
     validate_document(record, "generation", recipe_path)
     return record
 
@@ -179,7 +197,8 @@ def attach_generation(work: Path, job: dict, state: dict) -> None:
         native, job["recipe"], job["dataset"], recipe.get("inputs", {}), work,
         hardware_from_observation(
             job.get("gpu_before"),
-            cpu=job["kind"] in {"model_parameters", "product_parameters", "curve_parameters"}),
+            cpu=job["kind"] in {"model_parameters", "product_parameters", "curve_parameters",
+                                 "correlation_parameters"}),
         software_versions(Path(state["build"])),
     )
     path.write_text(yaml.safe_dump(record, sort_keys=False))
@@ -191,7 +210,8 @@ def _check_published_json(recipe: dict, generation: dict, document: dict) -> Non
     rows = recipe.get("row_count")
     if (type(rows) is not int or rows < 1
             or document.get("row_count") != rows
-            or generation["artifact"].get("row_count") != rows
+            or (generation.get("schema_version") not in (3, 4)
+                and generation["artifact"].get("row_count") != rows)
             or document.get("database_id") != recipe.get("dataset_id")):
         raise ValueError("Dataset identity or row count contradicts recipe")
     kind = recipe.get("kind")
@@ -219,8 +239,6 @@ def _check_published_json(recipe: dict, generation: dict, document: dict) -> Non
         results = document.get("results")
         if not isinstance(results, list) or len(results) != rows:
             raise ValueError("Price result count contradicts recipe")
-        if recipe.get("url") is not None and document.get("url") != recipe["url"]:
-            raise ValueError("Price URL contradicts recipe")
         for index, row in enumerate(results, 1):
             if not isinstance(row, dict) or row.get("id") != f"{index:06d}":
                 raise ValueError(f"Invalid price result ID at row {index}")
@@ -228,50 +246,64 @@ def _check_published_json(recipe: dict, generation: dict, document: dict) -> Non
             value = outputs.get("price") if isinstance(outputs, dict) else None
             error = outputs.get("standard_error") if isinstance(outputs, dict) else None
             if (type(value) not in (int, float) or not math.isfinite(value)
-                    or type(error) not in (int, float) or not math.isfinite(error)
-                    or error < 0):
+                    or (recipe.get("paths_per_price", 0) > 0
+                        and (type(error) not in (int, float)
+                             or not math.isfinite(error) or error < 0))
+                    or (error is not None and (type(error) not in (int, float)
+                                               or not math.isfinite(error) or error < 0))):
                 raise ValueError(f"Invalid price or standard error at row {index}")
-    elif kind in {"model_parameters", "product_parameters", "curve_parameters"}:
+    elif kind in {"model_parameters", "product_parameters", "curve_parameters",
+                  "correlation_parameters"}:
         role = {"model_parameters": "models", "product_parameters": "products",
-                "curve_parameters": "curves"}[kind]
+                "curve_parameters": "curves",
+                "correlation_parameters": "correlations"}[kind]
         if not isinstance(document.get(role), list) or len(document[role]) != rows:
             raise ValueError("Parameter result count contradicts recipe")
 
 
 def assess(recipe: dict, generation: dict, dataset: Path, root: Path | None = None) -> dict:
-    """Check current metadata and artifact, without freezing historical code bytes."""
+    """Check current metadata and JSON, without freezing historical code bytes."""
     def result(status: str, *reasons: str) -> dict:
         return {"status": status, "reasons": list(reasons),
                 "certification": "not_assessed"}
 
     if not isinstance(recipe, dict) or not isinstance(generation, dict):
         return result("review_required", "Missing recipe or generation metadata")
-    if generation.get("schema_version") not in (1, 2):
+    if generation.get("schema_version") not in (1, 2, 3, 4):
         return result("review_required", "Missing or unsupported generation metadata")
     try:
         validate_document(recipe, "recipe", dataset)
         validate_document(generation, "generation", dataset)
-        artifact = generation["artifact"]
-        if artifact.get("sha256") != digest(dataset):
+        version = generation["schema_version"]
+        output = generation["output"] if version in (3, 4) else generation["artifact"]
+        if output.get("sha256") != digest(dataset):
             return result("invalid", "Published JSON SHA256 differs from generation.yaml")
-        if generation["recipe"].get("path") is None:
+        if version in (1, 2) and generation["recipe"].get("path") is None:
             return result("invalid", "Generation receipt has no recipe path")
-        if generation["schema_version"] == 2:
-            if artifact["path"] != recipe.get("output", {}).get("path"):
+        if version in (2, 3, 4):
+            if version in (2, 4) and output["path"] != recipe.get("output", {}).get("path"):
                 return result("invalid", "Published JSON path contradicts recipe")
             declared_inputs = recipe.get("inputs", {})
-            if {role: item["path"] for role, item in generation["inputs"].items()} != declared_inputs:
+            if set(generation["inputs"]) != set(declared_inputs):
+                return result("invalid", "Input roles contradict recipe")
+            if version in (2, 4) and {
+                role: item["path"] for role, item in generation["inputs"].items()
+            } != declared_inputs:
                 return result("invalid", "Input paths contradict recipe")
             if root is not None:
-                for role, item in generation["inputs"].items():
-                    input_file = contained_path(root, item["path"])
-                    if input_file.is_file() and digest(input_file) != item["sha256"]:
+                if contained_path(root, recipe["output"]["path"]).resolve() != dataset.resolve():
+                    return result("invalid", "Published JSON path contradicts recipe")
+                for role, relative in declared_inputs.items():
+                    input_file = contained_path(root, relative)
+                    checksum = (generation["inputs"][role] if version == 3
+                                else generation["inputs"][role]["sha256"])
+                    if input_file.is_file() and digest(input_file) != checksum:
                         return result("review_required", f"Current {role} input differs from generation.yaml")
         if recipe.get("kind") == "samples":
             from tools.datasets.generate_catalog import check_samples
-            if artifact.get("row_count") != recipe.get("row_count"):
+            if version in (1, 2) and output.get("row_count") != recipe.get("row_count"):
                 raise ValueError("Sample row count contradicts recipe")
-            check_samples(dataset, {"generation": recipe["generation_output"],
+            check_samples(dataset, {"generation": recipe["generation_details"],
                                     "rows": recipe["row_count"]}, recipe)
             document = None
         else:
@@ -283,7 +315,14 @@ def assess(recipe: dict, generation: dict, dataset: Path, root: Path | None = No
                 if not input_file.is_file():
                     continue
                 source = json.loads(input_file.read_text())
-                reference = document.get(role + "_dataset")
+                if role.startswith("model_") and role[6:].isdigit():
+                    references = document.get("model_datasets", [])
+                    index = int(role[6:])
+                    reference = (references[index]
+                                 if isinstance(references, list)
+                                 and index < len(references) else None)
+                else:
+                    reference = document.get(role + "_dataset")
                 if (not isinstance(reference, dict)
                         or reference.get("id") != source.get("database_id")
                         or reference.get("catalog") != source.get("catalog")):

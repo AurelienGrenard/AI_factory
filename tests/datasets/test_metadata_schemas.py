@@ -8,6 +8,7 @@ from pathlib import Path
 import unittest
 
 from tools.datasets.metadata_schemas import (
+    load_document,
     schema_validator,
     validate_document,
     validate_repository,
@@ -22,10 +23,9 @@ VALID_DOCUMENTS = {
         "schema_version": 1,
         "kind": "prices",
         "dataset_id": "model_01__product_01__01",
-        "generator": "generator.cpp",
+        "generator": "catalog/model/example/generator.cpp",
         "output": {"path": "datasets/model/example.json", "format": "json"},
-        "generation_output": "catalog/model/example/generation.yaml",
-        "url": "https://datasets.ai-factory.example/v1/model/example.json",
+        "generation_details": "catalog/model/example/generation.yaml",
         "row_count": 1,
     },
     "generation": {
@@ -91,18 +91,28 @@ class MetadataSchemaTest(unittest.TestCase):
         )
         self.assertEqual(counts["validation"], 0)
 
-    def test_editable_generation_v2_has_current_hashes_without_record_lock(self) -> None:
+    def test_catalogue_recipes_name_their_own_generator_and_details(self) -> None:
+        for path in (ROOT / "catalog").rglob("recipe.yaml"):
+            with self.subTest(recipe=str(path.relative_to(ROOT))):
+                recipe = load_document(path)
+                parent = path.relative_to(ROOT).parent
+                self.assertEqual(recipe["generator"], (parent / "generator.cpp").as_posix())
+                self.assertEqual(
+                    recipe["generation_details"], (parent / "generation.yaml").as_posix()
+                )
+                self.assertNotIn("url", recipe)
+
+    def test_generation_v4_contains_paths_and_only_known_environment(self) -> None:
         document = {
-            "schema_version": 2, "status": "complete",
-            "recipe": {"path": "catalog/model/example/recipe.yaml"},
-            "artifact": {"path": "datasets/model/example.json",
-                         "row_count": 1, "sha256": "a" * 64},
+            "schema_version": 4, "status": "complete",
             "inputs": {"model": {"path": "datasets/model/input.json",
                                  "sha256": "b" * 64}},
-            "environment": {"hardware": {"device": "gpu", "name": "V100"},
-                            "software": {"cmake": "3.31", "cxx_compiler": "14.2", "cuda_compiler": "12.4"}},
-            "curation": {"source_sha256": "c" * 64,
-                         "removed_gradients": ["model.risk_free_rate"]},
+            "output": {"path": "datasets/model/example.json",
+                       "sha256": "a" * 64},
+            "hardware": {"device": "gpu", "host": "test", "cpu_model": "test CPU",
+                         "name": "V100"},
+            "software": {"cmake": "3.31", "cxx_compiler": "14.2",
+                         "cuda_compiler": "12.4"},
         }
         validate_document(document, "generation")
         document["record_sha256"] = "d" * 64
@@ -169,7 +179,6 @@ class MetadataSchemaTest(unittest.TestCase):
     def test_full_hessian_recipe_keeps_bumps_and_orders_without_url(self) -> None:
         document = deepcopy(VALID_DOCUMENTS["recipe"])
         document["kind"] = "price_gradients"
-        document.pop("url")
         document["option_side"] = "call"
         document["sensitivity"] = {
             "method": "finite_difference_shared_innovations",
@@ -186,14 +195,14 @@ class MetadataSchemaTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid recipe metadata"):
             validate_document(document, "recipe")
 
-    def test_recipe_requires_an_https_json_url(self) -> None:
-        for value in (None, "http://datasets.example/test.json", "https://datasets.example/test"):
+    def test_recipe_rejects_publication_url_and_old_generation_name(self) -> None:
+        for field, value in (
+            ("url", "https://datasets.example/test.json"),
+            ("generation_output", "catalog/model/example/generation.yaml"),
+        ):
             document = deepcopy(VALID_DOCUMENTS["recipe"])
-            if value is None:
-                document.pop("url")
-            else:
-                document["url"] = value
-            with self.subTest(value=value):
+            document[field] = value
+            with self.subTest(field=field):
                 with self.assertRaisesRegex(ValueError, "invalid recipe metadata"):
                     validate_document(document, "recipe")
 

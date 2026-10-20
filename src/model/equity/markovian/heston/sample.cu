@@ -1,5 +1,6 @@
 // Generated Heston composition over the common sample engine.
 #include "model/equity/markovian/heston/sample.cuh"
+#include "model/equity/markovian/heston/sample_parameter_sampler.cuh"
 
 #include "common/sample.cuh"
 #include "common/simulation/schedule.cuh"
@@ -50,6 +51,36 @@ void launch_heston_random_terminal_samples_cuda(
         launch_sample_count, threads_per_block, block_count, schedule_seed,
         dynamics_seed, device_maturity_days, {device_spots, device_variances},
         "heston.samples", "Heston random terminal sample kernel");
+}
+
+void launch_heston_generated_random_terminal_samples_cuda(
+    ModelParameters* device_generated_parameters,
+    SampleParameterSampler::Configuration bounds,
+    std::size_t parameter_count, std::size_t paths_per_parameter,
+    std::uint32_t minimum_maturity_days,
+    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
+    std::size_t launch_sample_count, unsigned int threads_per_block,
+    std::size_t block_count, std::uint64_t parameter_seed,
+    std::uint64_t schedule_seed, std::uint64_t dynamics_seed,
+    std::uint32_t* device_maturity_days,
+    float* device_spots,
+    float* device_variances
+) {
+    sample::launch_samples_cuda<TerminalPolicy>(
+        sample::GeneratedParameterSource<SampleParameterSampler>{
+            bounds, device_generated_parameters},
+        sample::UniformMaturityCalendarSource{
+            {minimum_maturity_days, maximum_maturity_days},
+            device_maturity_days},
+        {parameter_count, paths_per_parameter, sample_offset,
+         launch_sample_count},
+        sample::canonical_sample_time_configuration<
+            typename TerminalPolicy::Schedule::TimeConfiguration>(),
+        {threads_per_block, block_count},
+        {parameter_seed, schedule_seed, dynamics_seed},
+        {device_spots, device_variances}, "heston.samples",
+        "random_terminal.generated_parameters",
+        "Heston generated random terminal sample kernel");
 }
 
 void launch_heston_calendar_samples_cuda(

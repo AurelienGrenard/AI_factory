@@ -496,6 +496,45 @@ SAMPLE_MODELS += (replace(
     observable_descriptions=(("state", "Terminal nonnegative CIR factor y; not the curve-shifted short rate."),),
 ),)
 
+# Samples train dynamics at zero carry. Rates and yields are not GAN inputs;
+# the internal model still receives explicit zeros. Pricing core bounds remain
+# the source of truth for every stochastic model parameter.
+def _normalize_equity_sample(model: SampleModelSpec) -> SampleModelSpec:
+    if model.asset_class != "equity":
+        return model
+    excluded = {"risk_free_rate", "dividend_yield"}
+    uniforms = tuple(item for item in model.uniforms if item[0] not in excluded)
+    parameters = tuple(item for item in model.parameters if item[0] not in excluded)
+    constructor = model.constructor.replace("risk_free_rate", "0.0f").replace(
+        "dividend_yield", "0.0f"
+    )
+    if model.name in {"sabr", "rough_sabr", "cev"}:
+        uniforms = tuple(
+            u(name, .8, 1.2) if name == "spot" else (name, low, high)
+            for name, low, high in uniforms
+        )
+    else:
+        uniforms = tuple(
+            u(name, 1., 1.) if name == "spot" else (name, low, high)
+            for name, low, high in uniforms
+        )
+    if model.name in {"rough_bergomi", "rough_sabr"}:
+        # Both pricing-core recipes currently fix the forward variance to 0.04.
+        uniforms = tuple(
+            u(name, .04, .04) if name == "xi_0" else (name, low, high)
+            for name, low, high in uniforms
+        )
+    if model.name == "stein_stein":
+        # The pricing-core recipe fixes the Brownian correlation to zero.
+        uniforms = tuple(
+            u(name, 0., 0.) if name == "rho" else (name, low, high)
+            for name, low, high in uniforms
+        )
+    return replace(model, parameters=parameters, uniforms=uniforms,
+                   constructor=constructor)
+
+
+SAMPLE_MODELS = tuple(_normalize_equity_sample(model) for model in SAMPLE_MODELS)
 SAMPLE_MODEL_BY_NAME = {model.name: model for model in SAMPLE_MODELS}
 
 

@@ -1,5 +1,6 @@
 // Generated CIR composition over the common sample engine.
 #include "model/fixed_income/cir/sample.cuh"
+#include "model/fixed_income/cir/sample_parameter_sampler.cuh"
 
 #include "common/sample.cuh"
 #include "common/simulation/schedule.cuh"
@@ -48,6 +49,35 @@ void launch_cir_random_terminal_samples_cuda(
         launch_sample_count, threads_per_block, block_count, schedule_seed,
         dynamics_seed, device_maturity_days, {device_states},
         "cir.samples", "CIR random terminal sample kernel");
+}
+
+void launch_cir_generated_random_terminal_samples_cuda(
+    ModelParameters* device_generated_parameters,
+    SampleParameterSampler::Configuration bounds,
+    std::size_t parameter_count, std::size_t paths_per_parameter,
+    std::uint32_t minimum_maturity_days,
+    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
+    std::size_t launch_sample_count, unsigned int threads_per_block,
+    std::size_t block_count, std::uint64_t parameter_seed,
+    std::uint64_t schedule_seed, std::uint64_t dynamics_seed,
+    std::uint32_t* device_maturity_days,
+    float* device_states
+) {
+    sample::launch_samples_cuda<TerminalPolicy>(
+        sample::GeneratedParameterSource<SampleParameterSampler>{
+            bounds, device_generated_parameters},
+        sample::UniformMaturityCalendarSource{
+            {minimum_maturity_days, maximum_maturity_days},
+            device_maturity_days},
+        {parameter_count, paths_per_parameter, sample_offset,
+         launch_sample_count},
+        sample::canonical_sample_time_configuration<
+            typename TerminalPolicy::Schedule::TimeConfiguration>(),
+        {threads_per_block, block_count},
+        {parameter_seed, schedule_seed, dynamics_seed},
+        {device_states}, "cir.samples",
+        "random_terminal.generated_parameters",
+        "CIR generated random terminal sample kernel");
 }
 
 void launch_cir_calendar_samples_cuda(

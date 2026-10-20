@@ -80,7 +80,23 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
 ) {
     const float alpha_normal = philox::next_normal(random.uniforms, random.normals);
     const float residual_normal = philox::next_normal(random.uniforms, random.normals);
-    one_step_transition(dynamics, alpha_normal, residual_normal, state);
+    sabr::one_step_transition(dynamics, alpha_normal, residual_normal, state);
+}
+
+template<typename AuxiliaryRandom>
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    AuxiliaryRandom&,
+    State& state
+) {
+    const float residual = dynamics.correlation_residual > 0.0f
+        ? (brownian.spot - dynamics.rho * brownian.volatility)
+            / dynamics.correlation_residual
+        : 0.0f;
+    sabr::one_step_transition(
+        dynamics, brownian.volatility, residual, state
+    );
 }
 
 __device__ __forceinline__ void DynamicsPolicy::advance(
