@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import platform
+from runpy import run_path
 import shutil
 import subprocess
 import sys
@@ -36,10 +37,16 @@ from tools.datasets.multi_asset_specs import REFERENCE_DATASET_SPECS  # noqa: E4
 PARAMETER_KINDS = {"model_parameters", "curve_parameters", "product_parameters",
                    "correlation_parameters"}
 
+LOCAL_SPECS_PATH = ROOT / "work/tools/multi_asset_specs.py"
+LOCAL_DATASET_SPECS = (
+    tuple(run_path(str(LOCAL_SPECS_PATH))["LOCAL_DATASET_SPECS"])
+    if LOCAL_SPECS_PATH.is_file() else ()
+)
 
 SPECS = {
     spec.cmake_target: spec for spec in
-    (*AVAILABLE_DATASET_SPECS, *REFERENCE_DATASET_SPECS)
+    (*AVAILABLE_DATASET_SPECS, *REFERENCE_DATASET_SPECS,
+     *LOCAL_DATASET_SPECS)
     if contained_path(ROOT, spec.generator_path).is_file()
 }
 OUTPUT_SPECS = {spec.dataset_path: spec for spec in SPECS.values()}

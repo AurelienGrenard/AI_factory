@@ -12,6 +12,13 @@ int main() {
     std::filesystem::create_directories(directory);
     const auto output=directory/"price.json";
     const auto receipt=directory/"generation.yaml";
+    const auto correlation=directory/"correlation.json";
+    datasets::write_json_file(correlation, {
+        {"database_id", "synthetic_correlation_01"},
+        {"catalog", "tests/datasets/synthetic_correlation"},
+        {"url", "https://datasets.ai-factory.example/v2/correlation/synthetic_correlation_01.json"},
+        {"correlations", {{{"id", "000001"}}}}
+    });
     const std::filesystem::path equity=
         "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json";
     const std::filesystem::path rate=
@@ -19,7 +26,7 @@ int main() {
     const datasets::MultiAssetPriceDatasetRecipe recipe{
         {equity,equity},
         "datasets/product/worst_of_call/worst_of_calls_01.json",
-        "datasets/correlation/bs_rough_heston_matrices_01.json",
+        correlation,
         "datasets/curve/flat/flat_01.json",output,receipt,
         "https://datasets.ai-factory.example/v2/multi_asset/worst_of_call/rate_test.json",
         rate};

@@ -67,6 +67,47 @@ struct MultiRoughHostModels<simulation::MultiRoughPack<Head,Tail...>> {
     }
 };
 
+template<typename Policy, std::size_t Count>
+struct MultiRoughHostModels<
+    simulation::HomogeneousRoughPack<Policy, Count>> {
+    std::vector<typename Policy::Parameters> models;
+    std::vector<std::uint32_t> scenario_indices;
+
+    void validate(std::size_t scenarios) const {
+        if (models.empty() || scenario_indices.size() != scenarios * Count)
+            throw std::invalid_argument("invalid homogeneous rough indices");
+        for (const auto index : scenario_indices)
+            if (index >= models.size())
+                throw std::invalid_argument(
+                    "rough model index exceeds dataset");
+    }
+
+    template<std::size_t RoughCount, std::size_t MarkovFactors>
+    void validate_internal_correlation(
+        std::uint32_t scenario, const correlation::MatrixRow& matrix
+    ) const {
+        static_assert(RoughCount == Count);
+        if constexpr (Policy::kBrownianDimension == 2U) {
+            for (std::size_t asset = 0U; asset < Count; ++asset) {
+                const float rho = models[
+                    scenario_indices[scenario * Count + asset]].rho;
+                const std::size_t spot =
+                    Count + MarkovFactors + asset;
+                double actual = 0.0;
+                for (std::size_t k = 0U; k <= asset; ++k)
+                    actual += static_cast<double>(matrix.lower[
+                        asset * (asset + 1U) / 2U + k])
+                        * static_cast<double>(matrix.lower[
+                            spot * (spot + 1U) / 2U + k]);
+                if (!std::isfinite(rho)
+                    || std::abs(actual - rho) > 2.0e-5)
+                    throw std::invalid_argument(
+                        "rough spot/vol rho disagrees with matrix");
+            }
+        }
+    }
+};
+
 template<typename Pack>
 struct MultiRoughDeviceModels;
 
@@ -148,6 +189,73 @@ struct MultiRoughDeviceModels<simulation::MultiRoughPack<Head,Tail...>> {
                     price_rows,packed_factors,result_index,path_offset,
                     path_count,dt,steps,direct_tile_size,seed,
                     workspace,workspace_bytes,volatility_paths);
+    }
+};
+
+template<typename Policy, std::size_t Count>
+struct MultiRoughDeviceModels<
+    simulation::HomogeneousRoughPack<Policy, Count>> {
+    using Pack = simulation::HomogeneousRoughPack<Policy, Count>;
+    cuda::DeviceBuffer<typename Policy::Parameters> models;
+    cuda::DeviceBuffer<std::uint32_t> indices;
+
+    explicit MultiRoughDeviceModels(
+        const MultiRoughHostModels<Pack>& host
+    ) : models(host.models.size()), indices(host.scenario_indices.size()) {
+        models.copy_from(host.models.data());
+        indices.copy_from(host.scenario_indices.data());
+    }
+
+    typename Pack::Inputs inputs() const {
+        return {models.data(), indices.data()};
+    }
+
+    static std::size_t workspace_bytes(
+        std::uint32_t steps, std::size_t chunk
+    ) {
+        if constexpr (Pack::kAllCausal)
+            return volterra::causal_fft::plan_volatility_workspace<
+                Policy>(steps, chunk).bytes;
+        else
+            return volterra::hybrid_fft::
+                plan_correlated_volatility_workspace<Policy>(
+                    steps, chunk).bytes;
+    }
+
+    template<std::size_t Dimension, std::size_t MarkovAssets>
+    void launch_volatilities(
+        const monte_carlo::MultiAssetPriceRow* price_rows,
+        const float* packed_factors,
+        std::size_t result_index, std::size_t path_offset,
+        std::size_t path_count, float dt, std::uint32_t steps,
+        std::uint32_t direct_tile_size, std::uint64_t seed,
+        void* workspace, std::size_t workspace_bytes,
+        float* volatility_paths
+    ) const {
+        for (std::size_t asset = 0U; asset < Count; ++asset) {
+            float* output = volatility_paths
+                + asset * path_count * steps;
+            const auto source = static_cast<std::uint32_t>(
+                2U + MarkovAssets + asset);
+            if constexpr (Pack::kAllCausal) {
+                volterra::causal_fft::launch_volatility_factor_cuda<
+                    Policy, Dimension>(
+                        models.data(), indices.data(), price_rows,
+                        packed_factors, result_index, path_offset,
+                        path_count, dt, steps, direct_tile_size, seed,
+                        workspace, workspace_bytes, output,
+                        asset, source, Count, asset);
+            } else {
+                volterra::hybrid_fft::
+                    launch_correlated_hybrid_volatility_cuda<
+                        Policy, Dimension>(
+                            models.data(), indices.data(), price_rows,
+                            packed_factors, result_index, path_offset,
+                            path_count, dt, steps, seed, workspace,
+                            workspace_bytes, output, asset, source,
+                            Count, asset);
+            }
+        }
     }
 };
 

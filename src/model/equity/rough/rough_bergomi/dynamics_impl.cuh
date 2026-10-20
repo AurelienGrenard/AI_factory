@@ -34,6 +34,24 @@ __device__ __forceinline__ State initial_state(
     };
 }
 
+__device__ __forceinline__ float map_volatility(
+    const PreparedModel& model, float value, float variance
+) {
+    return expf(
+        model.log_initial_variance + model.eta * value
+        - model.half_eta_squared * variance);
+}
+
+__device__ __forceinline__ void advance_spot_cell(
+    const PreparedModel& model, float variance, float normal,
+    float& log_spot
+) {
+    log_spot = fmaf(
+        sqrtf(variance) * model.sqrt_time_step, normal,
+        log_spot + model.drift_time_step
+            - 0.5f * variance * model.time_step);
+}
+
 __device__ __forceinline__ void advance(
     const PreparedModel& prepared_model,
     float volterra_value,
@@ -47,17 +65,10 @@ __device__ __forceinline__ void advance(
         rough_normal,
         prepared_model.orthogonal_correlation * independent_spot_normal
     );
-    state.log_spot = fmaf(
-        sqrtf(state.variance) * prepared_model.sqrt_time_step,
-        correlated_normal,
-        state.log_spot + prepared_model.drift_time_step
-            - 0.5f * state.variance * prepared_model.time_step
-    );
-    state.variance = expf(
-        prepared_model.log_initial_variance
-        + prepared_model.eta * volterra_value
-        - prepared_model.half_eta_squared * volterra_variance
-    );
+    advance_spot_cell(prepared_model, state.variance,
+                      correlated_normal, state.log_spot);
+    state.variance = map_volatility(
+        prepared_model, volterra_value, volterra_variance);
 }
 
 __device__ __forceinline__ float PathPolicy::kernel_parameters(

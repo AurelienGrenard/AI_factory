@@ -55,6 +55,12 @@ struct CausalFftPathPolicy {
         };
     }
 
+    __device__ __forceinline__ static float nominal_rate_step(
+        const Parameters& parameters, float dt
+    ) {
+        return parameters.risk_free_rate * dt;
+    }
+
     __device__ __forceinline__ static State initial_state(
         const PreparedModel& model
     ) { return {model.initial_log_spot, model.initial_variance, 0.0f}; }
@@ -100,6 +106,15 @@ struct CausalFftPathPolicy {
         log_spot += model.drift_dt
             - 0.5f * positive_variance * model.dt
             + sqrtf(positive_variance) * sqrtf(model.dt) * spot_normal;
+    }
+
+    __device__ __forceinline__ static void advance_spot_cell_with_rate(
+        const PreparedModel& model, float variance,
+        float normal, float& log_spot, float carry_shift
+    ) {
+        auto adjusted = model;
+        adjusted.drift_dt += carry_shift;
+        advance_spot_cell(adjusted, variance, normal, log_spot);
     }
 
     // Legacy scalar interface: its Philox mapping and marginal remain intact.

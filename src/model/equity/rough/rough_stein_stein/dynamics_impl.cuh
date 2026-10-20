@@ -35,6 +35,23 @@ __device__ __forceinline__ PathPolicy::State PathPolicy::initial_state(
     return {model.initial_log_spot, model.volatility_level};
 }
 
+__device__ __forceinline__ float map_volatility(
+    const PreparedModel& model, float value, float
+) {
+    return model.volatility_level
+        + model.volatility_of_volatility * value;
+}
+
+__device__ __forceinline__ void advance_spot_cell(
+    const PreparedModel& model, float volatility, float normal,
+    float& log_spot
+) {
+    log_spot = fmaf(
+        volatility * model.sqrt_time_step, normal,
+        log_spot + model.drift_time_step
+            - 0.5f * volatility * volatility * model.time_step);
+}
+
 __device__ __forceinline__ void PathPolicy::advance(
     const PreparedModel& model,
     float volterra_value,
@@ -48,15 +65,9 @@ __device__ __forceinline__ void PathPolicy::advance(
         rough_normal,
         model.orthogonal_correlation * independent_spot_normal
     );
-    const float volatility = state.volatility;
-    state.log_spot = fmaf(
-        volatility * model.sqrt_time_step,
-        spot_normal,
-        state.log_spot + model.drift_time_step
-            - 0.5f * volatility * volatility * model.time_step
-    );
-    state.volatility = model.volatility_level
-        + model.volatility_of_volatility * volterra_value;
+    advance_spot_cell(model, state.volatility,
+                      spot_normal, state.log_spot);
+    state.volatility = map_volatility(model, volterra_value, 0.0f);
 }
 
 __device__ __forceinline__ float PathPolicy::spot(const State& state) {

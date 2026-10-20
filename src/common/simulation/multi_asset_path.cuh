@@ -69,16 +69,18 @@ struct ModelGroup {
 
     template<
         std::size_t AssetOffset, std::size_t FactorOffset,
-        std::size_t Dimension, unsigned int TeamSize
+        std::size_t Dimension, unsigned int TeamSize,
+        typename Transition
     >
-    __device__ __forceinline__ static void advance_one_step(
+    __device__ __forceinline__ static void advance_one_step_with_transition(
         States& states,
         const Prepared& prepared,
         const CorrelatedBrownianStep<Dimension, TeamSize>& brownian_vector,
         philox::PhiloxKey key,
         std::uint64_t path,
         std::uint32_t step,
-        unsigned int lane
+        unsigned int lane,
+        Transition&& apply_transition
     ) {
         static_assert(AssetOffset + Count + 1U <= 255U,
             "The multi-asset Philox domain supports at most 254 model slots.");
@@ -98,8 +100,8 @@ struct ModelGroup {
                 2U+AssetOffset+i);
             philox::DomainUniformSequence auxiliary(
                 key,path,(source<<24U)|step);
-            Dynamics::one_step_transition(
-                prepared.model[i],shock,auxiliary,states.model[i]);
+            apply_transition(
+                i, prepared.model[i], shock, auxiliary, states.model[i]);
         };
         bool distributed=TeamSize==1U;
         if constexpr (TeamSize>1U)
@@ -123,6 +125,29 @@ struct ModelGroup {
                     __syncwarp(subgroup_mask<TeamSize>());
             }
         }
+    }
+
+    template<
+        std::size_t AssetOffset, std::size_t FactorOffset,
+        std::size_t Dimension, unsigned int TeamSize
+    >
+    __device__ __forceinline__ static void advance_one_step(
+        States& states, const Prepared& prepared,
+        const CorrelatedBrownianStep<Dimension, TeamSize>& brownian_vector,
+        philox::PhiloxKey key, std::uint64_t path,
+        std::uint32_t step, unsigned int lane
+    ) {
+        const auto apply = [](
+            std::size_t, const PreparedDynamics& model,
+            const typename Dynamics::BrownianStep& shock,
+            philox::DomainUniformSequence& auxiliary, State& state
+        ) {
+            Dynamics::one_step_transition(model, shock, auxiliary, state);
+        };
+        advance_one_step_with_transition<
+            AssetOffset, FactorOffset, Dimension, TeamSize>(
+                states, prepared, brownian_vector, key, path, step,
+                lane, apply);
     }
 
     template<std::size_t AssetOffset, unsigned int TeamSize>

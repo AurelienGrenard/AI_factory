@@ -1,23 +1,25 @@
 # Tableau de bord de l'audit principal
 
-Référentiel courant : **v10.2 — 2026-10-20**. Dernier passage :
-[reprise de l'audit des axes II et III du src](history/architecture-src-reprise-2026-10-20.md),
-issue du commit main 050d759d464d39f091da66959eca362ad2b86db0,
-arbre propre avant rédaction. Inspection statique des chemins prix, samples,
-dérivées, multi-actifs, rough, taux, produits, courbes et codegen. Aucun test,
-build, prix ni profil GPU n'a été exécuté. Les autres axes gardent leurs
-verdicts antérieurs.
+Référentiel courant : **v10.3 — 2026-10-20**. Les six constats de
+factorisation et de frontières ouverts par la
+[reprise du src](history/architecture-src-reprise-2026-10-20.md) sont fermés,
+avec leurs preuves dans [closed.md](closed.md). La clôture comprend des
+compilations et tests ciblés CUDA 12.9/SM89, une parité de transitions avec
+l'ancienne implémentation et une mesure A/B du scan rough. Elle ne remplace
+pas la qualification numérique de tous les prix ni le gate de performance
+global. Deux écarts numériques préexistants révélés par les tests ciblés sont
+ouverts sous NUM-038 et NUM-039.
 
 ## Verdict et portée
 
 | Axe | Couverture courante | Verdict | Motif |
 |---|---|---|---|
-| I. Véracité | ancien périmètre numérique inchangé ; cohérence des taux d'une recette multi-actifs contrôlée statiquement | non conforme | PRODUCT-001, NUM-029 et NUM-036 réglés ; NUM-037 clos administrativement mais non résolu ; NUM-028, NUM-030 et FACTOR-010 ouverts ; validation externe toujours requise |
-| II. Factorisation | unités architecturales du src et recettes multi-actifs revues statiquement | non conforme | FACTOR-006 à FACTOR-010 ouverts ; aucune qualification GPU nouvelle |
-| III. Arborescence et lisibilité | frontières, owners, includes et parcours prix/samples/dérivées/multi revus | non conforme | BOUNDARY-009 et dispersion du planner FACTOR-009 ; les parcours mono historiques restent valables |
-| IV. Performance | comparaisons A/B SM89/CUDA 12.9 complètes ; compromis PERF-024 accepté hors gate | non conforme | `PERF-025` et `PERF-026` ouverts ; aucun gate pour le profil courant |
-| V. CMake | dry-run de fraîcheur seulement | indéterminé | pas de matrice d'incrémentalité |
-| VI. Hygiène et artefacts | dépôt suivi, codegen, builds et racines locales vérifiés ; rétention des preuves classée | conforme | `DOC-004` clos : Quick start autonome et scripts PPTI privés ignorés |
+| I. Véracité | contrats de taux, rough et quotes vérifiés sur des cas ciblés | non conforme | NUM-028, NUM-030, NUM-038 et NUM-039 ouverts ; NUM-037 clos administrativement mais non résolu ; validation externe toujours requise |
+| II. Factorisation | six constats architecturaux corrigés ; scans, transitions et planners revus et ciblés en CUDA | conforme sur ce périmètre | FACTOR-006 à FACTOR-009 fermés ; FACTOR-010 reclassé en prototypes locaux ; pas de certification de tout le code historique |
+| III. Arborescence et lisibilité | frontière common/produit, CMake et sélection publique vérifiés | conforme sur ce périmètre | BOUNDARY-009 fermé ; prototypes sous `work`, dossiers publics vides ; anciens rapports restent des snapshots |
+| IV. Performance | A/B rough SM89/CUDA 12.9 sans régression matérielle ; compromis PERF-024 accepté hors gate | non conforme | PERF-025 et PERF-026 ouverts ; aucun gate global du profil courant |
+| V. CMake | preset local configuré et consommateurs ciblés compilés | indéterminé | pas de matrice complète d'incrémentalité |
+| VI. Hygiène et artefacts | dépôt suivi, codegen, builds et racines locales vérifiés historiquement | conforme | DOC-004 clos ; aucun généré ni binaire suivi |
 
 Deux constats clos administrativement gardent un problème numérique non
 résolu dans [unresolved-closures.md](unresolved-closures.md) : `NUM-037`
@@ -26,22 +28,30 @@ Hessienne CIR–Jamshidian. `PERF-024`, `NUM-033`/`NUM-036` et `PRODUCT-001`
 ont un compromis accepté ou un contrat borné documenté dans
 [closed.md](closed.md).
 
-Le verdict VI conserve les contrôles réussis : aucune bibliothèque, aucun exécutable, objet, cache Python ou checkpoint n'est suivi par Git dans les 5 846 entrées inspectées. Trois notebooks suivis ont une fonction de validation ou de rapport. Huit rapports de performance suivis contiennent des chemins absolus historiques ; [la politique locale](../local-artifacts.md) les classe comme références anciennes, sans en faire des commandes actuelles.
+Le verdict VI conserve les contrôles historiques réussis : aucune
+bibliothèque, aucun exécutable, objet, cache Python ou checkpoint n'était
+suivi par Git dans les 5 846 entrées inspectées. Trois notebooks suivis
+avaient une fonction de validation ou de rapport. Huit rapports de
+performance suivis contiennent des chemins absolus historiques ;
+[la politique locale](../local-artifacts.md) les classe comme références
+anciennes, sans en faire des commandes actuelles.
 
-## Reprise de l'audit d'architecture — 2026-10-20
+## Clôture ciblée de l'architecture — 2026-10-20
 
-Six constats architecturaux restent ouverts dans [response.md](response.md) :
-FACTOR-006 (contrat implicite d'injection du taux), FACTOR-007 (deux scans
-rough voisins), FACTOR-008 (formules rough hybrides recopiées), FACTOR-009
-(planning de graphes de sensibilités dupliqué), FACTOR-010 (taux incohérents
-dans une recette de panier) et BOUNDARY-009 (exception Range Accrual dans
-common). Trois sont nouveaux dans cette reprise ; aucun n'a été résolu.
-La [revue ciblée multi-actifs](history/architecture-multi-asset-2026-10-20.md)
-reste l'état initial, et le [rapport de reprise](history/architecture-src-reprise-2026-10-20.md)
-documente les contrôles complémentaires sur le src. Les kernels prix,
-samples et graphes de dérivées ont des sorties et topologies différentes ;
-une fusion générale n'est pas étayée. Le défaut de taux est établi sur les
-entrées actuelles, sans recalculer ni qualifier les prix déjà publiés.
+Le scan rough homogène et le scan hétérogène partagent un kernel global et
+un runner hôte. Les quatre rough hybrides possèdent leurs équations spot et
+volatilité dans leurs modèles. Les modèles equity déclarent la transition
+avec taux ; les planners de graphes partagent un seul calcul de géométrie.
+Range Accrual déclare sa propre convention de quotes. Six prototypes de
+corrélation et de prix multi-actifs non qualifiés ont quitté le catalogue
+public pour `work`; le manifeste public contient 1 438 recettes.
+
+Les tests rough, multi-actifs, cross-asset, quotes, graphes terminal et mixtes,
+ainsi que le test Bermudan ciblé passent. Le test path complet et le test American échouent avant la
+comparaison des graphes, avec les mêmes bits sur le commit initial et sur la
+branche corrigée ; [NUM-038 et NUM-039](response.md) les décrivent.
+Le [rapport de reprise](history/architecture-src-reprise-2026-10-20.md)
+reste le snapshot initial, pas un état courant.
 
 ## Sélection du catalogue source — 2026-10-07 (étape fixed income)
 

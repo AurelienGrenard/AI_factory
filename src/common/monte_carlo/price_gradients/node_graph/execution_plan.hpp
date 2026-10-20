@@ -19,10 +19,14 @@ namespace ai_factory::workbench::monte_carlo::price_gradients {
 
 namespace pg = ::ai_factory::workbench::price_gradients;
 
-struct NodeGraphExecutionPlan {
+template<typename WorkspaceLayout>
+struct BasicNodeGraphExecutionPlan {
     TerminalNodeGraphConfiguration graph{};
-    TerminalNodeGraphWorkspaceLayout workspace{};
+    WorkspaceLayout workspace{};
 };
+
+using NodeGraphExecutionPlan = BasicNodeGraphExecutionPlan<
+    TerminalNodeGraphWorkspaceLayout>;
 
 namespace node_graph_execution_detail {
 
@@ -69,6 +73,60 @@ inline unsigned int current_multiprocessor_count() {
 
 }  // namespace node_graph_execution_detail
 
+template<unsigned int GroupSize, typename Tuning, typename MakeLayout>
+auto make_node_graph_execution_plan_with_layout(
+    const pg::LaunchConfiguration& launch,
+    MakeLayout make_layout,
+    bool preserve_complete_path_reduction = false,
+    const char* workspace_budget_error =
+        "Sensitivity node graph exceeds its workspace budget."
+) {
+    static_assert(tuning::valid_node_profile_v<Tuning>);
+    static_assert(Tuning::kThreadsPerBlock % GroupSize == 0U);
+    auto rows = std::min(launch.result_count, Tuning::kMaximumRowChunkSize);
+    auto paths = preserve_complete_path_reduction
+        ? node_graph_execution_detail::whole_reduction_thread_capacity(
+            launch.paths_per_price, launch.threads_per_block)
+        : node_graph_execution_detail::whole_reduction_thread_chunk(
+            std::min(Tuning::kPathChunkSize, launch.paths_per_price),
+            launch.threads_per_block);
+    TerminalNodeGraphConfiguration graph{rows, paths, 1U};
+    auto layout = make_layout(graph);
+    while (layout.bytes > Tuning::kWorkspaceByteLimit) {
+        if (graph.row_chunk_size > 1U) {
+            graph.row_chunk_size = (graph.row_chunk_size + 1U) / 2U;
+        } else if (
+            !preserve_complete_path_reduction
+            && graph.path_chunk_size
+                > static_cast<std::size_t>(launch.threads_per_block)
+        ) {
+            graph.path_chunk_size =
+                node_graph_execution_detail::whole_reduction_thread_chunk(
+                    graph.path_chunk_size / 2U, launch.threads_per_block);
+        } else {
+            throw std::invalid_argument(workspace_budget_error);
+        }
+        layout = make_layout(graph);
+    }
+
+    constexpr auto groups_per_block = Tuning::kThreadsPerBlock / GroupSize;
+    const auto target_blocks = static_cast<std::size_t>(
+        node_graph_execution_detail::current_multiprocessor_count())
+        * Tuning::kResidentWaves;
+    const auto desired_shards =
+        (target_blocks + graph.row_chunk_size - 1U) / graph.row_chunk_size;
+    const auto useful_shards =
+        (graph.path_chunk_size + groups_per_block - 1U) / groups_per_block;
+    const auto shards = std::max<std::size_t>(
+        1U, std::min(desired_shards, useful_shards));
+    if (shards > std::numeric_limits<unsigned int>::max()) {
+        throw std::overflow_error(
+            "Sensitivity node-graph path-shard count overflow.");
+    }
+    graph.path_shards = static_cast<unsigned int>(shards);
+    return BasicNodeGraphExecutionPlan<decltype(layout)>{graph, layout};
+}
+
 template<
     pg::SensitivityOrders Orders,
     typename NodePolicy,
@@ -83,95 +141,28 @@ NodeGraphExecutionPlan make_node_graph_execution_plan(
     bool preserve_complete_path_reduction = false
 ) {
     static_assert(Orders != pg::SensitivityOrders::none);
-    static_assert(tuning::valid_node_profile_v<Tuning>);
     constexpr auto node_capacity =
         terminal_node_graph_node_capacity<MaximumSensitivities>();
     static_assert(GroupSize * NodesPerWorker >= node_capacity);
-    static_assert(Tuning::kThreadsPerBlock % GroupSize == 0U);
-
     if (host.sensitivity_count() == 0U
         || host.sensitivity_count() > MaximumSensitivities
         || launch.result_count == 0U
         || launch.paths_per_price < 2U) {
         throw std::invalid_argument(
-            "Invalid sensitivity node-graph execution dimensions."
-        );
+            "Invalid sensitivity node-graph execution dimensions.");
     }
-
-    auto rows = std::min(
-        launch.result_count,
-        Tuning::kMaximumRowChunkSize
-    );
-    auto paths = preserve_complete_path_reduction
-        ? node_graph_execution_detail::whole_reduction_thread_capacity(
-            launch.paths_per_price,
-            launch.threads_per_block
-        )
-        : node_graph_execution_detail::whole_reduction_thread_chunk(
-            std::min(Tuning::kPathChunkSize, launch.paths_per_price),
-            launch.threads_per_block
-        );
-    TerminalNodeGraphConfiguration graph{rows, paths, 1U};
-    auto layout = terminal_node_graph_workspace_layout<
-        NodePolicy, Orders, MaximumSensitivities
-    >(host.sensitivity_count(), launch.threads_per_block, graph);
-    while (layout.bytes > Tuning::kWorkspaceByteLimit) {
-        if (graph.row_chunk_size > 1U) {
-            graph.row_chunk_size = (graph.row_chunk_size + 1U) / 2U;
-        } else if (
-            !preserve_complete_path_reduction
-            && graph.path_chunk_size
-                > static_cast<std::size_t>(launch.threads_per_block)
-        ) {
-            graph.path_chunk_size =
-                node_graph_execution_detail::whole_reduction_thread_chunk(
-                    graph.path_chunk_size / 2U,
-                    launch.threads_per_block
-                );
-        } else {
-            throw std::invalid_argument(
-                "Sensitivity node graph exceeds its workspace budget."
-            );
-        }
-        layout = terminal_node_graph_workspace_layout<
-            NodePolicy, Orders, MaximumSensitivities
-        >(host.sensitivity_count(), launch.threads_per_block, graph);
-    }
-
-    constexpr auto groups_per_block =
-        Tuning::kThreadsPerBlock / GroupSize;
-    const auto multiprocessors =
-        node_graph_execution_detail::current_multiprocessor_count();
-    const auto target_blocks = static_cast<std::size_t>(multiprocessors)
-        * Tuning::kResidentWaves;
-    const auto desired_shards =
-        (target_blocks + graph.row_chunk_size - 1U)
-        / graph.row_chunk_size;
-    const auto useful_shards =
-        (graph.path_chunk_size + groups_per_block - 1U)
-        / groups_per_block;
-    const auto shards = std::max<std::size_t>(
-        1U, std::min(desired_shards, useful_shards)
-    );
-    if (shards > std::numeric_limits<unsigned int>::max()) {
-        throw std::overflow_error(
-            "Sensitivity node-graph path-shard count overflow."
-        );
-    }
-    graph.path_shards = static_cast<unsigned int>(shards);
-    return {graph, layout};
+    const auto make_layout = [&](TerminalNodeGraphConfiguration graph) {
+        return terminal_node_graph_workspace_layout<
+            NodePolicy, Orders, MaximumSensitivities>(
+                host.sensitivity_count(), launch.threads_per_block, graph);
+    };
+    return make_node_graph_execution_plan_with_layout<GroupSize, Tuning>(
+        launch, make_layout, preserve_complete_path_reduction);
 }
 
 
-template<typename WorkspaceLayout>
-struct BasicMixedNodeGraphExecutionPlan {
-    TerminalNodeGraphConfiguration graph{};
-    WorkspaceLayout workspace{};
-};
-
-using MixedNodeGraphExecutionPlan = BasicMixedNodeGraphExecutionPlan<
-    MixedNodeGraphWorkspaceLayout
->;
+using MixedNodeGraphExecutionPlan = BasicNodeGraphExecutionPlan<
+    MixedNodeGraphWorkspaceLayout>;
 
 template<
     std::size_t MaximumSensitivities,
@@ -208,60 +199,9 @@ auto make_mixed_node_graph_execution_plan_with_layout(
         );
     }
 
-    auto rows = std::min(
-        launch.result_count,
-        Tuning::kMaximumRowChunkSize
-    );
-    auto paths = node_graph_execution_detail::whole_reduction_thread_chunk(
-        std::min(Tuning::kPathChunkSize, launch.paths_per_price),
-        launch.threads_per_block
-    );
-    TerminalNodeGraphConfiguration graph{rows, paths, 1U};
-    auto layout = make_workspace_layout(graph);
-    while (layout.bytes > Tuning::kWorkspaceByteLimit) {
-        if (graph.row_chunk_size > 1U) {
-            graph.row_chunk_size = (graph.row_chunk_size + 1U) / 2U;
-        } else if (
-            graph.path_chunk_size
-                > static_cast<std::size_t>(launch.threads_per_block)
-        ) {
-            graph.path_chunk_size =
-                node_graph_execution_detail::whole_reduction_thread_chunk(
-                    graph.path_chunk_size / 2U,
-                    launch.threads_per_block
-                );
-        } else {
-            throw std::invalid_argument(
-                "Mixed sensitivity node graph exceeds its workspace budget."
-            );
-        }
-        layout = make_workspace_layout(graph);
-    }
-
-    constexpr auto teams_per_block =
-        Tuning::kThreadsPerBlock / GroupSize;
-    const auto multiprocessors =
-        node_graph_execution_detail::current_multiprocessor_count();
-    const auto target_blocks = static_cast<std::size_t>(multiprocessors)
-        * Tuning::kResidentWaves;
-    const auto desired_shards =
-        (target_blocks + graph.row_chunk_size - 1U)
-        / graph.row_chunk_size;
-    const auto useful_shards =
-        (graph.path_chunk_size + teams_per_block - 1U)
-        / teams_per_block;
-    const auto shards = std::max<std::size_t>(
-        1U, std::min(desired_shards, useful_shards)
-    );
-    if (shards > std::numeric_limits<unsigned int>::max()) {
-        throw std::overflow_error(
-            "Mixed sensitivity node-graph path-shard count overflow."
-        );
-    }
-    graph.path_shards = static_cast<unsigned int>(shards);
-    return BasicMixedNodeGraphExecutionPlan<decltype(layout)>{
-        graph, layout
-    };
+    return make_node_graph_execution_plan_with_layout<GroupSize, Tuning>(
+        launch, make_workspace_layout, false,
+        "Mixed sensitivity node graph exceeds its workspace budget.");
 }
 
 template<
