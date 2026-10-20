@@ -14,6 +14,8 @@ int main() {
             "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json", "datasets/product/up_and_out_option/up_and_out_options_01.json", "datasets/model/equity/rough/rough_bergomi/price_gradients/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_gradient.json", "catalog/model/equity/rough/rough_bergomi/price_gradients/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/recipe.yaml", PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.xi_0", {0.002, pg::BumpScale::absolute}},
         {"model.eta", {0.01, pg::BumpScale::relative}},
         {"model.hurst_exponent", {0.002, pg::BumpScale::absolute}},

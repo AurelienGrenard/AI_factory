@@ -11,10 +11,11 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/markovian/kou/parameters/kou_01.json", "datasets/product/forward_start_option/forward_start_options_01.json", "datasets/model/equity/markovian/kou/price_gradients/forward_start_calls/kou_01__forward_start_calls_01__01_price_gradient.json", "catalog/model/equity/markovian/kou/price_gradients/forward_start_calls/kou_01__forward_start_calls_01__01_price_gradient/generation.yaml", "catalog/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
-        {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},
         {"model.jump_intensity", {0.05, pg::BumpScale::absolute}},
         {"model.up_probability", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.positive_jump_rate", {0.005, pg::BumpScale::relative}},
         {"model.negative_jump_rate", {0.005, pg::BumpScale::relative}},
         {"product.moneyness", {0.005, pg::BumpScale::relative}},
@@ -22,6 +23,7 @@ int main() {
             }}, {1.0f/504.0f, 2U}, true};
         recipe.exact_schedule_transition = true;
         recipe.option_side = "call";
+        recipe.reconstructible_sensitivities = {{"model.spot", "price / model.spot", "standard_error / model.spot"}};
         const auto models = model::equity::kou::load_models(recipe.model_input);
         const auto products = product::load_forward_start_options(recipe.product_input);
         return offline::pricing::price_gradients::execute_dataset<true>(recipe,

@@ -14,6 +14,8 @@ int main() {
             "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json", "datasets/product/double_knock_out_option/double_knock_out_options_01.json", "datasets/model/equity/rough/quadratic_rough_heston/price_gradients/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient.json", "catalog/model/equity/rough/quadratic_rough_heston/price_gradients/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01/recipe.yaml", PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.initial_feedback", {0.004, pg::BumpScale::absolute}},
         {"model.quadratic_scale", {0.01, pg::BumpScale::relative}},
         {"model.quadratic_shift", {0.004, pg::BumpScale::absolute}},

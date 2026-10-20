@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json
   sha256: 7241fd3048c5f822bf4810e289451d8bb3747171b4a659250ae1db769f059136
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01/generator.cpp
-  source_sha256: 5dd152c420ba411eabe08c7c56b6a4b5a0d804f06249a813a72617456aacb120
-  binary_sha256: abac60b00b2af619b5dab8739d96e63223db3abaf8cba09de83a08f5a6e981f9
-  recipe_sha256: f9041cc14a205cae68e6530bbd76074605de2e1abafb612cb9d56ce069fe7d0e
-  started_at_utc: '2026-10-07T13:47:28.030863+00:00'
-  seed: 1610001801
-timing:
-  wall_seconds: 0.031893532002868596
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01/recipe.yaml
-  sha256: f9041cc14a205cae68e6530bbd76074605de2e1abafb612cb9d56ce069fe7d0e
-provenance:
-  generator: catalog/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01/generator.cpp
-  generator_sha256: 5dd152c420ba411eabe08c7c56b6a4b5a0d804f06249a813a72617456aacb120
-  binary_sha256: abac60b00b2af619b5dab8739d96e63223db3abaf8cba09de83a08f5a6e981f9
-  parameter_campaign: full model/product refresh
-record_sha256: 7d1022a0d011e7c3612b5befacc062b8659d88c04163a69448756874e0d9d71a
+hardware:
+  device: cpu

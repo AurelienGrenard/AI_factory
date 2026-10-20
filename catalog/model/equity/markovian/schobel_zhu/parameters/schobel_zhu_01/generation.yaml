@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json
   sha256: ce5e1fcdf335209213a172753a9084ff198e041bac9768a9c60677d84691eb63
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01/generator.cpp
-  source_sha256: 077ee3059d30356339498bc88fb926d555a5fc22ba3fe9c1ada61b07c0a77e30
-  binary_sha256: 783a8cf4953ba83520d6a0c18ec2a8e2bc076bbf33655461265ed2cf2819a410
-  recipe_sha256: e548f67a295fd5f7c66b31fc5f03a6c2764fed6ff10b460dba5176eb4d5b02e0
-  started_at_utc: '2026-10-07T13:47:27.784497+00:00'
-  seed: 1610000901
-timing:
-  wall_seconds: 0.02714677199764992
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01/recipe.yaml
-  sha256: e548f67a295fd5f7c66b31fc5f03a6c2764fed6ff10b460dba5176eb4d5b02e0
-provenance:
-  generator: catalog/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01/generator.cpp
-  generator_sha256: 077ee3059d30356339498bc88fb926d555a5fc22ba3fe9c1ada61b07c0a77e30
-  binary_sha256: 783a8cf4953ba83520d6a0c18ec2a8e2bc076bbf33655461265ed2cf2819a410
-  parameter_campaign: full model/product refresh
-record_sha256: 911cb16f4655e7922e58cca39ce5e62562c380d5065fbcb47ceaa4cd5c2724b2
+hardware:
+  device: cpu

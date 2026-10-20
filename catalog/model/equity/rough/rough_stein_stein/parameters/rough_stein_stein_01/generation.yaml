@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json
   sha256: bf3d6dfdd509d39d519c32d2183f10a0fe215682972c859c1adb3280cb323a73
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01/generator.cpp
-  source_sha256: 458c5dfac819dcc9937159142026ce8b26cdc4c88c0398cdcebd679499f63462
-  binary_sha256: 946ce7008230a279ebd1463c9d92f3bd2f88a3e79a7af4aa19e45cd2ffa14e6f
-  recipe_sha256: 1de76f8e6333c4ff496520b89fb4147104f402ced0cfafe57e1941f0521e1422
-  started_at_utc: '2026-10-07T13:47:28.302641+00:00'
-  seed: 1610001701
-timing:
-  wall_seconds: 0.027695913002389716
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01/recipe.yaml
-  sha256: 1de76f8e6333c4ff496520b89fb4147104f402ced0cfafe57e1941f0521e1422
-provenance:
-  generator: catalog/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01/generator.cpp
-  generator_sha256: 458c5dfac819dcc9937159142026ce8b26cdc4c88c0398cdcebd679499f63462
-  binary_sha256: 946ce7008230a279ebd1463c9d92f3bd2f88a3e79a7af4aa19e45cd2ffa14e6f
-  parameter_campaign: full model/product refresh
-record_sha256: 548cd9c0c269a1d48607a3340477b5b307f826923f34ed37b38db74e8c7e0738
+hardware:
+  device: cpu

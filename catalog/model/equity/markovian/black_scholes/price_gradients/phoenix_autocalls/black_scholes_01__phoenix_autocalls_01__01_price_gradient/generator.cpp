@@ -13,6 +13,8 @@ int main() {
             PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"product.autocall_barrier", {0.005, pg::BumpScale::relative}},
         {"product.coupon_barrier", {0.005, pg::BumpScale::relative}},
         {"product.protection_barrier", {0.005, pg::BumpScale::relative}},

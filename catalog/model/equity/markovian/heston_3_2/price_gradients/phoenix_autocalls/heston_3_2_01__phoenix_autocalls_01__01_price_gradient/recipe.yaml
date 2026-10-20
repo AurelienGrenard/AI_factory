@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "heston_3_2_01__phoenix_autocalls_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/equity/markovian/heston_3_2/price_gradients/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json",
     "product": "datasets/product/phoenix_autocall/phoenix_autocalls_01.json"
@@ -11,7 +11,7 @@
     "path": "datasets/model/equity/markovian/heston_3_2/price_gradients/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/equity/markovian/heston_3_2/price_gradients/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/equity/markovian/heston_3_2/price_gradients/phoenix_autocalls/heston_3_2_01__phoenix_autocalls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {
@@ -32,6 +32,18 @@
       {
         "parameter": "model.rho",
         "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.risk_free_rate",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.dividend_yield",
+        "displacement": 0.0005,
         "scale": "absolute",
         "boundary": "central_then_one_sided_order2"
       },

@@ -83,6 +83,8 @@ struct DynamicsPolicy {
 
     static constexpr bool kNativeLogSpot = true;
     static constexpr bool kPartitionInvariantAdvance = true;
+    static constexpr unsigned int kBrownianDimension = 1U;
+    struct BrownianStep { float spot; };
 
     __device__ __forceinline__ static PreparedDynamics prepare_dynamics(
         const Parameters& parameters,
@@ -118,6 +120,12 @@ struct DynamicsPolicy {
         RandomContext& random,
         State& state
     );
+    __device__ __forceinline__ static void one_step_transition(
+        const PreparedDynamics& dynamics,
+        BrownianStep brownian,
+        philox::DomainUniformSequence& auxiliary,
+        State& state
+    );
     __device__ __forceinline__ static float spot(const State& state);
     __device__ __forceinline__ static float log_spot(const State& state);
 };
@@ -125,5 +133,7 @@ struct DynamicsPolicy {
 static_assert(::ai_factory::workbench::equity::LogSpotDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::FixedStepDynamicsPolicy<DynamicsPolicy>);
 static_assert(simulation::ExactTransitionDynamicsPolicy<DynamicsPolicy>);
+static_assert(simulation::CorrelatedStepDynamicsPolicy<
+    DynamicsPolicy, philox::DomainUniformSequence>);
 
 }  // namespace ai_factory::workbench::model::equity::variance_gamma

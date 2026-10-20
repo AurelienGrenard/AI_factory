@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp",
   "inputs": {
     "model": "datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json",
     "product": "datasets/product/bermudan_swaption/bermudan_swaptions_01.json",
@@ -12,7 +12,7 @@
     "path": "datasets/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generation.yaml",
+  "generation_details": "catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {

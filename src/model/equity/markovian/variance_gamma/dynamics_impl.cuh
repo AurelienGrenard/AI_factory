@@ -187,6 +187,22 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     );
 }
 
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    philox::DomainUniformSequence& auxiliary,
+    State& state
+) {
+    philox::NormalPairCache cache;
+    const float clock = philox::marsaglia_tsang_gamma(
+        auxiliary, cache, dynamics.transition.gamma_shape,
+        dynamics.model.nu
+    );
+    variance_gamma::one_step_transition(
+        dynamics.model, dynamics.transition, clock, brownian.spot, state
+    );
+}
+
 __device__ __forceinline__ float DynamicsPolicy::spot(const State& state) {
     return expf(state.log_spot);
 }

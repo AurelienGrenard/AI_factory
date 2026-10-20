@@ -1,0 +1,36 @@
+schema_version: 4
+status: complete
+inputs:
+  model_0:
+    path: datasets/model/equity/markovian/black_scholes/factor_parameters/black_scholes_factors_01.json
+    sha256: 251a060cd240f540f8344ee789af10d09b462742af960da21087919bf2b6b38c
+  model_1:
+    path: datasets/model/equity/markovian/heston/factor_parameters/heston_factors_01.json
+    sha256: 17e88b65bbaa11bea341804f35ffb81587f352dc8b47d60566ee1ae04a7c3651
+  rate_model:
+    path: datasets/model/fixed_income/vasicek/parameters/vasicek_01.json
+    sha256: 229dc48a8d8d698a366b624d1dab7521487dda6a81ceb874609e36de2eb751d9
+  product:
+    path: datasets/product/worst_of_call/worst_of_calls_01.json
+    sha256: 2b8d6472a978636ee24bf35be154b0904fb7e75df6f1e463b7493b1910b1c78d
+  correlation:
+    path: datasets/correlation/bs_heston_vasicek_matrices_01.json
+    sha256: 39782172bfdadb1ffb8a2305e53088cdcbe79edd52476062c31a881a026ba648
+output:
+  path: datasets/multi_asset/worst_of_call/bs_heston_vasicek_worst_of_calls_01.json
+  sha256: 19a4f7a0b57547142ca4a51ac65eece3c9913213ad3e98066df6a74d1635011f
+hardware:
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  compute_capability: '8.9'
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+  device: gpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+  host: ALIENWAREAG
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

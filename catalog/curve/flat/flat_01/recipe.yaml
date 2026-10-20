@@ -1,12 +1,11 @@
 schema_version: 1
 kind: curve_parameters
 dataset_id: flat_01
-generator: generator.cpp
+generator: catalog/curve/flat/flat_01/generator.cpp
 output:
   path: datasets/curve/flat/flat_01.json
   format: json
-generation_output: catalog/curve/flat/flat_01/generation.yaml
-url: https://datasets.ai-factory.example/v1/curve/flat/flat_01.json
+generation_details: catalog/curve/flat/flat_01/generation.yaml
 curve_family: Flat
 row_count: 1000
 parameters:

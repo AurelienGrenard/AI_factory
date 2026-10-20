@@ -1,0 +1,28 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "variance_gamma_factors_01"
+generator: "catalog/model/equity/markovian/variance_gamma/factor_parameters/variance_gamma_factors_01/generator.cpp"
+output:
+  path: "datasets/model/equity/markovian/variance_gamma/factor_parameters/variance_gamma_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/equity/markovian/variance_gamma/factor_parameters/variance_gamma_factors_01/generation.yaml"
+model_family: "Variance-Gamma"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json"
+parameters:
+  spot: "Model parameter."
+  dividend_yield: "Model parameter."
+  sigma: "Model parameter."
+  nu: "Model parameter."
+  theta: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

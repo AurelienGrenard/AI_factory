@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "stein_stein_01__cliquets_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/equity/markovian/stein_stein/price_gradients/cliquets/stein_stein_01__cliquets_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json",
     "product": "datasets/product/cliquet/cliquets_01.json"
@@ -11,18 +11,12 @@
     "path": "datasets/model/equity/markovian/stein_stein/price_gradients/cliquets/stein_stein_01__cliquets_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/equity/markovian/stein_stein/price_gradients/cliquets/stein_stein_01__cliquets_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/equity/markovian/stein_stein/price_gradients/cliquets/stein_stein_01__cliquets_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {
     "method": "finite_difference_shared_innovations",
     "parameters": [
-      {
-        "parameter": "model.spot",
-        "displacement": 0.005,
-        "scale": "relative",
-        "boundary": "central_then_one_sided_order2"
-      },
       {
         "parameter": "model.initial_volatility",
         "displacement": 0.005,
@@ -32,6 +26,18 @@
       {
         "parameter": "model.rho",
         "displacement": 0.002,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.risk_free_rate",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.dividend_yield",
+        "displacement": 0.0005,
         "scale": "absolute",
         "boundary": "central_then_one_sided_order2"
       },
@@ -86,7 +92,14 @@
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/equity/markovian/stein_stein/prices/cliquets/stein_stein_01__cliquets_01__01/recipe.yaml",
-    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios."
+    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios.",
+    "reconstructible_from_price": [
+      {
+        "parameter": "model.spot",
+        "formula": "0",
+        "standard_error": "0"
+      }
+    ]
   },
   "sensitivity_strategy": "mono",
   "standard_error_scope": "paired Monte Carlo sampling error; excludes bump and discretization bias",

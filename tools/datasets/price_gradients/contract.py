@@ -146,6 +146,19 @@ def check_outputs(job, catalog, document):
     first_names = _selected_names(
         job["sensitivity"], "first", names, first_requested
     )
+    reconstructed = job["sensitivity"].get("reconstructible_from_price", [])
+    if reconstructed:
+        if not first_requested or not isinstance(reconstructed, list):
+            raise ValueError("Analytic gradients require first-order output")
+        if any(not isinstance(item, dict)
+               or not all(isinstance(item.get(key), str) and item[key]
+                          for key in ("parameter", "formula", "standard_error"))
+               for item in reconstructed):
+            raise ValueError("Invalid analytic gradient declaration")
+        derived_names = [item["parameter"] for item in reconstructed]
+        if len(set(derived_names)) != len(derived_names) or set(derived_names) & set(names):
+            raise ValueError("Duplicate analytic gradient declaration")
+        first_names += derived_names
     diagonal_names = _selected_names(
         job["sensitivity"],
         "diagonal_second",

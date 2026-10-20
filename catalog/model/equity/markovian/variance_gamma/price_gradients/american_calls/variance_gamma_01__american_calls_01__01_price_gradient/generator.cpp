@@ -16,6 +16,8 @@ int main() {
         {"model.sigma", {0.005, pg::BumpScale::relative}},
         {"model.nu", {0.005, pg::BumpScale::relative}},
         {"model.theta", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"product.strike", {0.005, pg::BumpScale::relative}}
             }}, {1.0f/504.0f, 2U}, false};
         constexpr auto exercise_replay =

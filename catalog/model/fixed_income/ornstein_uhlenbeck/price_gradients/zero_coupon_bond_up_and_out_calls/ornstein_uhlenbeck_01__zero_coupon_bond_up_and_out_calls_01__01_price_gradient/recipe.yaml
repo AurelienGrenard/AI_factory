@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json",
     "product": "datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json"
@@ -11,7 +11,7 @@
     "path": "datasets/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {

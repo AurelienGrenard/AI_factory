@@ -1,0 +1,32 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "quadratic_rough_heston_factors_01"
+generator: "catalog/model/equity/rough/quadratic_rough_heston/factor_parameters/quadratic_rough_heston_factors_01/generator.cpp"
+output:
+  path: "datasets/model/equity/rough/quadratic_rough_heston/factor_parameters/quadratic_rough_heston_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/equity/rough/quadratic_rough_heston/factor_parameters/quadratic_rough_heston_factors_01/generation.yaml"
+model_family: "quadratic rough Heston"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json"
+parameters:
+  dividend_yield: "Model parameter."
+  initial_feedback: "Model parameter."
+  quadratic_scale: "Model parameter."
+  quadratic_shift: "Model parameter."
+  variance_floor: "Model parameter."
+  feedback_rate: "Model parameter."
+  feedback_volatility: "Model parameter."
+  hurst_exponent: "Model parameter."
+  spot: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

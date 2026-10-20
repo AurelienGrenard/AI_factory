@@ -29,12 +29,17 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools/codegen/pricing_bindings"))
 from capability_manifest import AVAILABLE_DATASET_SPECS  # noqa: E402
 from tools.datasets.artifact_publication import contained_path, digest, publish_pair  # noqa: E402
-from tools.datasets.dataset_provenance import generation_record, software_versions  # noqa: E402
+from tools.datasets.dataset_provenance import cpu_model, generation_record, software_versions  # noqa: E402
 from tools.datasets.metadata_schemas import validate_document  # noqa: E402
+from tools.datasets.multi_asset_specs import REFERENCE_DATASET_SPECS  # noqa: E402
 
-PARAMETER_KINDS = {"model_parameters", "curve_parameters", "product_parameters"}
+PARAMETER_KINDS = {"model_parameters", "curve_parameters", "product_parameters",
+                   "correlation_parameters"}
+
+
 SPECS = {
-    spec.cmake_target: spec for spec in AVAILABLE_DATASET_SPECS
+    spec.cmake_target: spec for spec in
+    (*AVAILABLE_DATASET_SPECS, *REFERENCE_DATASET_SPECS)
     if contained_path(ROOT, spec.generator_path).is_file()
 }
 OUTPUT_SPECS = {spec.dataset_path: spec for spec in SPECS.values()}
@@ -52,7 +57,9 @@ def recipe_for(spec) -> dict:
     path = contained_path(ROOT, spec.recipe_yaml_path)
     recipe = yaml.safe_load(path.read_text())
     validate_document(recipe, "recipe", path)
-    if (recipe["output"]["path"] != spec.dataset_path or recipe["generation_output"] != spec.generation_yaml_path):
+    if (recipe["output"]["path"] != spec.dataset_path
+            or recipe["generation_details"] != spec.generation_yaml_path
+            or recipe["generator"] != spec.generator_path):
         raise ValueError(f"Recipe does not match the manifest: {path}")
     return recipe
 
@@ -78,9 +85,7 @@ def cache_values(build: Path) -> dict[str, str]:
 
 def hardware(kind: str, gpu: str | None) -> dict:
     if kind in PARAMETER_KINDS:
-        model = next((line.split(":", 1)[1].strip() for line in Path("/proc/cpuinfo").read_text().splitlines()
-                      if line.startswith("model name")), platform.processor())
-        return {"device": "cpu", "model": model, "host": platform.node()}
+        return {"device": "cpu", "cpu_model": cpu_model(), "host": platform.node()}
     selector = gpu if gpu is not None else os.environ.get("CUDA_VISIBLE_DEVICES", "0").split(",")[0]
     if not selector:
         raise ValueError("No GPU is visible; set --gpu or CUDA_VISIBLE_DEVICES")
@@ -92,7 +97,7 @@ def hardware(kind: str, gpu: str | None) -> dict:
     parts = [part.strip() for part in result.stdout.strip().split(",")]
     if len(parts) != 5:
         raise ValueError(f"Cannot identify GPU {selector}: {result.stdout!r}")
-    return dict(zip(("index", "name", "compute_capability", "uuid", "driver_version"), parts)) | {"device": "gpu"}
+    return dict(zip(("index", "name", "compute_capability", "uuid", "driver_version"), parts)) | {"device": "gpu", "cpu_model": cpu_model(), "host": platform.node()}
 
 
 def enrich_receipt(spec, recipe: dict, stage: Path, build: Path, gpu: str | None) -> Path:

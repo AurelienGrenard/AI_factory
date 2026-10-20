@@ -1,75 +1,27 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 03d83c6730652122b1f1791c72e35184da24219e586135fb622dbbadeedb5ddb
-execution:
-  block_count: 4
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: closed_form
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: g2_plus_plus
-    product: rate_option
-    curve: nelson_siegel
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
-    price_count: 1000
-    paths_per_price: 0
-    threads_per_block: 256
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per thread at a time
-    block_count: 4
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  threads_per_block: 256
-  kernel_launch_count: 1
-  work_distribution: one price per thread
-  paths_per_price: 0
-  binary_sha256: 77405a3e96be0929312577e972cf603b50d5b5376281363284aec1bbadee8d0d
-  generator_sha256: 5fbb999caac9c84386ff1f8f64dbec2ce96b4d939c678c8fb8217601ec3d2a0b
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: caplets
-    construction: aligned
-    has_curve: true
-    random_number_generator: null
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 0.305344076
-  kernel_seconds: 2.969600073993206e-05
-recipe:
-  path: catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01/recipe.yaml
-  sha256: 122cdcb3cf318a068951726283800b7a39499fb7ecdfac139207ff019cd661fc
 inputs:
-  curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
-  models: 8996a6718a993df50fc5c8055de6438947cc8890b68f1e73536ec33fbc452afa
-  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
-provenance:
-  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
-  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
-  runtime_observation:
-    unix_time: 1791411448.9041164
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 78, 58.74 W, [N/A], 2310 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01/generator.cpp
-  input_files:
-    datasets/curve/nelson_siegel/nelson_siegel_01.json: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
-    datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
-    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
-record_sha256: 7edc031b8982bb2928ca0f1e59942f9325cb4d16ed73bb26f0c635e163370539
+  model:
+    path: datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json
+    sha256: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
+  curve:
+    path: datasets/curve/nelson_siegel/nelson_siegel_01.json
+    sha256: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
+  product:
+    path: datasets/product/rate_option/rate_options_01.json
+    sha256: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+output:
+  path: datasets/model/fixed_income/g2_plus_plus/prices/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01.json
+  sha256: 03d83c6730652122b1f1791c72e35184da24219e586135fb622dbbadeedb5ddb
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

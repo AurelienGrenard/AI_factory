@@ -1,12 +1,11 @@
 schema_version: 1
 kind: "product_parameters"
 dataset_id: "geometric_asian_options_01"
-generator: "generator.cpp"
+generator: "catalog/product/geometric_asian_option/geometric_asian_options_01/generator.cpp"
 output:
   path: "datasets/product/geometric_asian_option/geometric_asian_options_01.json"
   format: "json"
-generation_output: "catalog/product/geometric_asian_option/geometric_asian_options_01/generation.yaml"
-url: "https://datasets.ai-factory.example/v1/product/geometric_asian_options/geometric_asian_options_01.json"
+generation_details: "catalog/product/geometric_asian_option/geometric_asian_options_01/generation.yaml"
 product_family: "Geometric Asian Options"
 row_count: 1000
 time_convention:

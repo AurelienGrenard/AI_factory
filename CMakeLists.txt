@@ -201,6 +201,7 @@ endforeach()
 ai_factory_include_owned_module(cmake/AIFactoryRuntime.cmake)
 ai_factory_include_owned_module(cmake/AIFactoryTargets.cmake)
 ai_factory_include_owned_module(cmake/AIFactoryCatalog.cmake)
+ai_factory_include_owned_module(cmake/AIFactoryMultiAsset.cmake)
 if(AI_FACTORY_ENABLE_LOCAL_EXPERIMENTS)
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/work/experiments/CMakeLists.txt")
         message(FATAL_ERROR

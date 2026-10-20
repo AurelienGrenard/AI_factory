@@ -119,6 +119,18 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     );
 }
 
+template<typename AuxiliaryRandom>
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    AuxiliaryRandom&,
+    State& state
+) {
+    black_scholes::one_step_transition(
+        dynamics.transition, brownian.spot, state
+    );
+}
+
 __device__ __forceinline__ void DynamicsPolicy::advance(
     const PreparedDynamics& dynamics,
     std::uint32_t step_count,

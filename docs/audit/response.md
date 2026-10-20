@@ -1,6 +1,8 @@
 # Constats d'audit non résolus
 
-Référentiel actif : **v10.1 — 2026-10-02**.
+Référentiel courant : **v10.2 — 2026-10-20**. Constats issus des passages
+antérieurs sous **v10.1** ; aucune réévaluation multi-actifs n’est encore
+revendiquée.
 
 Les anciens chemins de preuves `build-*` se retrouvent via le
 [plan des artefacts locaux](../local-artifacts.md).

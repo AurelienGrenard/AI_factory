@@ -37,10 +37,16 @@ def main() -> int:
         root = args.root.resolve()
         relative_recipe = args.recipe.resolve().relative_to(root).as_posix()
         relative_generation = args.generation.resolve().relative_to(root).as_posix()
-        if generation.get("recipe", {}).get("path") != relative_recipe:
+        if generation.get("schema_version") in (1, 2) and generation.get("recipe", {}).get("path") != relative_recipe:
             raise ValueError("generation.yaml names a different recipe")
-        if recipe.get("generation_output") != relative_generation:
+        if recipe.get("generation_details") != relative_generation:
             raise ValueError("recipe.yaml names a different generation.yaml")
+        relative_generator = (
+            args.recipe.resolve().with_name("generator.cpp")
+            .relative_to(root).as_posix()
+        )
+        if recipe.get("generator") != relative_generator:
+            raise ValueError("recipe.yaml names a different generator.cpp")
         result = assess(recipe, generation, args.dataset, root)
     except (OSError, ValueError, TypeError, yaml.YAMLError) as error:
         result = {"status": "review_required", "reasons": [str(error)],

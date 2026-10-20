@@ -1,86 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: f65fb245b3bdd58c1ba496fe8366486993238f77a19440fe287750893b38b296
-execution:
-  simulation_steps_per_day: 2
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: equity_step_mc
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: bates
-    product: phoenix_memory_autocall
-    curve: ''
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 512
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 1000
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: markovian_pricing
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  checkpoint:
-    schema_version: 1
-    resumed_prices: 0
-    timing_scope: current process attempt
-  paths_per_price: 1048576
-  binary_sha256: 4693e01838130a350c71032fb1a7ab04569780d7497fffb0e775a62c31bad18b
-  generator_sha256: 7299390278c25f63b2cb81a7710b743d72726b78ce2dd59546d4f1e0c3b61247
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: phoenix_memory_autocalls
-    construction: aligned
-    has_curve: false
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 40.883321655
-  kernel_seconds: 34.70033984375
-recipe:
-  path: catalog/model/equity/markovian/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01/recipe.yaml
-  sha256: 5afd67822b7b0ab6dd30412f27ac7fec8679be05284d2c86591063a5e5dadfb7
 inputs:
-  models: 02f796243f35ac3cbe90aa3628ec044eaf9fca765c115bf9436fcfa1a414c7f2
-  products: f54086b4f266e54a851a4dfd1288efe31297fc369f46e51e6165b6961041753d
-provenance:
-  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
-  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
-  runtime_observation:
-    unix_time: 1791492329.5924835
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 63, 43.00 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/equity/markovian/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01/generator.cpp
-  input_files:
-    datasets/model/equity/markovian/bates/parameters/bates_01.json: d7e9d93ea57e3d5c30ec48e3e75a651f02a60bb23f241d56c2c7c90e17e967d8
-    datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json: ae25558206a866109259ede09adafe2d9004b6902ef4fffd4b07d0d491fbcddc
-record_sha256: 8de4e35564dcf3250cfc85d7815bcb8d9def252308b5c142e5ee65fd47e07c0e
+  model:
+    path: datasets/model/equity/markovian/bates/parameters/bates_01.json
+    sha256: d7e9d93ea57e3d5c30ec48e3e75a651f02a60bb23f241d56c2c7c90e17e967d8
+  product:
+    path: datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json
+    sha256: ae25558206a866109259ede09adafe2d9004b6902ef4fffd4b07d0d491fbcddc
+output:
+  path: datasets/model/equity/markovian/bates/prices/phoenix_memory_autocalls/bates_01__phoenix_memory_autocalls_01__01.json
+  sha256: f65fb245b3bdd58c1ba496fe8366486993238f77a19440fe287750893b38b296
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

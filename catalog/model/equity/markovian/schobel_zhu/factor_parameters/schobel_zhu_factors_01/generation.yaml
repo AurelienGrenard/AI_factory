@@ -1,0 +1,19 @@
+schema_version: 4
+status: complete
+inputs:
+  source_model:
+    path: datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json
+    sha256: ce5e1fcdf335209213a172753a9084ff198e041bac9768a9c60677d84691eb63
+output:
+  path: datasets/model/equity/markovian/schobel_zhu/factor_parameters/schobel_zhu_factors_01.json
+  sha256: e809f2163146574ab677636583eeb61d44f207ec8cee960c8b0265eb5f242d1d
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

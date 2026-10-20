@@ -1,79 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 94b27d13fe00a1bba12e6181cbef0d3337337f20d028aee5d4d94a9dd702517a
-execution:
-  block_count: 4
-  threads_per_block: 256
-  kernel_launch_count: 1
-  work_distribution: one price per thread
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: analytical_pricing
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: closed_form
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: black_scholes
-    product: gap_option
-    curve: ''
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
-    price_count: 1000
-    paths_per_price: 0
-    threads_per_block: 256
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per thread at a time
-    block_count: 4
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  paths_per_price: 0
-  binary_sha256: bd8647ab34fc80f9d647ae5dc7ccef278e59eb74c6282142be69c8e3e0b446b0
-  generator_sha256: 34ba50d52d329b673a129ce5d54a818ead249e93c57256f5b2c9dc0988497df2
-  declared_method:
-    engine: equity_closed_form
-    profile: catalog_price_profile
-    variant: gap_puts
-    construction: aligned
-    has_curve: false
-    random_number_generator: null
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 0.435583146
-  kernel_seconds: 1.3311999849975109e-05
-recipe:
-  path: catalog/model/equity/markovian/black_scholes/prices/gap_puts/black_scholes_01__gap_puts_01__01/recipe.yaml
-  sha256: 80ce5132288cd27e420588442fc301de5f7e80bd4c79ca03d7b66ba89cd4892a
 inputs:
-  models: ff3618bac8beeb62425ca53b38e6f9c29f268ed359d1501c8581c25f0e4fcbad
-  products: c3872087ca2e46b307f4853cd545b34daa256a4e0b4d7e7e0a52b2c60b390281
-provenance:
-  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
-  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
-  runtime_observation:
-    unix_time: 1791492674.7519758
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 70, 44.66 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/equity/markovian/black_scholes/prices/gap_puts/black_scholes_01__gap_puts_01__01/generator.cpp
-  input_files:
-    datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json: 25bcc1c778bc6a9ddc00d6d3a265cc66e2f4e929e91bfb2c674b5691eca51b0b
-    datasets/product/gap_option/gap_put_options_01.json: b378d3286ad41354683fc6211c6b353b6da957bc8661b034d11cf5570e869236
-record_sha256: b9fa68894e25a5cfe3566100e0ecd7c19a0426d5496345cc25a0c19509c90f2f
+  model:
+    path: datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json
+    sha256: 25bcc1c778bc6a9ddc00d6d3a265cc66e2f4e929e91bfb2c674b5691eca51b0b
+  product:
+    path: datasets/product/gap_option/gap_put_options_01.json
+    sha256: b378d3286ad41354683fc6211c6b353b6da957bc8661b034d11cf5570e869236
+output:
+  path: datasets/model/equity/markovian/black_scholes/prices/gap_puts/black_scholes_01__gap_puts_01__01.json
+  sha256: 94b27d13fe00a1bba12e6181cbef0d3337337f20d028aee5d4d94a9dd702517a
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

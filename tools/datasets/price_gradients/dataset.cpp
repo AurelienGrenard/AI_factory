@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include <string>
+#include <utility>
 
 namespace ai_factory::workbench::datasets::price_gradients {
 namespace lspg = ::ai_factory::workbench::longstaff_schwartz::price_gradients;
@@ -43,6 +44,62 @@ std::string mixed_name(
 ) {
     return recipe.configuration.sensitivities[pair.first].parameter + "|"
         + recipe.configuration.sensitivities[pair.second].parameter;
+}
+
+std::pair<double, double> reconstruct_from_price(
+    const ReconstructibleSensitivity& sensitivity,
+    const nlohmann::ordered_json& model,
+    const nlohmann::ordered_json& product,
+    double price,
+    double standard_error
+) {
+    const auto positive_parameter = [](const nlohmann::ordered_json& row,
+                                       const char* name) {
+        const double value = row.at("parameters").at(name).get<double>();
+        if (!std::isfinite(value) || !(value > 0.0)) {
+            throw std::invalid_argument(
+                std::string("Invalid analytic gradient denominator: ") + name
+            );
+        }
+        return value;
+    };
+    double value = 0.0;
+    double error = 0.0;
+    if (sensitivity.parameter == "product.cash_payoff"
+        && sensitivity.formula == "price / product.cash_payoff"
+        && sensitivity.standard_error
+            == "standard_error / product.cash_payoff") {
+        const double cash = positive_parameter(product, "cash_payoff");
+        value = price / cash;
+        error = standard_error / cash;
+    } else if (sensitivity.parameter == "product.coupon_rate"
+        && sensitivity.formula
+            == "(price - exp(-model.risk_free_rate * product.maturity / 252)) / product.coupon_rate"
+        && sensitivity.standard_error
+            == "standard_error / product.coupon_rate") {
+        const double coupon = positive_parameter(product, "coupon_rate");
+        const double rate = model.at("parameters").at("risk_free_rate").get<double>();
+        const double maturity = product.at("parameters").at("maturity").get<double>();
+        value = (price - std::exp(-rate * maturity / 252.0)) / coupon;
+        error = standard_error / coupon;
+    } else if (sensitivity.parameter == "model.spot"
+        && sensitivity.formula == "price / model.spot"
+        && sensitivity.standard_error == "standard_error / model.spot") {
+        const double spot = positive_parameter(model, "spot");
+        value = price / spot;
+        error = standard_error / spot;
+    } else if (sensitivity.parameter == "model.spot"
+        && sensitivity.formula == "0"
+        && sensitivity.standard_error == "0") {
+        value = 0.0;
+        error = 0.0;
+    } else {
+        throw std::invalid_argument("Unknown analytic gradient formula.");
+    }
+    if (!std::isfinite(value) || !std::isfinite(error) || error < 0.0) {
+        throw std::invalid_argument("Non-finite analytic gradient output.");
+    }
+    return {value, error};
 }
 
 std::size_t checked_product(
@@ -93,6 +150,17 @@ nlohmann::ordered_json sensitivity_metadata(
         {"parameters", selections},
         {"source_price_recipe", recipe.source_price_recipe},
     };
+    if (!recipe.reconstructible_sensitivities.empty()) {
+        auto reconstructed = nlohmann::ordered_json::array();
+        for (const auto& item : recipe.reconstructible_sensitivities) {
+            reconstructed.push_back({
+                {"parameter", item.parameter},
+                {"formula", item.formula},
+                {"standard_error", item.standard_error},
+            });
+        }
+        metadata["reconstructible_from_price"] = std::move(reconstructed);
+    }
     auto orders = nlohmann::ordered_json::array();
     if (!graph.first.empty()) orders.push_back("first");
     if (!graph.diagonal_second.empty()) orders.push_back("diagonal_second");
@@ -491,14 +559,18 @@ void write_dataset(const Recipe& recipe, const Results& result) {
         }
 
         nlohmann::ordered_json output_row;
+        const nlohmann::ordered_json* model_parameters = nullptr;
+        const nlohmann::ordered_json* product_parameters = nullptr;
         if (curve_rows == nullptr) {
             const auto indices = decode_model_product_result_index(
                 row, product_rows.size(), recipe.construction
             );
-            output_row["model_id"] =
-                model_rows.at(indices.model_index).at("id");
-            output_row["product_id"] =
-                product_rows.at(indices.product_index).at("id");
+            const auto& model_row = model_rows.at(indices.model_index);
+            const auto& product_row = product_rows.at(indices.product_index);
+            model_parameters = &model_row;
+            product_parameters = &product_row;
+            output_row["model_id"] = model_row.at("id");
+            output_row["product_id"] = product_row.at("id");
         } else {
             const auto indices = decode_model_curve_product_result_index(
                 row,
@@ -506,15 +578,33 @@ void write_dataset(const Recipe& recipe, const Results& result) {
                 product_rows.size(),
                 recipe.construction
             );
-            output_row["model_id"] =
-                model_rows.at(indices.model_index).at("id");
-            output_row["product_id"] =
-                product_rows.at(indices.product_index).at("id");
+            const auto& model_row = model_rows.at(indices.model_index);
+            const auto& product_row = product_rows.at(indices.product_index);
+            model_parameters = &model_row;
+            product_parameters = &product_row;
+            output_row["model_id"] = model_row.at("id");
+            output_row["product_id"] = product_row.at("id");
             output_row["curve_id"] =
                 curve_rows->at(indices.curve_index).at("id");
         }
         output_row["price"] = result.prices[row];
-        if (first_count != 0U) output_row["gradients"] = gradients;
+        for (const auto& item : recipe.reconstructible_sensitivities) {
+            if (gradients.contains(item.parameter)) {
+                throw std::invalid_argument(
+                    "Analytic gradient duplicates a bumped coordinate."
+                );
+            }
+            const auto [value, error] = reconstruct_from_price(
+                item, *model_parameters, *product_parameters,
+                result.prices[row],
+                stochastic ? result.price_errors[row] : 0.0
+            );
+            gradients[item.parameter] = value;
+            if (stochastic) gradient_errors[item.parameter] = error;
+        }
+        if (first_count != 0U || !recipe.reconstructible_sensitivities.empty()) {
+            output_row["gradients"] = gradients;
+        }
         if (diagonal_count != 0U) {
             output_row["diagonal_hessians"] = diagonal_hessians;
         }
@@ -523,7 +613,8 @@ void write_dataset(const Recipe& recipe, const Results& result) {
         }
         if (stochastic) {
             output_row["standard_error"] = result.price_errors[row];
-            if (first_count != 0U) {
+            if (first_count != 0U
+                || !recipe.reconstructible_sensitivities.empty()) {
                 output_row["gradient_standard_errors"] = gradient_errors;
             }
             if (diagonal_count != 0U) {

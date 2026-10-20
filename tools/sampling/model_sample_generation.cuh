@@ -15,6 +15,7 @@
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <filesystem>
 #include <functional>
 #include <iostream>
@@ -199,7 +200,8 @@ int generate_model_sample_dataset_impl(
     ParameterFactory&& parameter_factory,
     InputFactory&& input_factory,
     ParameterJson&& parameter_json,
-    Launcher&& launcher
+    Launcher&& launcher,
+    bool device_generated = false
 ) {
     const ModelSampleRunMode run_mode = model_sample_run_mode(argc, argv);
     const ModelSampleShape shape = resolve_model_sample_shape(
@@ -260,7 +262,7 @@ int generate_model_sample_dataset_impl(
 
     cuda::DeviceBuffer<DeviceInput> device_parameters(device_inputs.size());
     cuda::DeviceBuffer<std::uint32_t> device_maturity_days(sample_count);
-    device_parameters.copy_from(device_inputs.data());
+    if (!device_generated) device_parameters.copy_from(device_inputs.data());
     std::vector<cuda::DeviceBuffer<float>> device_outputs;
     device_outputs.reserve(output_names.size());
     for (std::size_t index = 0U; index < output_names.size(); ++index) {
@@ -327,9 +329,12 @@ int generate_model_sample_dataset_impl(
     for (std::size_t index = 0U; index < device_outputs.size(); ++index) {
         device_outputs[index].copy_to(output_values[index].data());
     }
+    if (device_generated) device_parameters.copy_to(parameters.data());
     if (shape.preflight) {
         const auto expected_maturity_days = maturity_days;
         const auto expected_output_values = output_values;
+        const auto expected_parameters = device_generated
+            ? parameters : std::vector<Parameters>{};
         const auto replay_launch = model_sample_launch(sample_count, shape.paths_per_parameter, profile, true);
         invoke_launch(sample_count, replay_launch);
         check_cuda(
@@ -340,8 +345,12 @@ int generate_model_sample_dataset_impl(
         for (std::size_t index = 0U; index < device_outputs.size(); ++index) {
             device_outputs[index].copy_to(output_values[index].data());
         }
+        if (device_generated) device_parameters.copy_to(parameters.data());
         if (maturity_days != expected_maturity_days
-            || output_values != expected_output_values) {
+            || output_values != expected_output_values
+            || (device_generated
+                && std::memcmp(parameters.data(), expected_parameters.data(),
+                    parameter_bytes) != 0)) {
             throw std::runtime_error(
                 "Model-sample preflight changed with launch geometry."
             );
@@ -469,6 +478,36 @@ int generate_prepared_model_sample_dataset(
         std::forward<InputFactory>(input_factory),
         std::forward<ParameterJson>(parameter_json),
         std::forward<Launcher>(launcher)
+    );
+}
+
+template<typename Parameters, typename ParameterJson, typename Launcher>
+int generate_device_model_sample_dataset(
+    int argc,
+    char** argv,
+    datasets::ModelSampleRecipe recipe,
+    const ModelSampleProfile& profile,
+    const std::vector<std::string>& output_names,
+    ParameterJson&& parameter_json,
+    Launcher&& launcher
+) {
+    // The host buffer is an output mirror for JSON serialization only. The
+    // device sampler fills every model row inside the simulation kernel.
+    return generate_model_sample_dataset_impl<Parameters, Parameters>(
+        argc,
+        argv,
+        std::move(recipe),
+        profile,
+        output_names,
+        [](std::size_t count, std::uint64_t) {
+            return std::vector<Parameters>(count);
+        },
+        [](const std::vector<Parameters>& parameters, std::uint32_t) {
+            return std::span<const Parameters>(parameters);
+        },
+        std::forward<ParameterJson>(parameter_json),
+        std::forward<Launcher>(launcher),
+        true
     );
 }
 

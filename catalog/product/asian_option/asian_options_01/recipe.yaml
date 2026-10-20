@@ -1,12 +1,11 @@
 schema_version: 1
 kind: "product_parameters"
 dataset_id: "asian_options_01"
-generator: "generator.cpp"
+generator: "catalog/product/asian_option/asian_options_01/generator.cpp"
 output:
   path: "datasets/product/asian_option/asian_options_01.json"
   format: "json"
-generation_output: "catalog/product/asian_option/asian_options_01/generation.yaml"
-url: "https://datasets.ai-factory.example/v1/product/asian_options/asian_options_01.json"
+generation_details: "catalog/product/asian_option/asian_options_01/generation.yaml"
 product_family: "Asian Options"
 row_count: 1000
 time_convention:

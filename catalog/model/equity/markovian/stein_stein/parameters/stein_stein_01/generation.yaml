@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json
   sha256: 8ba72ec79276877077a6254bf8bc1879d9ebed1d7e9c533c1c22cdfad7aafbbe
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/stein_stein/parameters/stein_stein_01/generator.cpp
-  source_sha256: e1c6ced8735fa201de7ce7198875e07f893cd3b367b846cf2f527a1aefad8004
-  binary_sha256: a6cbad650b0b80e1b59eeddd3a992ea971dc830866fcc161582313abfaff4281
-  recipe_sha256: ccd7767e1f44e29d0acb7e6fda0e0e7f4614f85ed7bb157eeb051f1c731b27c9
-  started_at_utc: '2026-10-07T13:47:27.853008+00:00'
-  seed: 1610001501
-timing:
-  wall_seconds: 0.02647542700287886
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/stein_stein/parameters/stein_stein_01/recipe.yaml
-  sha256: ccd7767e1f44e29d0acb7e6fda0e0e7f4614f85ed7bb157eeb051f1c731b27c9
-provenance:
-  generator: catalog/model/equity/markovian/stein_stein/parameters/stein_stein_01/generator.cpp
-  generator_sha256: e1c6ced8735fa201de7ce7198875e07f893cd3b367b846cf2f527a1aefad8004
-  binary_sha256: a6cbad650b0b80e1b59eeddd3a992ea971dc830866fcc161582313abfaff4281
-  parameter_campaign: full model/product refresh
-record_sha256: 6b2aa299e62b98d0824e2a076c4bdf48658866d4b3b9d348af730223820d9db7
+hardware:
+  device: cpu

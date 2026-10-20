@@ -4,6 +4,7 @@
 #include "common/sample.cuh"
 #include "common/simulation/schedule.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dynamics_impl.cuh"
+#include "model/equity/rough/quadratic_rough_heston/sample_device_preparation.cuh"
 
 namespace ai_factory::workbench::model::equity::quadratic_rough_heston {
 namespace {
@@ -60,6 +61,38 @@ void launch_quadratic_rough_heston_random_terminal_samples_cuda(
 }
 
 template<std::size_t FactorCount>
+void launch_quadratic_rough_heston_generated_random_terminal_samples_cuda(
+    ModelParameters* device_generated_parameters,
+    SampleParameterSampler::Configuration bounds,
+    std::size_t parameter_count, std::size_t paths_per_parameter,
+    std::uint32_t minimum_maturity_days,
+    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
+    std::size_t launch_sample_count, unsigned int threads_per_block,
+    std::size_t block_count, std::uint64_t parameter_seed,
+    std::uint64_t schedule_seed, std::uint64_t dynamics_seed,
+    std::uint32_t* device_maturity_days,
+    float* device_spots
+) {
+    sample::launch_prepared_samples_cuda<TerminalPolicy<FactorCount>>(
+        sample::GeneratedPreparedInputSource<
+            SampleParameterSampler, SampleDevicePreparer<FactorCount>>{
+            bounds,
+            {2.0f, sample::kSampleFixedStepDt},
+            device_generated_parameters},
+        sample::UniformMaturityCalendarSource{
+            {minimum_maturity_days, maximum_maturity_days},
+            device_maturity_days},
+        {parameter_count, paths_per_parameter, sample_offset,
+         launch_sample_count},
+        sample::kFixedStepSampleTimeConfiguration,
+        {threads_per_block, block_count},
+        {parameter_seed, schedule_seed, dynamics_seed},
+        {device_spots}, "quadratic_rough_heston.samples",
+        "random_terminal.generated_prepared_parameters",
+        "Quadratic rough-Heston generated and prepared random terminal sample kernel");
+}
+
+template<std::size_t FactorCount>
 void launch_quadratic_rough_heston_calendar_samples_cuda(
     const PreparedDynamics<FactorCount>* device_prepared_dynamics,
     std::size_t parameter_count, std::size_t paths_per_parameter,
@@ -93,6 +126,12 @@ void launch_quadratic_rough_heston_calendar_samples_cuda(
         const PreparedDynamics<FACTORS>*, std::size_t, std::size_t, \
         std::uint32_t, std::uint32_t, std::uint32_t, std::size_t, std::size_t, \
         unsigned int, std::size_t, std::uint64_t, float*)
+
+template void launch_quadratic_rough_heston_generated_random_terminal_samples_cuda<7U>(
+    ModelParameters*, SampleParameterSampler::Configuration,
+    std::size_t, std::size_t, std::uint32_t, std::uint32_t, std::size_t,
+    std::size_t, unsigned int, std::size_t, std::uint64_t,
+    std::uint64_t, std::uint64_t, std::uint32_t*, float*);
 
 AI_FACTORY_INSTANTIATE_SAMPLE(2U);
 AI_FACTORY_INSTANTIATE_SAMPLE(3U);

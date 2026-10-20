@@ -33,6 +33,11 @@ struct PreparedDynamics {
     PreparedTransition transition;
 };
 
+// Physical Brownian shock over one standardized interval.
+struct BrownianStep {
+    float spot;
+};
+
 // ======================== Common equity dynamics =========================
 
 __device__ __forceinline__ PreparedModel prepare_model(
@@ -61,6 +66,9 @@ struct DynamicsPolicy {
     using PreparedTransition = black_scholes::PreparedTransition;
     using RandomContext = philox::NormalRandomContext;
     using State = black_scholes::State;
+    using BrownianStep = black_scholes::BrownianStep;
+
+    static constexpr unsigned int kBrownianDimension = 1U;
 
     static constexpr bool kNativeLogSpot = true;
     static constexpr bool kPartitionInvariantAdvance = true;
@@ -85,6 +93,13 @@ struct DynamicsPolicy {
     __device__ __forceinline__ static void simulate_one_step(
         const PreparedDynamics& dynamics,
         RandomContext& random,
+        State& state
+    );
+    template<typename AuxiliaryRandom>
+    __device__ __forceinline__ static void one_step_transition(
+        const PreparedDynamics& dynamics,
+        BrownianStep brownian,
+        AuxiliaryRandom&,
         State& state
     );
     __device__ __forceinline__ static void advance(

@@ -16,6 +16,11 @@
 #include <vector>
 
 namespace ai_factory::workbench::datasets::price_gradients {
+struct ReconstructibleSensitivity {
+    std::string parameter;
+    std::string formula;
+    std::string standard_error;
+};
 struct Recipe {
     std::filesystem::path model_input, product_input, dataset, catalog;
     std::string source_price_recipe;
@@ -40,6 +45,7 @@ struct Recipe {
     bool exact_schedule_transition = false;
     bool barrier_grid_monitoring = false;
     std::optional<std::string> option_side;
+    std::vector<ReconstructibleSensitivity> reconstructible_sensitivities;
 };
 void append_exercise_replay_metadata(
     const Recipe&,

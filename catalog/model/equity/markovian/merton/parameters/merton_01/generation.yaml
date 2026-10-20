@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/merton/parameters/merton_01.json
   sha256: 3d7f847d82dc2776ef225daa1270b3300a152d5839aaffc9a79d45cc3de0d312
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/merton/parameters/merton_01/generator.cpp
-  source_sha256: 80ae3459f42cf818821f7c3dbdeebf2b26066521ed91bb71b5a281ce00786b6f
-  binary_sha256: dd0c7d1036b84d260173457bd4ef6fa718385f85a7a10012a3cd3bde494c2b81
-  recipe_sha256: 722e66a1abace7dccc9736d51dfdcf6208a0673995f2d1d8d84cd19cf9fd1696
-  started_at_utc: '2026-10-07T13:47:27.605416+00:00'
-  seed: 1610000601
-timing:
-  wall_seconds: 0.02287997000166797
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/merton/parameters/merton_01/recipe.yaml
-  sha256: 722e66a1abace7dccc9736d51dfdcf6208a0673995f2d1d8d84cd19cf9fd1696
-provenance:
-  generator: catalog/model/equity/markovian/merton/parameters/merton_01/generator.cpp
-  generator_sha256: 80ae3459f42cf818821f7c3dbdeebf2b26066521ed91bb71b5a281ce00786b6f
-  binary_sha256: dd0c7d1036b84d260173457bd4ef6fa718385f85a7a10012a3cd3bde494c2b81
-  parameter_campaign: full model/product refresh
-record_sha256: ccdca9cf21dd814137fe814a1b76cd3593d73eee9118c4d309625e615bef36da
+hardware:
+  device: cpu

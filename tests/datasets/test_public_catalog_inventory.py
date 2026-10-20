@@ -9,6 +9,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/codegen/pricing_bindings"))
+from tools.datasets.multi_asset_specs import REFERENCE_DATASET_SPECS  # noqa: E402
 from capability_manifest import (  # noqa: E402
     AVAILABLE_DATASET_SPECS,
     PRICE_GRADIENT_DATASET_SPECS,
@@ -24,7 +25,8 @@ class PublicCatalogInventoryTest(unittest.TestCase):
         self.assertEqual(len(sources), len(rows))
         self.assertEqual(
             {row["kind"] for row in rows},
-            {"model_parameters", "product_parameters", "curve_parameters", "prices", "price_gradients", "samples"},
+            {"model_parameters", "product_parameters", "curve_parameters", "correlation_parameters",
+             "prices", "price_gradients", "samples"},
         )
         selected = [
             spec for spec in AVAILABLE_DATASET_SPECS
@@ -37,6 +39,7 @@ class PublicCatalogInventoryTest(unittest.TestCase):
                      or spec.exercise_replay == "frozen_regression_policy")
             )
         ]
+        selected.extend(REFERENCE_DATASET_SPECS)
         expected = {
             spec.generator_path.removeprefix("catalog/").removesuffix("/generator.cpp")
             for spec in selected
@@ -153,7 +156,7 @@ class PublicCatalogInventoryTest(unittest.TestCase):
                 continue
             recipe = yaml.safe_load((ROOT / spec.recipe_yaml_path).read_text())
             generator = (ROOT / spec.generator_path).read_text()
-            expected_version = re.search(r'/v\d+/', recipe["url"]).group()
+            expected_version = re.search(r'/v\d+/', spec.url).group()
             generated_versions = set(re.findall(
                 r'https://datasets\.ai-factory\.example(/v\d+/)', generator
             ))

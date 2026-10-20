@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json
   sha256: 25bcc1c778bc6a9ddc00d6d3a265cc66e2f4e929e91bfb2c674b5691eca51b0b
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/black_scholes/parameters/black_scholes_01/generator.cpp
-  source_sha256: 68d1c176fb9bffb72279d5e87068ce4d30b02b4e3111919642c3ef6ab2ec6d0f
-  binary_sha256: d28a229340d439809c48508e2b0c09568677a809ba5e1771f92af1fb7b89c0d8
-  recipe_sha256: 18ae59b66e7314f076c9e79dd2a2030eeabfd6dde6a2ad060119cfab5a27b7bb
-  started_at_utc: '2026-10-07T13:47:27.341401+00:00'
-  seed: 1610000101
-timing:
-  wall_seconds: 0.010367584000050556
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/black_scholes/parameters/black_scholes_01/recipe.yaml
-  sha256: 18ae59b66e7314f076c9e79dd2a2030eeabfd6dde6a2ad060119cfab5a27b7bb
-provenance:
-  generator: catalog/model/equity/markovian/black_scholes/parameters/black_scholes_01/generator.cpp
-  generator_sha256: 68d1c176fb9bffb72279d5e87068ce4d30b02b4e3111919642c3ef6ab2ec6d0f
-  binary_sha256: d28a229340d439809c48508e2b0c09568677a809ba5e1771f92af1fb7b89c0d8
-  parameter_campaign: full model/product refresh
-record_sha256: dcfaf16a8306d3c33a30e06fa820ce68655e315740b99b275462ecee06665031
+hardware:
+  device: cpu

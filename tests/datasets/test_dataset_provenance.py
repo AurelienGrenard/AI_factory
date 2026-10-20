@@ -38,10 +38,9 @@ class ProvenanceTests(unittest.TestCase):
         self.recipe_path.parent.mkdir(parents=True)
         self.recipe = {
             "schema_version": 1, "kind": "prices", "dataset_id": "prices",
-            "generator": "generator.cpp", "row_count": 1,
+            "generator": "catalog/example/generator.cpp", "row_count": 1,
             "output": {"path": self.dataset_rel, "format": "json"},
-            "generation_output": "catalog/example/generation.yaml",
-            "url": self.document["url"],
+            "generation_details": "catalog/example/generation.yaml",
             "paths_per_price": 1_048_576, "seeds": {"dynamics": 123},
         }
         self.save_recipe()
@@ -52,7 +51,7 @@ class ProvenanceTests(unittest.TestCase):
                        "timing": {"wall_seconds": 1.0, "kernel_seconds": .9}}
         self.generation = provenance.generation_record(
             self.native, self.recipe_rel, self.dataset_rel, {}, self.root,
-            {"device": "gpu", "name": "test GPU"},
+            {"device": "gpu", "name": "test GPU", "host": "test", "cpu_model": "test CPU"},
             {"cmake": "3.31", "cxx_compiler": "14.2", "cuda_compiler": "13.2"})
         self.save_generation()
 
@@ -77,21 +76,21 @@ class ProvenanceTests(unittest.TestCase):
 
     def test_recipe_and_hardware_may_change_without_generation_gate(self):
         self.recipe["seeds"]["dynamics"] = 124
-        self.generation["environment"]["hardware"]["name"] = "corrected GPU name"
+        self.generation["hardware"]["name"] = "corrected GPU name"
         self.assertEqual(self.assess()["status"], "compatible")
 
     def test_json_edit_needs_only_current_output_sha(self):
         self.document["results"][0]["outputs"]["price"] = 1.5
         self.save_dataset()
         self.assertEqual(self.assess()["status"], "invalid")
-        self.generation["artifact"]["sha256"] = digest(self.dataset)
+        self.generation["output"]["sha256"] = digest(self.dataset)
         self.assertEqual(self.assess()["status"], "compatible")
 
     def test_recipe_must_describe_current_json(self):
         self.recipe["row_count"] = 2
         self.assertEqual(self.assess()["status"], "invalid")
         self.recipe["row_count"] = 1
-        self.recipe["url"] = "https://datasets.example/new.json"
+        self.recipe["output"]["path"] = "datasets/another.json"
         self.assertEqual(self.assess()["status"], "invalid")
 
     def test_input_sha_is_current_metadata_not_an_immutable_gate(self):
@@ -102,10 +101,9 @@ class ProvenanceTests(unittest.TestCase):
                              '"row_count":1,"models":[]}')
         self.document["model_dataset"] = {"id": "example", "catalog": "catalog/model/example"}
         self.save_dataset()
-        self.generation["artifact"]["sha256"] = digest(self.dataset)
+        self.generation["output"]["sha256"] = digest(self.dataset)
         self.recipe["inputs"] = {"model": relative}
-        self.generation["inputs"] = {"model": {"path": relative,
-                                                  "sha256": digest(parameter)}}
+        self.generation["inputs"] = {"model": {"path": relative, "sha256": digest(parameter)}}
         self.assertEqual(self.assess()["status"], "compatible")
         parameter.write_text('{"database_id":"example","catalog":"catalog/model/example",'
                              '"row_count":1,"models":[1]}')
@@ -113,9 +111,33 @@ class ProvenanceTests(unittest.TestCase):
         self.generation["inputs"]["model"]["sha256"] = digest(parameter)
         self.assertEqual(self.assess()["status"], "compatible")
 
+    def test_refresh_preserves_historical_input_hash_after_parameter_replacement(self):
+        relative = "datasets/model/example.json"
+        parameter = self.root / relative
+        parameter.parent.mkdir(parents=True)
+        parameter.write_text('{"database_id":"example","catalog":"catalog/model/example",'
+                             '"row_count":1,"models":[]}')
+        old_hash = digest(parameter)
+        self.recipe["inputs"] = {"model": relative}
+        self.generation["inputs"] = {"model": {"path": relative, "sha256": old_hash}}
+        self.document["model_dataset"] = {
+            "id": "example", "catalog": "catalog/model/example"
+        }
+        self.save_dataset()
+        self.generation["output"]["sha256"] = digest(self.dataset)
+        parameter.write_text('{"database_id":"example","catalog":"catalog/model/example",'
+                             '"row_count":1,"models":[1]}')
+        refreshed = refresh_generation.refresh(
+            self.recipe, self.generation, self.dataset, self.root, []
+        )
+        self.assertEqual(refreshed["inputs"]["model"], {"path": relative, "sha256": old_hash})
+        self.assertEqual(
+            provenance.assess(self.recipe, refreshed, self.dataset, self.root)["status"],
+            "review_required",
+        )
+
     def test_gradients_can_be_curated_with_recipe_and_sha_update(self):
         self.recipe["kind"] = "price_gradients"
-        self.recipe.pop("url")
         self.recipe["sensitivity"] = {"parameters": [
             {"parameter": "model.spot"}, {"parameter": "model.risk_free_rate"}]}
         self.document = {
@@ -132,22 +154,18 @@ class ProvenanceTests(unittest.TestCase):
                                                       "model.risk_free_rate": .03}}],
         }
         self.save_dataset()
-        self.generation["artifact"]["sha256"] = digest(self.dataset)
+        self.generation["output"]["sha256"] = digest(self.dataset)
         self.assertEqual(self.assess()["status"], "compatible")
         self.recipe["sensitivity"]["parameters"].pop()
         row = self.document["results"][0]
         row["gradients"].pop("model.risk_free_rate")
         row["gradient_standard_errors"].pop("model.risk_free_rate")
         self.save_dataset()
-        self.generation["artifact"]["sha256"] = digest(self.dataset)
-        self.generation["curation"] = {
-            "source_sha256": "a" * 64,
-            "removed_gradients": ["model.risk_free_rate"],
-        }
+        self.generation["output"]["sha256"] = digest(self.dataset)
         self.assertEqual(self.assess()["status"], "compatible")
         row["gradients"]["model.risk_free_rate"] = -.1
         self.save_dataset()
-        self.generation["artifact"]["sha256"] = digest(self.dataset)
+        self.generation["output"]["sha256"] = digest(self.dataset)
         self.assertEqual(self.assess()["status"], "invalid")
 
     def test_legacy_receipt_does_not_lock_recipe_or_execution(self):
@@ -174,17 +192,17 @@ class ProvenanceTests(unittest.TestCase):
                     "record_sha256": "b" * 64}
         record = refresh_generation.refresh(
             self.recipe, previous, self.dataset, self.root, [])
-        self.assertEqual(record["schema_version"], 2)
-        self.assertEqual(record["environment"]["hardware"]["name"], "Test GPU")
-        self.assertEqual(record["environment"]["software"]["cmake"], "unavailable")
-        self.assertEqual(record["artifact"]["sha256"], digest(self.dataset))
+        self.assertEqual(record["schema_version"], 4)
+        self.assertEqual(record["hardware"]["name"], "Test GPU")
+        self.assertNotIn("software", record)
+        self.assertEqual(record["output"]["sha256"], digest(self.dataset))
 
     def test_refresh_accepts_a_coherent_json_edit_without_special_permission(self):
         self.document["results"][0]["outputs"]["price"] = 1.5
         self.save_dataset()
         record = refresh_generation.refresh(
             self.recipe, self.generation, self.dataset, self.root, [])
-        self.assertEqual(record["artifact"]["sha256"], digest(self.dataset))
+        self.assertEqual(record["output"]["sha256"], digest(self.dataset))
         self.assertNotIn("curation", record)
 
     def test_samples_are_checked_as_a_stream(self):
@@ -206,8 +224,7 @@ class ProvenanceTests(unittest.TestCase):
 {"parameter_id":"000001","maturity_days":2,"values":{"spot":1.1}}
 ]
 }""")
-        self.generation["artifact"]["row_count"] = 2
-        self.generation["artifact"]["sha256"] = digest(self.dataset)
+        self.generation["output"]["sha256"] = digest(self.dataset)
         self.assertEqual(self.assess()["status"], "compatible")
 
     def test_native_receipt_cannot_be_enriched_twice(self):

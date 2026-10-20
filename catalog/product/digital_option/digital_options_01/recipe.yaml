@@ -1,12 +1,11 @@
 schema_version: 1
 kind: "product_parameters"
 dataset_id: "digital_options_01"
-generator: "generator.cpp"
+generator: "catalog/product/digital_option/digital_options_01/generator.cpp"
 output:
   path: "datasets/product/digital_option/digital_options_01.json"
   format: "json"
-generation_output: "catalog/product/digital_option/digital_options_01/generation.yaml"
-url: "https://datasets.ai-factory.example/v1/product/digital_options/digital_options_01.json"
+generation_details: "catalog/product/digital_option/digital_options_01/generation.yaml"
 product_family: "Digital Options"
 row_count: 1000
 time_convention:

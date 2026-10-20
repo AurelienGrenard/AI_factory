@@ -1,4 +1,4 @@
-// Host construction of positive exponential approximations to K_H.
+// Shared CPU/GPU construction of positive exponential approximations to K_H.
 #pragma once
 
 #include "common/volterra/exponential_kernel.cuh"
@@ -13,7 +13,29 @@
 namespace ai_factory::workbench::volterra {
 namespace detail {
 
-inline double regularized_lower_gamma(double shape, double x) {
+__host__ __device__ inline double clamp_double(
+    double value, double lower, double upper
+) {
+#if defined(__CUDA_ARCH__)
+    return fmin(fmax(value, lower), upper);
+#else
+    return std::clamp(value, lower, upper);
+#endif
+}
+
+__host__ __device__ inline double lerp_double(
+    double lower, double upper, double fraction
+) {
+#if defined(__CUDA_ARCH__)
+    return lower + fraction * (upper - lower);
+#else
+    return std::lerp(lower, upper, fraction);
+#endif
+}
+
+__host__ __device__ inline double regularized_lower_gamma(
+    double shape, double x
+) {
     if (x <= 0.0) return 0.0;
     constexpr int maximum_iterations = 256;
     constexpr double tolerance = 2.0e-15;
@@ -29,7 +51,7 @@ inline double regularized_lower_gamma(double shape, double x) {
             sum += term;
             if (std::abs(term) <= std::abs(sum) * tolerance) break;
         }
-        return std::clamp(sum * std::exp(log_scale), 0.0, 1.0);
+        return clamp_double(sum * std::exp(log_scale), 0.0, 1.0);
     }
 
     double b = x + 1.0 - shape;
@@ -50,11 +72,11 @@ inline double regularized_lower_gamma(double shape, double x) {
         if (std::abs(delta - 1.0) <= tolerance) break;
     }
     const double upper = std::exp(log_scale) * fraction;
-    return std::clamp(1.0 - upper, 0.0, 1.0);
+    return clamp_double(1.0 - upper, 0.0, 1.0);
 }
 
 template<std::size_t FactorCount>
-ExponentialKernel<FactorCount> positive_geometric_rule(
+__host__ __device__ ExponentialKernel<FactorCount> positive_geometric_rule(
     double hurst_exponent,
     double log_first_boundary,
     double log_last_boundary
@@ -64,7 +86,7 @@ ExponentialKernel<FactorCount> positive_geometric_rule(
     const double measure_scale = std::cos(
         3.141592653589793238462643383279502884 * hurst_exponent
     ) / 3.141592653589793238462643383279502884;
-    std::array<double, FactorCount + 1U> boundaries{};
+    double boundaries[FactorCount + 1U]{};
     boundaries[0] = 0.0;
     for (std::size_t boundary = 1U; boundary <= FactorCount; ++boundary) {
         const double interpolation = FactorCount == 1U
@@ -95,7 +117,7 @@ ExponentialKernel<FactorCount> positive_geometric_rule(
 }
 
 template<std::size_t FactorCount>
-double squared_l2_error(
+__host__ __device__ double squared_l2_error(
     const ExponentialKernel<FactorCount>& approximation,
     double hurst_exponent,
     double horizon,
@@ -122,22 +144,22 @@ double squared_l2_error(
                    - std::exp(-rate * horizon)) / rate;
         }
     }
-    return std::max(value, 0.0);
+    return fmax(value, 0.0);
 }
 
 template<std::size_t FactorCount>
-void optimize_positive_weights(
+__host__ __device__ void optimize_positive_weights(
     ExponentialKernel<FactorCount>& approximation,
     double hurst_exponent,
     double horizon,
     double minimum_time
 ) {
     const double shape = hurst_exponent + 0.5;
-    std::array<double, FactorCount> weights{};
-    std::array<double, FactorCount> target{};
-    std::array<double, FactorCount * FactorCount> gram{};
+    double weights[FactorCount]{};
+    double target[FactorCount]{};
+    double gram[FactorCount * FactorCount]{};
     for (std::size_t row = 0U; row < FactorCount; ++row) {
-        weights[row] = std::max(
+        weights[row] = fmax(
             static_cast<double>(approximation.weights[row]), 1.0e-14
         );
         const double node = approximation.nodes[row];
@@ -162,13 +184,13 @@ void optimize_positive_weights(
                         * weights[column];
                 }
             }
-            const double next = std::max(
+            const double next = fmax(
                 residual / gram[row * FactorCount + row], 1.0e-14
             );
-            maximum_change = std::max(
+            maximum_change = fmax(
                 maximum_change,
                 std::abs(next - weights[row])
-                    / std::max(weights[row], 1.0e-14)
+                    / fmax(weights[row], 1.0e-14)
             );
             weights[row] = next;
         }
@@ -179,7 +201,7 @@ void optimize_positive_weights(
 }
 
 template<std::size_t FactorCount>
-ExponentialKernel<FactorCount> optimize_positive_rule(
+__host__ __device__ ExponentialKernel<FactorCount> optimize_positive_rule(
     ExponentialKernel<FactorCount> approximation,
     double hurst_exponent,
     double horizon,
@@ -206,9 +228,9 @@ ExponentialKernel<FactorCount> optimize_positive_rule(
                 : std::log(approximation.nodes[factor + 1U]) - 1.0e-5;
             ExponentialKernel<FactorCount> best_candidate = approximation;
             double local_error = best_error;
-            for (const double direction : {-1.0, 1.0}) {
-                const double candidate_log = std::clamp(
-                    current_log + direction * logarithmic_step,
+            for (int sign = -1; sign <= 1; sign += 2) {
+                const double candidate_log = clamp_double(
+                    current_log + static_cast<double>(sign) * logarithmic_step,
                     lower_log,
                     upper_log
                 );
@@ -250,39 +272,27 @@ ExponentialKernel<FactorCount> optimize_positive_rule(
 // deterministically on [smallest_time_scale, horizon], the interval resolved
 // by the numerical grid. Positivity is required by the weak
 // rough-Heston scheme and is therefore not traded for an unconstrained fit.
+// Host validation precedes the shared fit; device callers validate parameter
+// bounds before launch, so each thread can run the same numerical fit directly.
 template<std::size_t FactorCount>
-ExponentialKernel<FactorCount> fit_positive_fractional_kernel_l2(
+__host__ __device__ ExponentialKernel<FactorCount>
+fit_positive_fractional_kernel_l2_unchecked(
     float hurst_exponent,
     float horizon,
     float smallest_time_scale
 ) {
-    if (!std::isfinite(hurst_exponent)
-        || !(hurst_exponent > 0.0f && hurst_exponent < 0.5f)) {
-        throw std::invalid_argument(
-            "Fractional-kernel H must be finite and lie in (0, 0.5)."
-        );
-    }
-    if (!std::isfinite(horizon) || !(horizon > 0.0f)
-        || !std::isfinite(smallest_time_scale)
-        || !(smallest_time_scale > 0.0f)
-        || !(smallest_time_scale < horizon)) {
-        throw std::invalid_argument(
-            "Fractional-kernel time scale must lie strictly inside horizon."
-        );
-    }
-
     const double h = hurst_exponent;
     const double time_horizon = horizon;
     const double first_min = 0.005 / time_horizon;
     const double first_max = 1.0 / time_horizon;
     const double last_min = 8.0 / time_horizon;
-    const double last_max = std::max(
+    const double last_max = fmax(
         64.0 / time_horizon,
         24.0 / static_cast<double>(smallest_time_scale)
     );
     double best_first = std::log(first_min);
     double best_last = std::log(last_min);
-    double best_error = std::numeric_limits<double>::infinity();
+    double best_error = HUGE_VAL;
 
     constexpr int coarse_first_count = FactorCount == 1U ? 1 : 9;
     constexpr int coarse_last_count = 13;
@@ -291,13 +301,13 @@ ExponentialKernel<FactorCount> fit_positive_fractional_kernel_l2(
             ? 0.0
             : static_cast<double>(first_index)
                 / static_cast<double>(coarse_first_count - 1);
-        const double log_first = std::lerp(
+        const double log_first = detail::lerp_double(
             std::log(first_min), std::log(first_max), first_fraction
         );
         for (int last_index = 0; last_index < coarse_last_count; ++last_index) {
             const double last_fraction = static_cast<double>(last_index)
                 / static_cast<double>(coarse_last_count - 1);
-            const double log_last = std::lerp(
+            const double log_last = detail::lerp_double(
                 std::log(last_min), std::log(last_max), last_fraction
             );
             if (log_last <= log_first) continue;
@@ -322,15 +332,15 @@ ExponentialKernel<FactorCount> fit_positive_fractional_kernel_l2(
     double last_step = 0.25 * std::log(last_max / last_min);
     for (int refinement = 0; refinement < 28; ++refinement) {
         bool improved = false;
-        for (const double first_delta : {-first_step, 0.0, first_step}) {
-            for (const double last_delta : {-last_step, 0.0, last_step}) {
-                const double log_first = std::clamp(
-                    best_first + first_delta,
+        for (int first_sign = -1; first_sign <= 1; ++first_sign) {
+            for (int last_sign = -1; last_sign <= 1; ++last_sign) {
+                const double log_first = detail::clamp_double(
+                    best_first + static_cast<double>(first_sign) * first_step,
                     std::log(first_min),
                     std::log(first_max)
                 );
-                const double log_last = std::clamp(
-                    best_last + last_delta,
+                const double log_last = detail::clamp_double(
+                    best_last + static_cast<double>(last_sign) * last_step,
                     std::log(last_min),
                     std::log(last_max)
                 );
@@ -368,6 +378,44 @@ ExponentialKernel<FactorCount> fit_positive_fractional_kernel_l2(
         smallest_time_scale,
         first_min * 1.0e-3,
         last_max * 4.0
+    );
+}
+
+template<std::size_t FactorCount>
+ExponentialKernel<FactorCount> fit_positive_fractional_kernel_l2(
+    float hurst_exponent,
+    float horizon,
+    float smallest_time_scale
+) {
+    if (!std::isfinite(hurst_exponent)
+        || !(hurst_exponent > 0.0f && hurst_exponent < 0.5f)) {
+        throw std::invalid_argument(
+            "Fractional-kernel H must be finite and lie in (0, 0.5)."
+        );
+    }
+    if (!std::isfinite(horizon) || !(horizon > 0.0f)
+        || !std::isfinite(smallest_time_scale)
+        || !(smallest_time_scale > 0.0f)
+        || !(smallest_time_scale < horizon)) {
+        throw std::invalid_argument(
+            "Fractional-kernel time scale must lie strictly inside horizon."
+        );
+    }
+
+    return fit_positive_fractional_kernel_l2_unchecked<FactorCount>(
+        hurst_exponent, horizon, smallest_time_scale
+    );
+}
+
+template<std::size_t FactorCount>
+__device__ ExponentialKernel<FactorCount>
+fit_positive_fractional_kernel_l2_device(
+    float hurst_exponent,
+    float horizon,
+    float smallest_time_scale
+) {
+    return fit_positive_fractional_kernel_l2_unchecked<FactorCount>(
+        hurst_exponent, horizon, smallest_time_scale
     );
 }
 

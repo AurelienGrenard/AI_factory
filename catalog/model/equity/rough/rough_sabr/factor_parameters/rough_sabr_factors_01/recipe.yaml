@@ -1,0 +1,29 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "rough_sabr_factors_01"
+generator: "catalog/model/equity/rough/rough_sabr/factor_parameters/rough_sabr_factors_01/generator.cpp"
+output:
+  path: "datasets/model/equity/rough/rough_sabr/factor_parameters/rough_sabr_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/equity/rough/rough_sabr/factor_parameters/rough_sabr_factors_01/generation.yaml"
+model_family: "rough SABR"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json"
+parameters:
+  spot: "Model parameter."
+  dividend_yield: "Model parameter."
+  xi_0: "Model parameter."
+  eta: "Model parameter."
+  hurst_exponent: "Model parameter."
+  beta: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

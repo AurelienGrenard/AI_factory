@@ -85,6 +85,20 @@ if(BUILD_TESTING)
     add_offline_stage_test(price_delta_dataset ai_factory_price_dataset
         tests/datasets/price_delta_dataset_stage_test.cpp)
 
+    add_executable(test_multi_asset_rate_price_dataset EXCLUDE_FROM_ALL
+        tests/datasets/multi_asset_rate_price_dataset_test.cpp)
+    target_include_directories(test_multi_asset_rate_price_dataset PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_multi_asset_rate_price_dataset PRIVATE
+        ai_factory_multi_asset_price_dataset)
+    target_compile_features(test_multi_asset_rate_price_dataset PRIVATE cxx_std_20)
+    add_dependencies(ai_factory_host_tests test_multi_asset_rate_price_dataset)
+    add_test(NAME multi_asset_rate_price_dataset
+        COMMAND test_multi_asset_rate_price_dataset)
+    set_tests_properties(multi_asset_rate_price_dataset PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        LABELS "workbench;offline;multi_asset;fixed_income" TIMEOUT 30)
+
     add_executable(test_sample_host_memory EXCLUDE_FROM_ALL
         tests/sampling/host_memory_test.cpp)
     target_include_directories(test_sample_host_memory PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -122,6 +136,20 @@ if(BUILD_TESTING)
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         LABELS "workbench;dataset"
     )
+
+    add_executable(test_factorized_model_loaders EXCLUDE_FROM_ALL
+        tests/datasets/factorized_model_loaders_test.cpp)
+    ai_factory_collect_source_dependencies(factorized_loader_dependencies
+        tests/datasets/factorized_model_loaders_test.cpp)
+    target_link_libraries(test_factorized_model_loaders PRIVATE
+        ${factorized_loader_dependencies}
+        ai_factory_fixed_income_constant_rate_dataset)
+    target_compile_features(test_factorized_model_loaders PRIVATE cxx_std_20)
+    add_dependencies(ai_factory_host_tests test_factorized_model_loaders)
+    add_test(NAME factorized_model_loaders COMMAND test_factorized_model_loaders)
+    set_tests_properties(factorized_model_loaders PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        LABELS "workbench;dataset;factorized" TIMEOUT 60)
 
     add_executable(
         test_simulation_schedule_validation
@@ -237,6 +265,98 @@ if(BUILD_TESTING)
     endfunction()
 
     include(cmake/price_gradients/Tests.cmake)
+
+    add_cuda_workbench_test(
+        multi_asset_cuda tests/simulation/multi_asset_cuda_test.cu
+        multi_asset 60
+    )
+    target_link_libraries(test_multi_asset_cuda PRIVATE
+        ai_factory_correlation_dataset
+    )
+    add_cuda_workbench_test(
+        cross_asset_cuda tests/simulation/cross_asset_cuda_test.cu
+        "multi_asset;fixed_income;rough_heston;cross_asset" 180
+    )
+    target_link_libraries(test_cross_asset_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
+    )
+    add_cuda_workbench_test(
+        cross_asset_rates_cuda tests/simulation/cross_asset_rates_cuda_test.cu
+        "multi_asset;fixed_income;rough_heston;cross_asset" 180
+    )
+    target_link_libraries(test_cross_asset_rates_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
+    )
+    add_cuda_workbench_test(
+        multi_asset_levy_cuda
+        tests/simulation/multi_asset_levy_cuda_test.cu
+        "multi_asset;normal_inverse_gaussian;variance_gamma" 60
+    )
+    target_link_libraries(test_multi_asset_levy_cuda PRIVATE
+        ai_factory_correlation_dataset ai_factory_causal_fft
+    )
+    add_cuda_workbench_test(
+        mixed_rough_cuda tests/simulation/mixed_rough_cuda_test.cu
+        "multi_asset;rough_heston;causal_fft" 120
+    )
+    target_link_libraries(test_mixed_rough_cuda PRIVATE
+        ai_factory_causal_fft
+    )
+    add_cuda_workbench_test(
+        mixed_quadratic_rough_cuda
+        tests/simulation/mixed_quadratic_rough_cuda_test.cu
+        "multi_asset;quadratic_rough_heston;causal_fft" 120
+    )
+    target_link_libraries(test_mixed_quadratic_rough_cuda PRIVATE
+        ai_factory_causal_fft
+    )
+    add_cuda_workbench_test(
+        mixed_two_rough_cuda tests/simulation/mixed_two_rough_cuda_test.cu
+        "multi_asset;rough_heston;causal_fft" 120
+    )
+    target_link_libraries(test_mixed_two_rough_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
+    )
+    add_cuda_workbench_test(
+        mixed_large_dimension_cuda
+        tests/simulation/mixed_large_dimension_cuda_test.cu
+        "multi_asset;rough_heston;causal_fft" 120
+    )
+    target_link_libraries(test_mixed_large_dimension_cuda PRIVATE
+        ai_factory_causal_fft
+    )
+    add_cuda_workbench_test(
+        mixed_basket_barrier_cuda
+        tests/simulation/mixed_basket_barrier_cuda_test.cu
+        "multi_asset;rough_heston;causal_fft" 120
+    )
+    target_link_libraries(test_mixed_basket_barrier_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
+    )
+    add_cuda_workbench_test(
+        mixed_hybrid_rough_cuda
+        tests/simulation/mixed_hybrid_rough_cuda_test.cu
+        "multi_asset;hybrid_fft;rough" 180
+    )
+    target_link_libraries(test_mixed_hybrid_rough_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
+    )
+    add_cuda_workbench_test(
+        mixed_heterogeneous_rough_cuda
+        tests/simulation/mixed_heterogeneous_rough_cuda_test.cu
+        "multi_asset;causal_fft;hybrid_fft;rough" 180
+    )
+    target_link_libraries(test_mixed_heterogeneous_rough_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
+    )
+    add_cuda_workbench_test(
+        mixed_heston_rough_cuda
+        tests/simulation/mixed_heston_rough_cuda_test.cu
+        "multi_asset;heston;rough_heston;causal_fft" 120
+    )
+    target_link_libraries(test_mixed_heston_rough_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
+    )
 
     add_cuda_workbench_test(
         philox_cuda tests/numerical/philox_cuda_test.cu philox 30
@@ -631,6 +751,15 @@ if(BUILD_TESTING)
         target_link_libraries(
             test_causal_fft_pricing_cuda PRIVATE ai_factory_causal_fft
         )
+        add_cuda_workbench_test(
+            causal_fft_volatility_cuda
+            tests/volterra/causal_fft_volatility_cuda_test.cu
+            "volterra;rough_heston;quadratic_rough_heston;multi_asset"
+            120
+        )
+        target_link_libraries(
+            test_causal_fft_volatility_cuda PRIVATE ai_factory_causal_fft
+        )
     endif()
     foreach(rough_terminal_variant IN ITEMS
         rough_heston rough_bergomi)
@@ -792,6 +921,12 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
+        exact_rough_lift_cuda
+        tests/sampling/exact_rough_lift_cuda_test.cu
+        "samples;rough_heston;quadratic_rough_heston;preparation"
+        120
+    )
+    add_cuda_workbench_test(
         rough_heston_samples_cuda
         tests/sampling/rough_heston_samples_cuda_test.cu
         "samples;rough_heston"
@@ -862,6 +997,15 @@ if(BUILD_TESTING)
         tests/cuda/policy_size_budgets_cuda_test.cu
         "kernel_diagnostics;policy_budgets"
         30
+    )
+
+    add_cuda_workbench_test(
+        factorized_cross_asset_cuda
+        tests/simulation/factorized_cross_asset_cuda_test.cu
+        "multi_asset;fixed_income;factorized" 90
+    )
+    target_link_libraries(test_factorized_cross_asset_cuda PRIVATE
+        ai_factory_causal_fft ai_factory_correlation_dataset
     )
 
     # Mark the complete main test inventory before the separately owned

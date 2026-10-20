@@ -16,15 +16,17 @@ int main() {
         {"model.rho", {0.002, pg::BumpScale::absolute}},
         {"model.jump_intensity", {0.05, pg::BumpScale::absolute}},
         {"model.jump_log_mean", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.kappa", {0.005, pg::BumpScale::relative}},
         {"model.theta", {0.001, pg::BumpScale::absolute}},
         {"model.gamma", {0.005, pg::BumpScale::relative}},
         {"model.jump_log_volatility", {0.005, pg::BumpScale::relative}},
         {"product.lower_barrier", {0.005, pg::BumpScale::relative}},
         {"product.upper_barrier", {0.005, pg::BumpScale::relative}},
-        {"product.coupon_rate", {0.0005, pg::BumpScale::absolute}},
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f/504.0f, 2U}, false};
+        recipe.reconstructible_sensitivities = {{"product.coupon_rate", "(price - exp(-model.risk_free_rate * product.maturity / 252)) / product.coupon_rate", "standard_error / product.coupon_rate"}};
         const auto models = model::equity::bates::load_models(recipe.model_input);
         const auto products = product::load_range_accruals(recipe.product_input);
         return offline::pricing::price_gradients::execute_dataset<true>(recipe,

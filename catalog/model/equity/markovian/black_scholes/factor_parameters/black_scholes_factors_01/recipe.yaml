@@ -1,0 +1,26 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "black_scholes_factors_01"
+generator: "catalog/model/equity/markovian/black_scholes/factor_parameters/black_scholes_factors_01/generator.cpp"
+output:
+  path: "datasets/model/equity/markovian/black_scholes/factor_parameters/black_scholes_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/equity/markovian/black_scholes/factor_parameters/black_scholes_factors_01/generation.yaml"
+model_family: "Black-Scholes"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json"
+parameters:
+  spot: "Model parameter."
+  dividend_yield: "Model parameter."
+  volatility: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

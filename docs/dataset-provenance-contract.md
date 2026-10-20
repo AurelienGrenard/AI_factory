@@ -1,30 +1,34 @@
 # Dataset recipe and generation metadata
 
-A published dataset consists of `recipe.yaml`, a JSON dataset and
-`generation.yaml`. The recipe describes the **current** JSON: identity, inputs,
-row count, numerical method, selected sensitivities and bump rules. The JSON
-contains the data. `generation.yaml` contains technical facts about the
-materialization and the SHA-256 of the **current** JSON and input files.
+A published dataset has a `recipe.yaml`, a JSON file and, after an actual run,
+a `generation.yaml`. The recipe names the generator and datasets, defines the
+output path and row count, and describes the numerical method, sensitivities and
+bump rules. The JSON contains the data.
 
-## Editable publication contract
+Version 4 of `generation.yaml` contains:
 
-Version 2 of `generation.yaml` keeps:
+- `inputs`: a `path` and historical `sha256` for each dataset consumed,
+  keyed by its role in the recipe (`model`, `product`, `curve`,
+  `correlation`, etc.). Parameter generators have `inputs: {}`.
+- `output`: the published JSON `path` and its current `sha256`.
+- `hardware` and `software`: facts recorded in the execution receipt or
+  recovered from a build configuration whose SHA-256 exactly matches the
+  historical receipt. Toolchain paths establish a major or toolkit version,
+  but do not establish an unrecorded compiler patch version. Sections or
+  fields without evidence are omitted.
 
-- the recipe path;
-- the output path, row count and SHA-256;
-- each model, product and curve input path and SHA-256, when applicable;
-- the GPU or CPU actually observed, driver when available, CMake, C++ and CUDA
-  compiler versions, and optional execution timings;
-- an optional `curation` entry with the source JSON SHA-256 and coordinates
-  removed from an already calculated gradient dataset.
+There is no `artifact` section and no recipe, generator, executable, source or
+build checksum in the published receipt. Paths appear in both the recipe
+and the receipt, while the row count stays in the recipe. Current machine
+versions must never be substituted for missing historical versions.
 
-It contains no checksum of itself and no recipe, generator, binary, source
-archive or build-graph checksum. An edit to the recipe or `generation.yaml`
-does not require rerunning the generator. An edit to the JSON requires updating
-its SHA-256 in `generation.yaml`; an edit to an input file requires updating its
-recorded SHA-256. The recipe must continue to describe the JSON fields and
-selected gradients. The checker validates those current relationships without
-requiring a compiled executable:
+The input SHA values describe the files consumed **at generation time**. If a
+parameter dataset is later replaced, preserve those historical SHA values. The
+compatibility checker reports that the current input differs. A curated JSON
+needs an updated `output.sha256`; changing an input or output path in the
+recipe also requires updating its path in the receipt. Neither edit claims that a new generation took place.
+
+Check a published triple with:
 
 ```bash
 python3 tools/datasets/check_dataset_compatibility.py \
@@ -33,46 +37,25 @@ python3 tools/datasets/check_dataset_compatibility.py \
   --dataset datasets/.../dataset.json
 ```
 
-`compatible` means that the currently supplied metadata and files agree. It
-is **not** proof that the current generator produced the historical bytes,
-that an edited seed was used, or that an independent financial reference has
-certified the prices. The SHA-256 values detect accidental content mismatch;
-they are not signatures of authenticity.
-
-For a legacy version-1 receipt, the checker ignores its old self-checksum and
-historical recipe/binary hashes. Convert it to the compact format after
-curating the JSON and recipe with:
+Refresh a receipt after a coherent edit to the recipe and JSON with:
 
 ```bash
 python3 tools/datasets/refresh_generation.py \
   --recipe catalog/.../recipe.yaml \
   --dataset datasets/.../dataset.json \
-  --generation catalog/.../generation.yaml \
-  --removed-gradient model.risk_free_rate \
-  --removed-gradient model.dividend_yield
+  --generation catalog/.../generation.yaml
 ```
 
-The refresh tool preserves recorded hardware and timing, updates current file
-hashes and verifies the current recipe/JSON contract. `--removed-gradient` is
-optional; other coherent JSON edits can be refreshed without a special flag.
-Missing historical software versions remain `unavailable`; today's installed
-tools are never presented as those used for the old run. A curation entry
-records a declared gradient removal when supplied; retain the original JSON
-separately if exact verification of the transformation is needed. Never claim
-that a previous receipt was produced by a new execution.
+The optional `--removed-gradient` argument checks that a removed coordinate
+is absent from the current recipe. It does not add curation metadata to the
+technical receipt. Keep any curation history separately if it is needed.
 
-The generator and recipe in the catalogue are the instructions for recreating
-the **current numerical dataset**. Exact byte equality is not guaranteed
-across GPU architectures, compiler versions, or an altered bump scenario
-layout; compare a targeted replay using a justified numerical tolerance and
-Monte Carlo standard errors when those details change.
+`compatible` confirms the current recipe, JSON and receipt agree. It does not
+prove that the current code reproduces the historical bytes or certify the
+numerical prices. The SHA values detect changes; they are not signatures.
 
-## Resumable campaigns
-
-The work-in-progress campaign controller still freezes its own executable,
-inputs, recipe and checkpoint contract. Those checks protect restart of an
-unfinished Monte Carlo job and are separate from the editable publication
-contract. Do not replace files inside a running campaign. The controller
-validates native outputs against its frozen plan before writing the compact
-publication receipt. Historical version-1 receipts remain schema-valid; they
-are not rewritten en masse.
+An unfinished campaign in `work/generation/` has a stricter frozen checkpoint
+contract so that it can resume safely. Those internal hashes are separate from
+the published `generation.yaml`. The native generator may write an intermediate
+version-1 receipt; the campaign controller converts it to version 4 at
+publication. Versions 1, 2 and 3 remain readable for historical datasets.

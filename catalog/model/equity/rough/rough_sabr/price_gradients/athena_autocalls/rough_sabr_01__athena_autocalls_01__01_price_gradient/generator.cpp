@@ -14,6 +14,8 @@ int main() {
             "datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json", "datasets/product/athena_autocall/athena_autocalls_01.json", "datasets/model/equity/rough/rough_sabr/price_gradients/athena_autocalls/rough_sabr_01__athena_autocalls_01__01_price_gradient.json", "catalog/model/equity/rough/rough_sabr/price_gradients/athena_autocalls/rough_sabr_01__athena_autocalls_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_sabr/prices/athena_autocalls/rough_sabr_01__athena_autocalls_01__01/recipe.yaml", PriceConstruction::Aligned, {{
         {"model.spot", {0.01, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.xi_0", {0.002, pg::BumpScale::absolute}},
         {"model.eta", {0.005, pg::BumpScale::relative}},
         {"model.hurst_exponent", {0.002, pg::BumpScale::absolute}},

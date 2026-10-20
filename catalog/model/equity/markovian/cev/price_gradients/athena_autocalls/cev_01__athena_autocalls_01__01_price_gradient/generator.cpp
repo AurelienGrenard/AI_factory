@@ -14,6 +14,8 @@ int main() {
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.sigma", {0.005, pg::BumpScale::relative}},
         {"model.beta", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"product.autocall_barrier", {0.005, pg::BumpScale::relative}},
         {"product.protection_barrier", {0.005, pg::BumpScale::relative}},
         {"product.annual_coupon_rate", {0.0005, pg::BumpScale::absolute}},

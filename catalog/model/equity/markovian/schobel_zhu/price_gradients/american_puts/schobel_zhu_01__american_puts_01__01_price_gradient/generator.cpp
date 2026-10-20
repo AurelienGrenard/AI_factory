@@ -15,6 +15,8 @@ int main() {
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.initial_volatility", {0.005, pg::BumpScale::relative}},
         {"model.correlation", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.mean_reversion", {0.005, pg::BumpScale::relative}},
         {"model.long_run_volatility", {0.005, pg::BumpScale::relative}},
         {"model.volatility_of_volatility", {0.005, pg::BumpScale::relative}},

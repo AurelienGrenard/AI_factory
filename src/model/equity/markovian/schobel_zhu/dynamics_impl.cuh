@@ -151,6 +151,32 @@ __device__ __forceinline__ void DynamicsPolicy::simulate_one_step(
     );
 }
 
+template<typename AuxiliaryRandom>
+__device__ __forceinline__ void DynamicsPolicy::one_step_transition(
+    const PreparedDynamics& dynamics,
+    BrownianStep brownian,
+    AuxiliaryRandom& auxiliary,
+    State& state
+) {
+    // The exact OU endpoint needs one bridge normal beyond the Brownian
+    // increment shared with the spot and other assets.
+    philox::NormalPairCache cache;
+    const float bridge = philox::next_normal(auxiliary, cache);
+    const float endpoint = fmaf(
+        dynamics.endpoint_increment_correlation, brownian.volatility,
+        dynamics.endpoint_increment_residual * bridge
+    );
+    const float volatility = state.volatility;
+    state.log_spot += dynamics.drift_dt
+        - 0.5f * volatility * volatility
+            * dynamics.sqrt_dt * dynamics.sqrt_dt
+        + volatility * dynamics.sqrt_dt * brownian.spot;
+    state.volatility = dynamics.long_run_volatility
+        + (volatility - dynamics.long_run_volatility)
+            * dynamics.volatility_decay
+        + dynamics.volatility_standard_deviation * endpoint;
+}
+
 __device__ __forceinline__ void DynamicsPolicy::advance(
     const PreparedDynamics& dynamics,
     std::uint32_t step_count,

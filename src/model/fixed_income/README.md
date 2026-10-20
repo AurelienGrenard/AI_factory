@@ -11,7 +11,10 @@ Within `src/model/fixed_income/<model>/`:
 
 - `parameters.hpp` defines the compact model row;
 - `dataset.hpp/.cpp` load model rows on the host;
-- `dynamics.cuh` and `dynamics_impl.cuh` own simulation when applicable;
+- `dynamics.cuh` and `dynamics_impl.cuh` own standalone simulation;
+- `correlated_dynamics.cuh` adapts the model to a shared multi-asset Brownian
+  vector and returns the short-rate integral for equity carry and discounting.
+  The `constant_rate` policy uses zero Brownian factors;
 - `analytics.cuh` and `analytics_impl.cuh` own model analytics;
 - `sample.cuh/.cu` compose model-only sampling when available;
 - `product/<product>.cuh/.cu` owns a standalone model-product launcher;
@@ -57,6 +60,8 @@ coordinate of these fitted models.
   common model interfaces.
 - [Shared fixed-income rate identities](../../common/fixed_income/fixed-income-rate-identities-reference.md)
   define model-independent forward and swap quantities.
+- [Correlated multi-asset short rates](../../../docs/cuda/cross-asset-stochastic-rate.md)
+  explains the rate adapters and curve selection.
 - [Closed-form and Monte Carlo contract](../../../docs/cuda/closed-form-and-monte-carlo-pricing-contract.md)
   defines ordinary pricing composition.
 - [American and Bermudan contract](../../../docs/cuda/american-and-bermudan-pricing-contract.md)

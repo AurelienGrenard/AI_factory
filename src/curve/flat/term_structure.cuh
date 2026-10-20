@@ -2,6 +2,7 @@
 #pragma once
 
 #include "curve/flat/parameters.hpp"
+#include "curve/flat/parameter_domain.hpp"
 
 #include <cuda_runtime.h>
 
@@ -47,6 +48,10 @@ __device__ __forceinline__ float forward_rate(
 // Static adapter consumed by fitted short-rate analytics.
 struct AnalyticsProvider {
     using Parameters = FlatCurveParameters;
+
+    __host__ static bool valid_parameters(const Parameters& parameters) {
+        return flat::valid_parameters(parameters);
+    }
 
     __device__ __forceinline__ static float log_discount_factor(
         const Parameters& parameters,

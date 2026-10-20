@@ -1,12 +1,11 @@
 schema_version: 1
 kind: "model_parameters"
 dataset_id: "heston_01"
-generator: "generator.cpp"
+generator: "catalog/model/equity/markovian/heston/parameters/heston_01/generator.cpp"
 output:
   path: "datasets/model/equity/markovian/heston/parameters/heston_01.json"
   format: "json"
-generation_output: "catalog/model/equity/markovian/heston/parameters/heston_01/generation.yaml"
-url: "https://datasets.ai-factory.example/v1/model/equity/markovian/heston/parameters/heston_01.json"
+generation_details: "catalog/model/equity/markovian/heston/parameters/heston_01/generation.yaml"
 model_family: "Heston"
 row_count: 1000
 parameters:

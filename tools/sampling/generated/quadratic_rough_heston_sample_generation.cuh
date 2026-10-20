@@ -2,7 +2,6 @@
 #pragma once
 
 #include "model/equity/rough/quadratic_rough_heston/sample.cuh"
-#include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "tools/sampling/host_philox.hpp"
 #include "tools/sampling/model_sample_generation.cuh"
 
@@ -18,38 +17,13 @@ namespace model_binding = ai_factory::workbench::model::equity::quadratic_rough_
 using ModelParameters = model_binding::ModelParameters;
 inline constexpr std::size_t factor_count = 7U;
 
-inline std::vector<ModelParameters> generate_core_parameters(
-    std::size_t parameter_count,
-    std::uint64_t seed
-) {
-    std::vector<ModelParameters> parameters;
-    parameters.reserve(parameter_count);
-    std::size_t proposal = 0U;
-    while (parameters.size() < parameter_count) {
-        HostUniformSequence uniforms(seed, proposal++);
-        const float spot = uniform({1.0f, 1.0f}, uniforms);
-        const float risk_free_rate = uniform({0.001f, 0.08f}, uniforms);
-        const float dividend_yield = uniform({0.0f, 0.06f}, uniforms);
-        const float initial_feedback = uniform({0.02f, 0.15f}, uniforms);
-        const float quadratic_scale = uniform({0.02f, 0.12f}, uniforms);
-        const float quadratic_shift = uniform({0.02f, 0.15f}, uniforms);
-        const float variance_floor = uniform({0.0005f, 0.015f}, uniforms);
-        const float feedback_rate = uniform({0.1f, 0.8f}, uniforms);
-        const float feedback_volatility = uniform({0.1f, 0.6f}, uniforms);
-        const float hurst_exponent = uniform({0.05f, 0.2f}, uniforms);
-        if (!(true)) continue;
-        parameters.push_back({spot, risk_free_rate, dividend_yield, initial_feedback, quadratic_scale, quadratic_shift, variance_floor, feedback_rate, feedback_volatility, hurst_exponent});
-    }
-    return parameters;
-}
+
 
 inline nlohmann::ordered_json parameter_json(
     const ModelParameters& parameters
 ) {
     return {
         {"spot", parameters.spot},
-        {"risk_free_rate", parameters.risk_free_rate},
-        {"dividend_yield", parameters.dividend_yield},
         {"initial_feedback", parameters.initial_feedback},
         {"quadratic_scale", parameters.quadratic_scale},
         {"quadratic_shift", parameters.quadratic_shift},
@@ -72,7 +46,6 @@ inline datasets::ModelSampleRecipe recipe(
         "Quadratic rough-Heston",
         "datasets/model/equity/rough/quadratic_rough_heston/samples/" + id + ".json",
         "catalog/model/equity/rough/quadratic_rough_heston/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v2/model/equity/rough/quadratic_rough_heston/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -81,12 +54,10 @@ inline datasets::ModelSampleRecipe recipe(
         "seven-factor Markovian lift at dt=1/504",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
-            {"proposal_draw_order", {"spot", "risk_free_rate", "dividend_yield", "initial_feedback", "quadratic_scale", "quadratic_shift", "variance_floor", "feedback_rate", "feedback_volatility", "hurst_exponent"}},
+            {"distribution", "independent Philox uniform proposals with counter-local rejection per parameter row"},
+            {"proposal_draw_order", {"spot", "initial_feedback", "quadratic_scale", "quadratic_shift", "variance_floor", "feedback_rate", "feedback_volatility", "hurst_exponent"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
-                {"risk_free_rate", {0.001f, 0.08f}},
-                {"dividend_yield", {0.0f, 0.06f}},
                 {"initial_feedback", {0.02f, 0.15f}},
                 {"quadratic_scale", {0.02f, 0.12f}},
                 {"quadratic_shift", {0.02f, 0.15f}},
@@ -96,12 +67,8 @@ inline datasets::ModelSampleRecipe recipe(
                 {"hurst_exponent", {0.05f, 0.2f}}
             }},
             {"acceptance", "true"},
-            {"kernel_preparation", {
-                {"method", "linear interpolation of positive L2 fits"},
-                {"hurst_minimum", 0.01f},
-                {"hurst_maximum", 0.20f},
-                {"grid_point_count", 257U}
-            }}
+            {"fixed_model_inputs", {{"risk_free_rate", 0.0f}, {"dividend_yield", 0.0f}}},
+            {"kernel_preparation", {{"method", "positive bounded-L2 fit at sampled H"}, {"preparation_location", "GPU per sampled parameter row"}, {"horizon_years", 2.0f}, {"delta_t", "1 / 504"}}}
         },
         {
             {"spot", {{"description", "Terminal spot."}, {"layout", "sample-major"}}}
@@ -111,8 +78,10 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+    const model_binding::SampleParameterSampler::Configuration bounds{{{1.0f, 1.0f}, {0.02f, 0.15f}, {0.02f, 0.12f}, {0.02f, 0.15f}, {0.0005f, 0.015f}, {0.1f, 0.8f}, {0.1f, 0.6f}, {0.05f, 0.2f}}};
+    const std::uint64_t parameter_seed = value.seeds.parameters;
 
-    return generate_prepared_model_sample_dataset<ModelParameters, model_binding::PreparedDynamics<factor_count>>(
+    return generate_device_model_sample_dataset<ModelParameters>(
         argc,
         argv,
         std::move(value),
@@ -122,22 +91,9 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
             "n_factor_samples"
         },
         {"spot"},
-        generate_core_parameters,
-        [](const std::vector<ModelParameters>& parameters,
-           std::uint32_t maximum_maturity_days) {
-            return model_binding::prepare_dynamics_on_hurst_grid<
-                factor_count, 257U
-            >(
-                parameters,
-                static_cast<float>(maximum_maturity_days) / 252.0f,
-                1.0f / 504.0f,
-                0.01f,
-                0.20f
-            );
-        },
         parameter_json,
-        [](
-        const auto* device_parameters,
+        [bounds, parameter_seed](
+        auto* device_parameters,
         std::size_t parameter_count,
         std::size_t paths_per_parameter,
         std::uint32_t minimum_maturity_days,
@@ -154,12 +110,13 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
         if (outputs.size() != 1U) {
             throw std::invalid_argument("Quadratic rough-Heston sample output arity mismatch.");
         }
-        model_binding::launch_quadratic_rough_heston_random_terminal_samples_cuda<factor_count>(
-            device_parameters, parameter_count, paths_per_parameter,
-            minimum_maturity_days, maximum_maturity_days, sample_offset,
-            launch_sample_count, threads_per_block, block_count, schedule_seed, dynamics_seed,
-            device_maturity_days,
-            outputs[0]
+        model_binding::launch_quadratic_rough_heston_generated_random_terminal_samples_cuda<factor_count>(
+            device_parameters, bounds,
+            parameter_count, paths_per_parameter,
+            minimum_maturity_days, maximum_maturity_days,
+            sample_offset, launch_sample_count, threads_per_block,
+            block_count, parameter_seed, schedule_seed, dynamics_seed,
+            device_maturity_days, outputs[0]
         );
     }
     );

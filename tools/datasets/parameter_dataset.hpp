@@ -19,6 +19,16 @@ void write_model_dataset(
     const GeneratedRows& generated
 );
 
+// Project an existing complete model base onto its endogenous parameters.
+// The new artifact contains no risk-free rate or Brownian correlation.
+void write_factorized_model_dataset(
+    const std::filesystem::path& source_dataset_path,
+    const std::string& database_id,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url
+);
+
 void write_curve_dataset(
     const std::string& database_id,
     const std::string& curve_family,

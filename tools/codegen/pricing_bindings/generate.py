@@ -247,6 +247,41 @@ def _sample_parameter_factory(model: SampleModelSpec) -> str:
     ).rstrip()
 
 
+def _sample_device_expression(expression: str) -> str:
+    """Map manifest float arithmetic to the CUDA device math functions."""
+    for old, new in (
+        ("std::sqrt", "sqrtf"),
+        ("std::max", "fmaxf"),
+        ("std::min", "fminf"),
+        ("std::fabs", "fabsf"),
+    ):
+        expression = expression.replace(old, new)
+    return expression
+
+
+def _sample_device_parameter_sampler(model: SampleModelSpec) -> str:
+    declarations = "\n".join(
+        f"            const float {name} = uniform(configuration.bounds[{index}], uniforms);"
+        for index, (name, _, _) in enumerate(model.uniforms)
+    )
+    return _render_dollar_template(
+        "sampling/model_parameter_sampler.cuh.tpl",
+        {
+            "display": model.display,
+            "namespace": _sample_namespace(model),
+            "source_folder": model.source_folder,
+            "bound_count": str(len(model.uniforms)),
+            "uniform_declarations": declarations,
+            "derived": (
+                "            " + _sample_device_expression(model.derived)
+                if model.derived else ""
+            ),
+            "acceptance": _sample_device_expression(model.acceptance),
+            "constructor": model.constructor,
+        },
+    )
+
+
 def _sample_parameter_json(model: SampleModelSpec) -> str:
     entries = ",\n        ".join(
         f'{{"{name}", parameters.{accessor}}}'
@@ -287,34 +322,72 @@ def _sample_launch_lambda(model: SampleModelSpec) -> str:
 
 
 
+def _sample_device_bounds_declaration(model: SampleModelSpec) -> str:
+    bounds = ", ".join(
+        "{" + _cpp_float(minimum) + ", " + _cpp_float(maximum) + "}"
+        for _, minimum, maximum in model.uniforms
+    )
+    return (
+        "    const model_binding::SampleParameterSampler::Configuration bounds"
+        + "{{" + bounds + "}};\n"
+        + "    const std::uint64_t parameter_seed = value.seeds.parameters;\n"
+    )
+
+
+def _sample_generated_launch_lambda(model: SampleModelSpec) -> str:
+    launcher = (
+        f"model_binding::launch_{model.name}"
+        "_generated_random_terminal_samples_cuda"
+    )
+    return _render_cpp_fragment_template(
+        "sampling/catalog/sample_generated_launch_lambda.cuh.tpl",
+        {
+            "output_count": f"{len(model.outputs)}U",
+            "display": model.display,
+            "launcher": launcher,
+            "geometry": (
+                "block_count," if model.backend == "volterra"
+                else "threads_per_block, block_count,"
+            ),
+            "thread_argument": (
+                "/* cuFFTDx fixes the block dimensions */"
+                if model.backend == "volterra" else "threads_per_block"
+            ),
+            "output_pointers": ",\n            ".join(
+                f"outputs[{index}]" for index in range(len(model.outputs))
+            ),
+        },
+    ).rstrip()
+
+
+def _sample_generated_nfactor_launch_lambda(model: SampleModelSpec) -> str:
+    return _render_cpp_fragment_template(
+        "sampling/catalog/sample_generated_n_factor_launch_lambda.cuh.tpl",
+        {
+            "output_count": f"{len(model.outputs)}U",
+            "display": model.display,
+            "launcher": (f"model_binding::launch_{model.name}"
+                         "_generated_random_terminal_samples_cuda"),
+            "output_pointers": ",\n            ".join(
+                f"outputs[{index}]" for index in range(len(model.outputs))
+            ),
+        },
+    ).rstrip()
+
+
 def _render_sample_generation_header(model: SampleModelSpec) -> str:
     include_numerics = ""
-    generate_call = "generate_model_sample_dataset<ModelParameters>"
+    generate_call = "generate_device_model_sample_dataset<ModelParameters>"
     prepare_argument = ""
     preparation_metadata = ""
     if model.backend == "n_factor":
-        include_numerics = (
-            f'#include "model/{model.source_folder}/markovian_n_factor_preparation.hpp"\n'
+        preparation_metadata = (
+            ',\n            {"kernel_preparation", {'
+            '{"method", "positive bounded-L2 fit at sampled H"}, '
+            '{"preparation_location", "GPU per sampled parameter row"}, '
+            '{"horizon_years", 2.0f}, '
+            '{"delta_t", "1 / 504"}}}'
         )
-        type_arguments = (
-            "ModelParameters, model_binding::PreparedDynamics<factor_count>"
-        )
-        generate_call = (
-            f"generate_prepared_model_sample_dataset<{type_arguments}>"
-        )
-        prepare_argument = "\n        " + _render_cpp_fragment_template(
-            "sampling/catalog/preparation/markovian_n_factor_lambda.cuh.tpl",
-            {},
-        ).rstrip().replace("\n", "\n        ")
-    if model.name == "quadratic_rough_heston":
-        prepare_argument = "\n        " + _render_cpp_fragment_template(
-            "sampling/catalog/preparation/quadratic_rough_heston_lambda.cuh.tpl",
-            {},
-        ).rstrip().replace("\n", "\n        ")
-        preparation_metadata = _render_cpp_fragment_template(
-            "sampling/catalog/preparation/quadratic_rough_heston_metadata.cuh.tpl",
-            {},
-        ).rstrip().replace("\n", "\n            ")
     numerical = {
         ("markovian", "exact"): "exact finite-horizon transition",
         ("markovian", "fixed"): "fixed-step transition at dt=1/504",
@@ -341,13 +414,19 @@ def _render_sample_generation_header(model: SampleModelSpec) -> str:
             "include_numerics": include_numerics,
             "model_name": model.name,
             "namespace": _sample_namespace(model),
-            "parameter_factory": _sample_parameter_factory(model),
+            "parameter_factory": "",
             "parameter_json": _sample_parameter_json(model),
             "asset_class": model.asset_class,
             "numerical": numerical,
             "sample_bounds": _sample_bounds_json(model),
+            "sampling_distribution": "independent Philox uniform proposals with counter-local rejection per parameter row",
             "proposal_draw_order": ", ".join(json.dumps(name) for name, _, _ in model.uniforms),
             "escaped_acceptance": model.acceptance.replace('"', '\\"'),
+            "fixed_model_inputs_metadata": (
+                ',\n            {"fixed_model_inputs", '
+                '{{"risk_free_rate", 0.0f}, {"dividend_yield", 0.0f}}}'
+                if model.asset_class == "equity" else ""
+            ),
             "derived_parameter_metadata": (
                 ',\n            {"derived_parameters", {'
                 + ", ".join(
@@ -368,9 +447,16 @@ def _render_sample_generation_header(model: SampleModelSpec) -> str:
             "output_names": ", ".join(
                 f'"{name}"' for name in model.outputs
             ),
-            "prepare_argument": prepare_argument,
+            "factory_arguments": "",
+            "device_bounds_declaration": (
+                _sample_device_bounds_declaration(model)
+            ),
             "preparation_metadata": preparation_metadata,
-            "launch_lambda": _sample_launch_lambda(model),
+            "launch_lambda": (
+                _sample_generated_nfactor_launch_lambda(model)
+                if model.backend == "n_factor" else
+                _sample_generated_launch_lambda(model)
+            ),
         },
     )
 
@@ -421,14 +507,13 @@ def _sample_recipe_metadata(
         "schema_version": 1,
         "kind": "samples",
         "dataset_id": dataset.dataset_id,
-        "generator": "generator.cpp",
+        "generator": dataset.generator_path,
         "model": model.name,
         "output": {
             "path": dataset.dataset_path,
             "format": "json",
         },
-        "generation_output": dataset.generation_yaml_path,
-        "url": dataset.url,
+        "generation_details": dataset.generation_yaml_path,
         "row_count": dataset.row_count,
         "shape": {
             "parameter_count": parameter_count,
@@ -438,8 +523,8 @@ def _sample_recipe_metadata(
         "parameter_sampling": {
             "regime": "plausible core only",
             "distribution": (
-                "independent Philox uniform proposals; accepted rows retain "
-                "proposal order"
+                "independent Philox uniform proposals with counter-local "
+                "rejection per parameter row"
             ),
             "proposal_draw_order": [name for name, _, _ in model.uniforms],
             "latent_uniform_bounds": {
@@ -448,6 +533,15 @@ def _sample_recipe_metadata(
             },
             "acceptance": model.acceptance,
             "derived_parameters": dict(model.derived_parameter_laws),
+            **({"kernel_preparation": {
+                "method": "positive bounded-L2 fit at sampled H",
+                "preparation_location": "GPU per sampled parameter row",
+                "horizon_years": 2.0,
+                "delta_t": "1 / 504",
+            }} if model.backend == "n_factor" else {}),
+            **({"fixed_model_inputs": {"risk_free_rate": 0.0,
+                                        "dividend_yield": 0.0}}
+               if model.asset_class == "equity" else {}),
         },
         "maturity_sampling": {
             "distribution": "discrete uniform without modulo bias",
@@ -497,6 +591,9 @@ def generate_samples(output_root: Path) -> list[Path]:
         _write_generated(header, _render_sample_binding(model, "cuh"))
         _write_generated(source, _render_sample_binding(model, "cu"))
         generated.extend((header, source))
+        sampler = source_directory / "sample_parameter_sampler.cuh"
+        _write_generated(sampler, _sample_device_parameter_sampler(model))
+        generated.append(sampler)
 
         helper = (
             output_root / "tools" / "sampling" / "generated"
@@ -925,11 +1022,10 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
         generated.append(destination)
         recipe = {
             "schema_version": 1, "kind": "price_delta", "dataset_id": dataset.dataset_id,
-            "generator": "generator.cpp", "model_input": values["model_input"],
+            "generator": dataset.generator_path, "model_input": values["model_input"],
             "product_input": values["product_input"],
             "output": {"path": dataset.dataset_path, "format": "json"},
-            "generation_output": dataset.generation_yaml_path,
-            "url": dataset.url,
+            "generation_details": dataset.generation_yaml_path,
             "construction": dataset.construction,
             "paths_per_price": 1048576 if stochastic else 0,
             "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
@@ -1594,11 +1690,10 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         "schema_version": 1,
         "kind": "prices",
         "dataset_id": dataset.dataset_id,
-        "generator": "generator.cpp",
+        "generator": dataset.generator_path,
         "inputs": roles,
         "output": {"path": dataset.dataset_path, "format": "json"},
-        "generation_output": dataset.generation_yaml_path,
-        "url": dataset.url,
+        "generation_details": dataset.generation_yaml_path,
         "row_count": dataset.row_count,
         "numerical_method": {
             "engine": dataset.engine,

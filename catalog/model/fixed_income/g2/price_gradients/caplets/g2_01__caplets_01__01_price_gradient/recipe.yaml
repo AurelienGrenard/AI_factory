@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "g2_01__caplets_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/fixed_income/g2/price_gradients/caplets/g2_01__caplets_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/fixed_income/g2/parameters/g2_01.json",
     "product": "datasets/product/rate_option/rate_options_01.json"
@@ -11,7 +11,7 @@
     "path": "datasets/model/fixed_income/g2/price_gradients/caplets/g2_01__caplets_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/fixed_income/g2/price_gradients/caplets/g2_01__caplets_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/fixed_income/g2/price_gradients/caplets/g2_01__caplets_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 0,
   "sensitivity": {

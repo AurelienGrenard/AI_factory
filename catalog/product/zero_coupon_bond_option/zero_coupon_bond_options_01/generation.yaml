@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json
   sha256: 775a85dbbbc1c78878bb5cfccdda6e93790130ea47b8fb21da19132d4a557eaa
-execution:
-  mode: native_parameter_generator
-  generator: catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01/generator.cpp
-  source_sha256: abe38eefcfe3c4f9ac54a74ea9272dbc5a92a3f4ba5578b891f8e5044d908841
-  binary_sha256: 1b9669eba31d00ab2f73dc5e80de8b11ba06d2060da49ccda9a8a48d13d0f312
-  recipe_sha256: b62e084d12731cb6cf316276f233072d1cbd4a0902e40ffb8525cb918704acfa
-  started_at_utc: '2026-10-07T13:47:29.627044+00:00'
-  seed: null
-timing:
-  wall_seconds: 0.01119644499704009
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01/recipe.yaml
-  sha256: b62e084d12731cb6cf316276f233072d1cbd4a0902e40ffb8525cb918704acfa
-provenance:
-  generator: catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01/generator.cpp
-  generator_sha256: abe38eefcfe3c4f9ac54a74ea9272dbc5a92a3f4ba5578b891f8e5044d908841
-  binary_sha256: 1b9669eba31d00ab2f73dc5e80de8b11ba06d2060da49ccda9a8a48d13d0f312
-  parameter_campaign: full model/product refresh
-record_sha256: 668f249051ff9fbfc85bef46dc57a8bc2cbe337001349562f80f9abb79a5f3d0
+hardware:
+  device: cpu

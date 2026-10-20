@@ -1,86 +1,27 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 37bcc6b7de83cff53745c8a4ad0795d90755eee1bbad1abd8b58d4f21e83b689
-execution:
-  threads_per_block: 128
-  blocks_per_price: 64
-  batch_count: 6
-  kernel_launch_count: 186
-  workspace_bytes: 14087265296
-  maximum_prices_per_batch: 178
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: gaussian_rate_lsm
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: g2_plus_plus
-    product: bermudan_swaption
-    curve: svensson
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 128
-    prices_per_launch: null
-    price_launch_count: null
-    memory_batching: native LSM VRAM planner; unresolved offline
-    work_distribution: multiple path blocks per price; native multi-phase LSM
-    blocks_per_price: 64
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: fixed_income_early_exercise
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  time_day_fraction: 1 / 252
-  paths_per_price: 1048576
-  binary_sha256: 82d3b751800073ea6feb7531df1e6092076f7c4b55e8b000fbc037353694f4fd
-  generator_sha256: 23d6267d840c42e4d668a606983a6dcc9f663f18cf2eb7b7a80208ee7630b382
-  declared_method:
-    engine: fixed_income_lsm
-    profile: longstaff_schwartz_price_profile
-    variant: bermudan_receiver_swaptions
-    construction: aligned
-    has_curve: true
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 25.424476404
-  kernel_seconds: 23.309392578125
-recipe:
-  path: catalog/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_receiver_swaptions/g2_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/recipe.yaml
-  sha256: 71775b80e4653d52946d3369e82a99a457ad489f4f3e6ef4c9d12644bbf525a3
 inputs:
-  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
-  models: 8996a6718a993df50fc5c8055de6438947cc8890b68f1e73536ec33fbc452afa
-  products: 0722965bd90bfd491381e95e549d64eaf53fa86b657ad9cbfc48d8f8a6562c04
-provenance:
-  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
-  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
-  runtime_observation:
-    unix_time: 1791411558.9217644
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 77, 48.83 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_receiver_swaptions/g2_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01/generator.cpp
-  input_files:
-    datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
-    datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
-    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
-record_sha256: f6c77a5f102dd9b42c2dfc0332bd24ac6c32ba1880a93c77a284d3a8d0e9a68d
+  model:
+    path: datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json
+    sha256: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
+  curve:
+    path: datasets/curve/svensson/svensson_01.json
+    sha256: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
+  product:
+    path: datasets/product/bermudan_swaption/bermudan_swaptions_01.json
+    sha256: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
+output:
+  path: datasets/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_receiver_swaptions/g2_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01.json
+  sha256: 37bcc6b7de83cff53745c8a4ad0795d90755eee1bbad1abd8b58d4f21e83b689
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

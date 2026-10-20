@@ -2,6 +2,7 @@
 #pragma once
 
 #include "model/$source_folder/parameters.hpp"
+#include "model/$source_folder/sample_parameter_sampler.cuh"
 
 #include <cstddef>
 #include <cstdint>
@@ -30,6 +31,23 @@ void launch_${model_name}_random_terminal_samples_cuda(
     std::size_t launch_sample_count,
     unsigned int threads_per_block,
     std::size_t block_count,
+    std::uint64_t schedule_seed,
+    std::uint64_t dynamics_seed,
+    std::uint32_t* device_maturity_days$output_declarations
+);
+
+void launch_${model_name}_generated_random_terminal_samples_cuda(
+    ModelParameters* device_generated_parameters,
+    SampleParameterSampler::Configuration bounds,
+    std::size_t parameter_count,
+    std::size_t paths_per_parameter,
+    std::uint32_t minimum_maturity_days,
+    std::uint32_t maximum_maturity_days,
+    std::size_t sample_offset,
+    std::size_t launch_sample_count,
+    unsigned int threads_per_block,
+    std::size_t block_count,
+    std::uint64_t parameter_seed,
     std::uint64_t schedule_seed,
     std::uint64_t dynamics_seed,
     std::uint32_t* device_maturity_days$output_declarations

@@ -10,6 +10,7 @@ from .manifest import (
     BLACK_SCHOLES_CLOSED_FORM_METADATA,
     american_lsm_metadata,
     default_sensitivities,
+    reconstructible_sensitivities,
     terminal_product_metadata,
     path_product_metadata,
 )
@@ -1115,11 +1116,20 @@ def render_recipes(
                     + ", ".join(missing)
                 )
             selected = [by_name[name] for name in spec.sensitivity_parameters]
-        if spec.asset_class == "equity":
-            # Rates and yields remain model inputs for pricing, but are not
-            # published first-order learning targets in the equity catalogue.
-            selected = [item for item in selected if item["parameter"] not in {
-                "model.risk_free_rate", "model.dividend_yield"}]
+        reconstructible = (
+            reconstructible_sensitivities(spec.model, spec.product)
+            if spec.asset_class == "equity"
+            and spec.sensitivity_orders == ("first",) else {}
+        )
+        reconstructed = [
+            {"parameter": item["parameter"],
+             **reconstructible[item["parameter"]]}
+            for item in selected if item["parameter"] in reconstructible
+        ]
+        selected = [
+            item for item in selected
+            if item["parameter"] not in reconstructible
+        ]
         selected = [
             {
                 **item,
@@ -1261,6 +1271,18 @@ def render_recipes(
             else "equity_exact_mc"
             if exact_transition else "equity_step_mc"
         )
+        reconstructible_assignment = ""
+        if reconstructed:
+            entries = ", ".join(
+                "{" + ", ".join(json.dumps(item[key]) for key in (
+                    "parameter", "formula", "standard_error"
+                )) + "}"
+                for item in reconstructed
+            )
+            reconstructible_assignment = (
+                "\n        recipe.reconstructible_sensitivities = {"
+                + entries + "};"
+            )
         values = {"model": spec.model, "model_input": model_input, "product_input": product_input,
             "product": spec.product,
             "product_loader": {
@@ -1275,7 +1297,7 @@ def render_recipes(
             "option_side_assignment": (
                 f'\n        recipe.option_side = "{option_side}";'
                 if option_side is not None else ""
-            ),
+            ) + reconstructible_assignment,
             "price_template_arguments": (
                 f"<OptionSide::{side}>" if variant.side is not None else ""
             ) if spec.asset_class == "equity"
@@ -1361,10 +1383,10 @@ def render_recipes(
             "schema_version": 1,
             "kind": "price_gradients",
             "dataset_id": spec.dataset_id,
-            "generator": "generator.cpp",
+            "generator": spec.generator_path,
             "inputs": inputs,
             "output": {"path": spec.dataset_path, "format": "json"},
-            "generation_output": spec.generation_yaml_path,
+            "generation_details": spec.generation_yaml_path,
             "row_count": spec.row_count,
             "paths_per_price": 1048576 if stochastic else 0,
             "sensitivity": {
@@ -1381,6 +1403,8 @@ def render_recipes(
                 "source_price_recipe": source.recipe_yaml_path,
             },
         }
+        if reconstructed:
+            metadata["sensitivity"]["reconstructible_from_price"] = reconstructed
         if option_side is not None:
             metadata["option_side"] = option_side
         if spec.asset_class == "equity":

@@ -18,19 +18,73 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from tools.datasets.artifact_publication import contained_path, digest
-from tools.datasets.dataset_provenance import assess, hardware_from_observation
+from tools.datasets.dataset_provenance import assess, hardware_from_observation, known_fields
 from tools.datasets.metadata_schemas import validate_document
 
+
+def _historical_inputs(recipe: dict, previous: dict) -> dict[str, dict[str, str]]:
+    """Keep hashes observed at execution time, even if input files changed."""
+    declared = recipe.get("inputs", {})
+    if not isinstance(declared, dict):
+        raise ValueError("Recipe inputs must be a mapping")
+    version = previous.get("schema_version")
+    if version in (2, 4):
+        inputs = previous.get("inputs", {})
+        if {role: item.get("path") for role, item in inputs.items()} != declared:
+            raise ValueError("Historical input paths contradict recipe")
+        hashes = {role: item["sha256"] for role, item in inputs.items()}
+    elif version == 3:
+        hashes = previous.get("inputs", {})
+    elif version == 1:
+        recorded = previous.get("provenance", {}).get("input_files", {})
+        hashes = {role: recorded.get(relative) for role, relative in declared.items()}
+    else:
+        raise ValueError("Unsupported generation metadata version")
+    if set(hashes) != set(declared) or any(
+        not isinstance(value, str) or len(value) != 64 for value in hashes.values()
+    ):
+        raise ValueError("Historical dataset SHA256 is missing")
+    return {role: {"path": relative, "sha256": hashes[role]}
+            for role, relative in declared.items()}
+
+def _historical_environment(recipe: dict, previous: dict) -> tuple[dict, dict]:
+    version = previous["schema_version"]
+    if version in (3, 4):
+        hardware, software = previous.get("hardware", {}), previous.get("software", {})
+    elif version == 2:
+        environment = previous["environment"]
+        hardware, software = environment["hardware"], environment["software"]
+    else:
+        old = previous.get("provenance", {})
+        options = old.get("build_options", {})
+        observation = old.get("runtime_observation")
+        cpu = recipe.get("kind") in {
+            "model_parameters", "product_parameters", "curve_parameters",
+            "correlation_parameters",
+        }
+        hardware = old.get("hardware_used") or hardware_from_observation(
+            observation, cpu=cpu
+        )
+        software = {
+            "cmake": options.get("cmake_version"),
+            "cxx_compiler": options.get("cxx_compiler_version"),
+            "cuda_compiler": options.get("cuda_compiler_version"),
+        }
+    hardware = known_fields(hardware)
+    if "model" in hardware:
+        hardware["cpu_model"] = hardware.pop("model")
+    software = known_fields(software)
+    return hardware, software
 
 def refresh(recipe: dict, previous: dict, dataset: Path, root: Path,
             removed_gradients: list[str]) -> dict:
     if not isinstance(recipe, dict) or not isinstance(previous, dict):
         raise ValueError("Recipe and generation metadata must be mappings")
-    artifact = previous.get("artifact", {})
-    former_sha = artifact.get("sha256")
-    current_sha = digest(dataset)
-    if not former_sha or not current_sha:
-        raise ValueError("Missing original or current dataset SHA256")
+    former_output = previous.get(
+        "output" if previous.get("schema_version") in (3, 4) else "artifact", {}
+    )
+    if not former_output.get("sha256"):
+        raise ValueError("Missing original dataset SHA256")
     if len(set(removed_gradients)) != len(removed_gradients):
         raise ValueError("Duplicate removed gradient")
     if removed_gradients:
@@ -39,56 +93,22 @@ def refresh(recipe: dict, previous: dict, dataset: Path, root: Path,
         current = {item["parameter"] for item in recipe["sensitivity"]["parameters"]}
         if current.intersection(removed_gradients):
             raise ValueError("Removed gradient is still selected by the recipe")
-    input_paths = recipe.get("inputs", {})
-    if not isinstance(input_paths, dict):
-        raise ValueError("Recipe inputs must be a mapping")
-    inputs = {}
-    for role, relative in input_paths.items():
-        path = contained_path(root, relative)
-        if not path.is_file():
-            raise FileNotFoundError(path)
-        inputs[role] = {"path": relative, "sha256": digest(path)}
-    if previous.get("schema_version") == 2:
-        environment = previous["environment"]
-    elif previous.get("schema_version") == 1:
-        old = previous.get("provenance", {})
-        options = old.get("build_options", {})
-        observation = old.get("runtime_observation")
-        environment = {
-            "hardware": old.get("hardware_used") or hardware_from_observation(
-                observation, cpu=recipe.get("kind") in {
-                    "model_parameters", "product_parameters", "curve_parameters"}),
-            "software": {
-                "cmake": options.get("cmake_version", "unavailable"),
-                "cxx_compiler": options.get("cxx_compiler_version", "unavailable"),
-                "cuda_compiler": options.get("cuda_compiler_version", "unavailable"),
-            },
-        }
-    else:
-        raise ValueError("Unsupported generation metadata version")
     relative_dataset = recipe.get("output", {}).get("path")
-    if not relative_dataset:
-        raise ValueError("Recipe has no output path")
+    if not relative_dataset or contained_path(root, relative_dataset).resolve() != dataset.resolve():
+        raise ValueError("Dataset path contradicts recipe")
+    hardware, software = _historical_environment(recipe, previous)
     record = {
-        "schema_version": 2,
+        "schema_version": 4,
         "status": "complete",
-        "recipe": {"path": previous.get("recipe", {}).get("path")},
-        "artifact": {"path": relative_dataset, "row_count": recipe["row_count"],
-                     "sha256": current_sha},
-        "inputs": inputs,
-        "environment": environment,
+        "inputs": _historical_inputs(recipe, previous),
+        "output": {"path": relative_dataset, "sha256": digest(dataset)},
     }
-    if previous.get("timing") is not None:
-        record["timing"] = previous["timing"]
-    if previous.get("curation") is not None:
-        record["curation"] = previous["curation"]
-    if removed_gradients:
-        record["curation"] = {
-            "source_sha256": former_sha,
-            "removed_gradients": removed_gradients,
-        }
+    if hardware:
+        record["hardware"] = hardware
+    if software:
+        record["software"] = software
     validate_document(record, "generation", dataset)
-    result = assess(recipe, record, dataset, root)
+    result = assess(recipe, record, dataset)
     if result["status"] != "compatible":
         raise ValueError("Current recipe/JSON mismatch: " + "; ".join(result["reasons"]))
     return record
@@ -113,7 +133,7 @@ def main() -> int:
         yaml.safe_dump(record, stream, sort_keys=False)
         temporary = Path(stream.name)
     temporary.replace(args.generation)
-    print(f"Updated {args.generation}: {record['artifact']['sha256']}")
+    print(f"Updated {args.generation}: {record['output']['sha256']}")
     return 0
 
 

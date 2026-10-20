@@ -1,86 +1,27 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: be4f307409e0f0b0ef2d4fe92bd5392ab504947056cb1af26460be253c23f9bd
-execution:
-  threads_per_block: 128
-  blocks_per_price: 64
-  batch_count: 3
-  kernel_launch_count: 93
-  workspace_bytes: 14160245400
-  maximum_prices_per_batch: 495
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: terminal_forward_lsm
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: cir_plus_plus
-    product: bermudan_swaption
-    curve: nelson_siegel
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/cir-forward-measure-comparison-sm89-2026-09-08.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 128
-    prices_per_launch: null
-    price_launch_count: null
-    memory_batching: native LSM VRAM planner; unresolved offline
-    work_distribution: multiple path blocks per price; native multi-phase LSM
-    blocks_per_price: 64
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: fixed_income_early_exercise
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  time_day_fraction: 1 / 252
-  paths_per_price: 1048576
-  binary_sha256: 22e4cc48470c6bc40ae8e4dc4bde6279468b4fe27de99b6be10ac530083c34f8
-  generator_sha256: c4b93d2d4f15bc447729f1860dd4c82b6795a40187f7bf0b76e40c737d3db56a
-  declared_method:
-    engine: fixed_income_lsm
-    profile: longstaff_schwartz_price_profile
-    variant: bermudan_payer_swaptions
-    construction: aligned
-    has_curve: true
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 6.101776163
-  kernel_seconds: 4.450190979003907
-recipe:
-  path: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/recipe.yaml
-  sha256: 70766cc35e4ed9fcba0ceb0e3fbbde4c65ee516e88cfc4fd52f6f0651c5b71c6
 inputs:
-  curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
-  models: 330618ffe9405302fdaeb520101fdf44f0426c39acc9fbf58096a4757e96b950
-  products: 0722965bd90bfd491381e95e549d64eaf53fa86b657ad9cbfc48d8f8a6562c04
-provenance:
-  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
-  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
-  runtime_observation:
-    unix_time: 1791411383.5786548
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 69, 48.29 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01/generator.cpp
-  input_files:
-    datasets/curve/nelson_siegel/nelson_siegel_01.json: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
-    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
-    datasets/product/bermudan_swaption/bermudan_swaptions_01.json: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
-record_sha256: 2f8c4bed0353a3d833210321845512bc54a327939e4c70930fce4c4e714ec94e
+  model:
+    path: datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json
+    sha256: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
+  curve:
+    path: datasets/curve/nelson_siegel/nelson_siegel_01.json
+    sha256: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
+  product:
+    path: datasets/product/bermudan_swaption/bermudan_swaptions_01.json
+    sha256: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
+output:
+  path: datasets/model/fixed_income/cir_plus_plus/prices/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01.json
+  sha256: be4f307409e0f0b0ef2d4fe92bd5392ab504947056cb1af26460be253c23f9bd
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

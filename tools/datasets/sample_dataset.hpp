@@ -23,7 +23,6 @@ struct ModelSampleRecipe {
     std::string model_family;
     std::filesystem::path dataset_path;
     std::filesystem::path catalog_path;
-    std::string url;
     std::size_t production_parameter_count = 0U;
     std::size_t production_paths_per_parameter = 0U;
     std::uint32_t minimum_maturity_days = 0U;

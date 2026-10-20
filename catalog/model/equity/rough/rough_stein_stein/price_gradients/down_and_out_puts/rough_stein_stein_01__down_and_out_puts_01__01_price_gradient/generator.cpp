@@ -14,6 +14,8 @@ int main() {
             "datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json", "datasets/product/down_and_out_option/down_and_out_options_01.json", "datasets/model/equity/rough/rough_stein_stein/price_gradients/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01_price_gradient.json", "catalog/model/equity/rough/rough_stein_stein/price_gradients/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_stein_stein/prices/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01/recipe.yaml", PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.volatility_level", {0.01, pg::BumpScale::relative}},
         {"model.mean_reversion", {0.01, pg::BumpScale::relative}},
         {"model.volatility_of_volatility", {0.01, pg::BumpScale::relative}},

@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json
   sha256: 659eef441992948fde9ffd367cc297f73b79059a7ecf642d57db8ec01429c624
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01/generator.cpp
-  source_sha256: 11e120c5214c4022ea0bcba679fae5b12700746357a0f12a192bbcec7364fa81
-  binary_sha256: 0acbce671452f8f8fbf3ae5dc8a9aea517a3f7df5b1cfe6eccd47e6e732d760d
-  recipe_sha256: 7e8fea876d5c85b549b49a6c0a67a337de8e96e951592156dcdb923798972d7f
-  started_at_utc: '2026-10-07T13:47:28.680962+00:00'
-  seed: 1640000201
-timing:
-  wall_seconds: 0.015088875999936135
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01/recipe.yaml
-  sha256: 7e8fea876d5c85b549b49a6c0a67a337de8e96e951592156dcdb923798972d7f
-provenance:
-  generator: catalog/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01/generator.cpp
-  generator_sha256: 11e120c5214c4022ea0bcba679fae5b12700746357a0f12a192bbcec7364fa81
-  binary_sha256: 0acbce671452f8f8fbf3ae5dc8a9aea517a3f7df5b1cfe6eccd47e6e732d760d
-  parameter_campaign: full model/product refresh
-record_sha256: e5cc1bea0fccb5700f3831099e5aabed9af2e7cb5a6be2ee1b410865b347b8d3
+hardware:
+  device: cpu

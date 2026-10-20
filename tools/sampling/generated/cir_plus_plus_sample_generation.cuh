@@ -17,24 +17,7 @@ namespace model_binding = ai_factory::workbench::model::fixed_income::cir_plus_p
 using ModelParameters = model_binding::ModelParameters;
 inline constexpr std::size_t factor_count = 7U;
 
-inline std::vector<ModelParameters> generate_core_parameters(
-    std::size_t parameter_count,
-    std::uint64_t seed
-) {
-    std::vector<ModelParameters> parameters;
-    parameters.reserve(parameter_count);
-    std::size_t proposal = 0U;
-    while (parameters.size() < parameter_count) {
-        HostUniformSequence uniforms(seed, proposal++);
-        const float mean_reversion = uniform({0.03f, 1.0f}, uniforms);
-        const float long_term_mean = uniform({0.001f, 0.08f}, uniforms);
-        const float initial_state = uniform({0.001f, 0.08f}, uniforms);
-        const float volatility = uniform({std::max(std::sqrt(mean_reversion * long_term_mean / 5.0f), 0.005f), std::min(std::sqrt(12.0f * mean_reversion * long_term_mean), 0.30f)}, uniforms);
-        if (!(true)) continue;
-        parameters.push_back({{mean_reversion, long_term_mean, volatility}, initial_state});
-    }
-    return parameters;
-}
+
 
 inline nlohmann::ordered_json parameter_json(
     const ModelParameters& parameters
@@ -59,7 +42,6 @@ inline datasets::ModelSampleRecipe recipe(
         "CIR++",
         "datasets/model/fixed_income/cir_plus_plus/samples/" + id + ".json",
         "catalog/model/fixed_income/cir_plus_plus/samples/" + id + "/generation.yaml",
-        "https://datasets.ai-factory.example/v2/model/fixed_income/cir_plus_plus/samples/" + id + ".json",
         parameter_count,
         paths_per_parameter,
         63U,
@@ -68,7 +50,7 @@ inline datasets::ModelSampleRecipe recipe(
         "exact finite-horizon transition",
         {
             {"regime", "plausible core only"},
-            {"distribution", "independent Philox uniform proposals; accepted rows retain proposal order"},
+            {"distribution", "independent Philox uniform proposals with counter-local rejection per parameter row"},
             {"proposal_draw_order", {"mean_reversion", "long_term_mean", "initial_state"}},
             {"latent_uniform_bounds", {
                 {"mean_reversion", {0.03f, 1.0f}},
@@ -86,8 +68,10 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
+    const model_binding::SampleParameterSampler::Configuration bounds{{{0.03f, 1.0f}, {0.001f, 0.08f}, {0.001f, 0.08f}}};
+    const std::uint64_t parameter_seed = value.seeds.parameters;
 
-    return generate_model_sample_dataset<ModelParameters>(
+    return generate_device_model_sample_dataset<ModelParameters>(
         argc,
         argv,
         std::move(value),
@@ -97,10 +81,9 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
             "markovian_samples"
         },
         {"state"},
-        generate_core_parameters,
         parameter_json,
-        [](
-        const auto* device_parameters,
+        [bounds, parameter_seed](
+        auto* device_parameters,
         std::size_t parameter_count,
         std::size_t paths_per_parameter,
         std::uint32_t minimum_maturity_days,
@@ -117,12 +100,12 @@ inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
         if (outputs.size() != 1U) {
             throw std::invalid_argument("CIR++ sample output arity mismatch.");
         }
-        model_binding::launch_cir_plus_plus_random_terminal_samples_cuda(
-            device_parameters, parameter_count, paths_per_parameter,
-            minimum_maturity_days, maximum_maturity_days, sample_offset,
-            launch_sample_count, threads_per_block, block_count, schedule_seed, dynamics_seed,
-            device_maturity_days,
-            outputs[0]
+        model_binding::launch_cir_plus_plus_generated_random_terminal_samples_cuda(
+            device_parameters, bounds, parameter_count,
+            paths_per_parameter, minimum_maturity_days,
+            maximum_maturity_days, sample_offset, launch_sample_count,
+            threads_per_block, block_count, parameter_seed, schedule_seed, dynamics_seed,
+            device_maturity_days, outputs[0]
         );
     }
     );

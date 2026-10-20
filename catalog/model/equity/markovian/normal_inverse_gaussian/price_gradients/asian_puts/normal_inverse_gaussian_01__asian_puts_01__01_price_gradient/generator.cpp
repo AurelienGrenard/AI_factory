@@ -15,6 +15,8 @@ int main() {
         {"model.alpha", {0.005, pg::BumpScale::relative}},
         {"model.beta", {0.002, pg::BumpScale::absolute}},
         {"model.delta", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"product.strike", {0.005, pg::BumpScale::relative}},
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f/504.0f, 2U}, false};

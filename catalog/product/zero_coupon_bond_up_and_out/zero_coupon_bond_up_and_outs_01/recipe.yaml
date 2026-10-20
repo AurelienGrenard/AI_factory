@@ -1,12 +1,11 @@
 schema_version: 1
 kind: product_parameters
 dataset_id: zero_coupon_bond_up_and_outs_01
-generator: generator.cpp
+generator: catalog/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01/generator.cpp
 output:
   path: datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json
   format: json
-generation_output: catalog/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01/generation.yaml
-url: https://datasets.ai-factory.example/v1/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json
+generation_details: catalog/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01/generation.yaml
 product_family: Zero-Coupon Bond Up-and-Out Calls
 row_count: 1000
 time_convention:

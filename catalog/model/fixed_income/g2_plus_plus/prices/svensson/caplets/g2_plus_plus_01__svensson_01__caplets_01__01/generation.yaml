@@ -1,75 +1,27 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: d8d1efca17a3fca45b48996c377ed149e6ac0887b48311ca990b476e7d8f574b
-execution:
-  block_count: 4
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: closed_form
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: g2_plus_plus
-    product: rate_option
-    curve: svensson
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
-    price_count: 1000
-    paths_per_price: 0
-    threads_per_block: 256
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per thread at a time
-    block_count: 4
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  threads_per_block: 256
-  kernel_launch_count: 1
-  work_distribution: one price per thread
-  paths_per_price: 0
-  binary_sha256: ddd54f923a26d9353bf99203523add59bdd79b683932c094a6fd6480a1d0a9fd
-  generator_sha256: d33b2dfb17946a0c0a682a7405ccacc2f9d4d250d06b59195ea68b768cea507d
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: caplets
-    construction: aligned
-    has_curve: true
-    random_number_generator: null
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 0.601492345
-  kernel_seconds: 8.089599758386612e-05
-recipe:
-  path: catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/recipe.yaml
-  sha256: cfd6595002964c77479f56043b8f75e85ba778c687bf18cc671b81fc796cc52d
 inputs:
-  curves: f8b219cdec14c15fe84277aa186b2755d70c4ba1bf1114342052713e841f5ca5
-  models: 8996a6718a993df50fc5c8055de6438947cc8890b68f1e73536ec33fbc452afa
-  products: 9dc3a536626f104aee3f3868c67b1dbe030b409c0f31c9fb2d1315882af77b39
-provenance:
-  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
-  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
-  runtime_observation:
-    unix_time: 1791411511.700489
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 77, 47.85 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/fixed_income/g2_plus_plus/prices/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01/generator.cpp
-  input_files:
-    datasets/curve/svensson/svensson_01.json: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
-    datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
-    datasets/product/rate_option/rate_options_01.json: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
-record_sha256: 6aec839c2a14c0158a8250a58b87ecc2314555dc078364a62bf039f88f3bcb70
+  model:
+    path: datasets/model/fixed_income/g2_plus_plus/parameters/g2_plus_plus_01.json
+    sha256: 074be68b4de4a613494d82fbf778107d1ce01759663ae5eef85ff0175589b60c
+  curve:
+    path: datasets/curve/svensson/svensson_01.json
+    sha256: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
+  product:
+    path: datasets/product/rate_option/rate_options_01.json
+    sha256: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
+output:
+  path: datasets/model/fixed_income/g2_plus_plus/prices/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01.json
+  sha256: d8d1efca17a3fca45b48996c377ed149e6ac0887b48311ca990b476e7d8f574b
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

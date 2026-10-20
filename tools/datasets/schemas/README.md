@@ -1,26 +1,18 @@
 # Dataset metadata schemas
 
-`recipe.yaml` describes the current dataset contract. `generation.yaml`
-records technical facts and SHA-256 checksums of the current JSON and its
-model, product and curve inputs. Version 2 of the generation schema is compact
-and editable. Historical version-1 receipts remain readable.
+`recipe.yaml` describes the current dataset contract. Published
+`generation.yaml` version 4 records the path and historical SHA-256 of each
+input dataset, the path and current SHA-256 of the output JSON, and only
+hardware and software details actually recorded. It contains no checksum for
+the recipe, generator, executable or build. Older versions 1, 2 and 3 remain
+readable.
 
-A publication edit is valid when the recipe describes the JSON and the
-version-2 receipt contains the current file hashes. The receipt does not lock
-the bytes of the recipe, generator or build. Optional `curation` metadata
-identifies a previously generated JSON and gradients removed from it.
+An edited JSON needs its output SHA-256 updated in the receipt. Historical
+input SHA-256 values must remain unchanged when current parameter datasets are
+replaced. Use `tools/datasets/refresh_generation.py` after a coherent edit.
 
-`campaign.schema.yaml` governs a separate, strict checkpoint contract under
-`work/generation/`. Its frozen code, recipe and input hashes are retained to
-protect resumes while a calculation is running. A campaign is not catalogue
-metadata and is never copied into `datasets/`.
+`campaign.schema.yaml` governs the separate frozen checkpoint contract in
+`work/generation/`, where stricter hashes protect an unfinished run.
 
-Check catalogue metadata with:
-
-```bash
-python3 tools/datasets/metadata_schemas.py
-```
-
-Check one published triple with `tools/datasets/check_dataset_compatibility.py`.
-Update a curated or legacy generation receipt with
-`tools/datasets/refresh_generation.py`.
+Validate metadata with `python3 tools/datasets/metadata_schemas.py`.
+Check a dataset triple with `tools/datasets/check_dataset_compatibility.py`.

@@ -1,5 +1,6 @@
 // Generated $display composition over the shared Volterra FFT sampler.
 #include "model/$source_folder/sample.cuh"
+#include "model/$source_folder/sample_parameter_sampler.cuh"
 
 #include "common/sample.cuh"
 #include "$kernel_header"
@@ -52,6 +53,33 @@ void launch_${model_name}_random_terminal_samples_cuda(
         launch_sample_count, block_count, schedule_seed, dynamics_seed,
         device_maturity_days, {$output_values}, "$model_name.samples",
         "$display random terminal FFT sample kernel");
+}
+
+void launch_${model_name}_generated_random_terminal_samples_cuda(
+    ModelParameters* device_generated_parameters,
+    SampleParameterSampler::Configuration bounds,
+    std::size_t parameter_count, std::size_t paths_per_parameter,
+    std::uint32_t minimum_maturity_days,
+    std::uint32_t maximum_maturity_days, std::size_t sample_offset,
+    std::size_t launch_sample_count, std::size_t block_count,
+    std::uint64_t parameter_seed, std::uint64_t schedule_seed,
+    std::uint64_t dynamics_seed,
+    std::uint32_t* device_maturity_days$output_declarations
+) {
+    sample::volterra_fft::launch_samples_cuda<TerminalPolicy>(
+        sample::GeneratedParameterSource<SampleParameterSampler>{
+            bounds, device_generated_parameters},
+        sample::UniformMaturityCalendarSource{
+            {minimum_maturity_days, maximum_maturity_days},
+            device_maturity_days},
+        {parameter_count, paths_per_parameter, sample_offset,
+         launch_sample_count},
+        {sample::canonical_sample_step_count(maximum_maturity_days),
+         block_count},
+        {parameter_seed, schedule_seed, dynamics_seed},
+        {$output_values}, "$model_name.samples",
+        "random_terminal.generated_parameters_fft",
+        "$display generated random terminal FFT sample kernel");
 }
 
 void launch_${model_name}_calendar_samples_cuda(

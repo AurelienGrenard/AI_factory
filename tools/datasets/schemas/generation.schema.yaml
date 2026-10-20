@@ -2,10 +2,10 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "https://ai-factory.example/schemas/dataset-generation"
 title: AI Factory dataset generation metadata
 type: object
-required: [schema_version, status, recipe, artifact]
+required: [schema_version, status]
 properties:
   schema_version:
-    enum: [1, 2]
+    enum: [1, 2, 3, 4]
   status:
     const: complete
   recipe:
@@ -88,13 +88,13 @@ allOf:
         schema_version:
           const: 1
     then:
-      required: [execution, timing, record_sha256]
+      required: [recipe, artifact, execution, timing, record_sha256]
   - if:
       properties:
         schema_version:
           const: 2
     then:
-      required: [inputs, environment]
+      required: [recipe, artifact, inputs, environment]
       properties:
         recipe:
           not:
@@ -118,6 +118,103 @@ allOf:
           - required: [record_sha256]
           - required: [execution]
           - required: [provenance]
+  - if:
+      properties:
+        schema_version:
+          const: 3
+    then:
+      required: [inputs, output, hardware, software]
+      properties:
+        schema_version:
+          const: 3
+        status:
+          const: complete
+        inputs:
+          type: object
+          additionalProperties:
+            type: string
+            pattern: '^[0-9a-f]{64}$'
+        output:
+          type: object
+          required: [sha256]
+          properties:
+            sha256:
+              type: string
+              pattern: '^[0-9a-f]{64}$'
+          additionalProperties: false
+        hardware:
+          type: object
+          required: [device, host, cpu_model]
+          properties:
+            device:
+              enum: [cpu, gpu]
+            host:
+              type: string
+            cpu_model:
+              type: string
+          additionalProperties: true
+        software:
+          type: object
+          required: [cmake, cxx_compiler, cuda_compiler]
+          properties:
+            cmake:
+              type: string
+            cxx_compiler:
+              type: string
+            cuda_compiler:
+              type: string
+          additionalProperties:
+            type: string
+      additionalProperties: false
+  - if:
+      properties:
+        schema_version:
+          const: 4
+    then:
+      required: [inputs, output]
+      properties:
+        schema_version:
+          const: 4
+        status:
+          const: complete
+        inputs:
+          type: object
+          additionalProperties:
+            type: object
+            required: [path, sha256]
+            properties:
+              path:
+                type: string
+                pattern: '^datasets/.+\.json$'
+              sha256:
+                type: string
+                pattern: '^[0-9a-f]{64}$'
+            additionalProperties: false
+        output:
+          type: object
+          required: [path, sha256]
+          properties:
+            path:
+              type: string
+              pattern: '^datasets/.+\.json$'
+            sha256:
+              type: string
+              pattern: '^[0-9a-f]{64}$'
+          additionalProperties: false
+        hardware:
+          type: object
+          minProperties: 1
+          properties:
+            device:
+              enum: [cpu, gpu]
+          additionalProperties:
+            type: string
+        software:
+          type: object
+          minProperties: 1
+          additionalProperties:
+            type: string
+      additionalProperties: false
   - not:
       anyOf:
         - required: [dataset_id]

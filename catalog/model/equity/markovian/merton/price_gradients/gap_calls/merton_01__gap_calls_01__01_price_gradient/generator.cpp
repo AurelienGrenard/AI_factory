@@ -14,6 +14,8 @@ int main() {
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},
         {"model.jump_log_mean", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.jump_intensity", {0.05, pg::BumpScale::absolute}},
         {"model.jump_log_volatility", {0.005, pg::BumpScale::relative}},
         {"product.trigger_strike", {0.005, pg::BumpScale::relative}},
