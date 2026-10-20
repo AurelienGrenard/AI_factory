@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json
   sha256: c04a5c9c37f467b72392a8e1a996cbeae8b2e64971f0e33bf5c960cf6180dcfc
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01/generator.cpp
-  source_sha256: ef8668705319cfa0f5c53400964c89d6acf209bb4575877c04f77b3c3b7b0551
-  binary_sha256: 40ebb63ae3edfe89fafdcf4b83f11189a8d2ef21113cb7dff63366b44fb0944b
-  recipe_sha256: 28d021e7d4cf5984d2207415b5a7215f40bb17c571f3122aa9e741cdf543e6af
-  started_at_utc: '2026-10-07T13:47:27.663122+00:00'
-  seed: 1610000501
-timing:
-  wall_seconds: 0.02085782300127903
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01/recipe.yaml
-  sha256: 28d021e7d4cf5984d2207415b5a7215f40bb17c571f3122aa9e741cdf543e6af
-provenance:
-  generator: catalog/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01/generator.cpp
-  generator_sha256: ef8668705319cfa0f5c53400964c89d6acf209bb4575877c04f77b3c3b7b0551
-  binary_sha256: 40ebb63ae3edfe89fafdcf4b83f11189a8d2ef21113cb7dff63366b44fb0944b
-  parameter_campaign: full model/product refresh
-record_sha256: cefe7f1f98ae862d0eddf11bb60fb7d674d05562c2ae221fdc04a521fc4a54c9
+hardware:
+  device: cpu

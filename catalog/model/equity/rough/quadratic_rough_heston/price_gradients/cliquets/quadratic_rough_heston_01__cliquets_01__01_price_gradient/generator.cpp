@@ -13,7 +13,8 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json", "datasets/product/cliquet/cliquets_01.json", "datasets/model/equity/rough/quadratic_rough_heston/price_gradients/cliquets/quadratic_rough_heston_01__cliquets_01__01_price_gradient.json", "catalog/model/equity/rough/quadratic_rough_heston/price_gradients/cliquets/quadratic_rough_heston_01__cliquets_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/quadratic_rough_heston/prices/cliquets/quadratic_rough_heston_01__cliquets_01__01/recipe.yaml", PriceConstruction::Aligned, {{
-        {"model.spot", {0.01, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.initial_feedback", {0.002, pg::BumpScale::absolute}},
         {"model.quadratic_scale", {0.005, pg::BumpScale::relative}},
         {"model.quadratic_shift", {0.002, pg::BumpScale::absolute}},
@@ -31,6 +32,7 @@ int main() {
             pg::SensitivityOrders::first, {},
             pg::SensitivityStrategy::node_graph
         };
+        recipe.reconstructible_sensitivities = {{"model.spot", "0", "0"}};
         const auto models = binding::load_models(recipe.model_input);
         const auto products = product::load_cliquets(recipe.product_input);
         using Graph = binding::CliquetNodeGraph<

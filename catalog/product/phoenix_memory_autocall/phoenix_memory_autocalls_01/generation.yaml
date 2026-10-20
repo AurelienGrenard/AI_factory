@@ -1,51 +1,16 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: ae25558206a866109259ede09adafe2d9004b6902ef4fffd4b07d0d491fbcddc
-execution:
-  mode: native_parameter_generator
-  binary_sha256: 3b43c2abfdad7dc4073d6df21098ae5ef3f0419341b35c8bcdf96665bfc285d4
-  generator_sha256: 408579237033d10b59abb481f0f65b43858b077bc020815d54a919067d3ede4f
-  declared_method:
-    engine: product_parameters
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
-    CMakeFiles/generate_phoenix_memory_autocalls_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
-timing:
-  wall_seconds: 0.0
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/phoenix_memory_autocall/phoenix_memory_autocalls_01/recipe.yaml
-  sha256: fa7577d81d9aab7705c62a7ea85d859cd2c7872712a3aae328d2424b95aac1ed
 inputs: {}
-provenance:
-  generator: catalog/product/phoenix_memory_autocall/phoenix_memory_autocalls_01/generator.cpp
-  input_files: {}
-  hardware_used:
-    device: cpu
-    model: 13th Gen Intel(R) Core(TM) i9-13900HK
-    host: ALIENWAREAG
-  build_options:
-    cmake_generator: Unix Makefiles
-    build_type: Release
-    cxx_standard: 20
-    cuda_standard: 20
-    cuda_architectures: '89'
-    tuning_profile: sm89_cuda12_unqualified_v1
-    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
-    cxx_compiler: /usr/bin/g++-14
-    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
-    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
-    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
-    cuda_host_compiler: /usr/bin/g++-14
-    cxx_release_flags: -O3 -DNDEBUG
-    cuda_release_flags: -O3 -DNDEBUG
-    target_flags:
-      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
-      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
-    cuda_dependency_flags: {}
-    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
-  generated_at_utc: '2026-10-12T21:53:55.875374+00:00'
-record_sha256: 3afc10ea75a091f99d81be4a38b57ef346ff878147b6710b22440f5cade4b7af
+output:
+  path: datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json
+  sha256: ae25558206a866109259ede09adafe2d9004b6902ef4fffd4b07d0d491fbcddc
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  cmake: cmake version 3.22.1
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

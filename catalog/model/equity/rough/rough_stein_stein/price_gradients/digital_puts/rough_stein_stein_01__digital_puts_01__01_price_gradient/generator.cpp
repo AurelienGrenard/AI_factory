@@ -14,19 +14,21 @@ int main() {
             "datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json", "datasets/product/digital_option/digital_options_01.json", "datasets/model/equity/rough/rough_stein_stein/price_gradients/digital_puts/rough_stein_stein_01__digital_puts_01__01_price_gradient.json", "catalog/model/equity/rough/rough_stein_stein/price_gradients/digital_puts/rough_stein_stein_01__digital_puts_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_stein_stein/prices/digital_puts/rough_stein_stein_01__digital_puts_01__01/recipe.yaml", PriceConstruction::Aligned, {{
         {"model.spot", {0.01, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.volatility_level", {0.02, pg::BumpScale::relative}},
         {"model.mean_reversion", {0.01, pg::BumpScale::relative}},
         {"model.volatility_of_volatility", {0.02, pg::BumpScale::relative}},
         {"model.hurst_exponent", {0.004, pg::BumpScale::absolute}},
         {"model.rho", {0.008, pg::BumpScale::absolute}},
         {"product.strike", {0.01, pg::BumpScale::relative}},
-        {"product.cash_payoff", {0.005, pg::BumpScale::relative}},
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f / 504.0f, 2U}, false,
             pg::SensitivityOrders::first, {},
             pg::SensitivityStrategy::node_graph
         };
         recipe.option_side = "put";
+        recipe.reconstructible_sensitivities = {{"product.cash_payoff", "price / product.cash_payoff", "standard_error / product.cash_payoff"}};
         const auto models = binding::load_models(recipe.model_input);
         const auto products = product::load_digital_options(recipe.product_input);
         using Graph = binding::DigitalOptionNodeGraph<

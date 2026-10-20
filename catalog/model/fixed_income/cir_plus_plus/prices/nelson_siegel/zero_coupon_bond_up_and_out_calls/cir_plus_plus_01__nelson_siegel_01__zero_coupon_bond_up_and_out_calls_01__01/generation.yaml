@@ -1,81 +1,27 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 27348f20c787dcc4b420c52eb3d0b6add7152ed1953769bb35132cafb2429bae
-execution:
-  threads_per_block: 256
-  block_count: 256
-  kernel_launch_count: 4
-  results_per_launch: 256
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: fixed_income_mc
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: cir_plus_plus
-    product: zero_coupon_bond_up_and_out
-    curve: nelson_siegel
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/g2-european-swaption-monte-carlo-sm89-2026-09-08.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 256
-    prices_per_launch: 256
-    price_launch_count: 4
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 256
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  work_distribution: one block per price; independent paths per thread
-  time_day_fraction: 1 / 252
-  simulation_steps_per_day: 1
-  time_grid: dt = 1 / (252 * simulation_steps_per_day)
-  paths_per_price: 1048576
-  binary_sha256: 8dd93a2912a704821f6bf72842c5864e8a878d7a3ae0b7ca5289f8bf9da2e7f8
-  generator_sha256: 5b025c4dee2d5e2fefaa500890a5dbeaeece24042109eb977d9a71b4feff0fb4
-  declared_method:
-    engine: fixed_income_monte_carlo
-    profile: exact_joint_monte_carlo_price_profile
-    variant: zero_coupon_bond_up_and_out_calls
-    construction: aligned
-    has_curve: true
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 1.593363013
-  kernel_seconds: 1.050977294921875
-recipe:
-  path: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01/recipe.yaml
-  sha256: 7bbe80a13025156630a2408f077ec2e744ee95c25beb7eead3b5ded1d95b7d6f
 inputs:
-  curves: 1bddae26155993617f9d3f3d4338a7d68b19bff525d5852ae949dd9af734bd39
-  models: 330618ffe9405302fdaeb520101fdf44f0426c39acc9fbf58096a4757e96b950
-  products: 4b6cce5bdf5aef07f66ac5077c938c0babd080c8208036ce2a5df6533ba0abf2
-provenance:
-  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
-  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
-  runtime_observation:
-    unix_time: 1791411379.0430598
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 69, 44.89 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
-  input_files:
-    datasets/curve/nelson_siegel/nelson_siegel_01.json: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
-    datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
-    datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json: f9022ac72d24db8b0ae5e2afde3ce7c30185868d6806cad4178d571f14a456ea
-record_sha256: 92bcdbcf14b13a5b3e36e28a38c49bfbc0c956f3ab2b49524ddd2caef3a75aab
+  model:
+    path: datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json
+    sha256: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
+  product:
+    path: datasets/product/zero_coupon_bond_up_and_out/zero_coupon_bond_up_and_outs_01.json
+    sha256: f9022ac72d24db8b0ae5e2afde3ce7c30185868d6806cad4178d571f14a456ea
+  curve:
+    path: datasets/curve/nelson_siegel/nelson_siegel_01.json
+    sha256: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
+output:
+  path: datasets/model/fixed_income/cir_plus_plus/prices/nelson_siegel/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01.json
+  sha256: 27348f20c787dcc4b420c52eb3d0b6add7152ed1953769bb35132cafb2429bae
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

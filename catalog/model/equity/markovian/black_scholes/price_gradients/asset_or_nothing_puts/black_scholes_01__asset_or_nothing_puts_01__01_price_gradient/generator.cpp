@@ -13,6 +13,8 @@ int main() {
             PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"product.strike", {0.005, pg::BumpScale::relative}},
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f/504.0f, 2U}, true};

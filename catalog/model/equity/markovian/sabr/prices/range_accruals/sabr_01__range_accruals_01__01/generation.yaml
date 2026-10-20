@@ -1,86 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 9742f51ba3b6342a0d28fd78c1cf460f2f17fc52cfd477b81cfb870eadd0a7e9
-execution:
-  simulation_steps_per_day: 2
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: equity_step_mc
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: sabr
-    product: range_accrual
-    curve: ''
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 512
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 1000
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: markovian_pricing
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  checkpoint:
-    schema_version: 1
-    resumed_prices: 0
-    timing_scope: current process attempt
-  paths_per_price: 1048576
-  binary_sha256: 6222b076e634ac1cb411e09a26f72db0dcf669b31fff9922f81afd28eb811b81
-  generator_sha256: 08917d8c779f84c8d0e531c847d141347aa5969c19959530e366d8502b1a4b04
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: range_accruals
-    construction: aligned
-    has_curve: false
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 41.506162267
-  kernel_seconds: 34.9754609375
-recipe:
-  path: catalog/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01/recipe.yaml
-  sha256: 83687333fb488d4b707ecec186a9ceee7f2132f5a5ee1dba672ac9d4cbc8dd1e
 inputs:
-  models: 9ce8279b7b4e35b49273f14dab50d4e719cc9e6209e998c4a8df4d7579c5d27e
-  products: 69ce978d2232031cddd43efba96db71b4bcccd805ca9e5b51231e8ffdf432148
-provenance:
-  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
-  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
-  runtime_observation:
-    unix_time: 1791496381.7935376
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 75, 48.28 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01/generator.cpp
-  input_files:
-    datasets/model/equity/markovian/sabr/parameters/sabr_01.json: 007b5cf9be3f65671449e2e68a9039c64791f9aa5c34d3f33373196cd0f8012e
-    datasets/product/range_accrual/range_accruals_01.json: 02da73cd4fb249f09d32ab091f883c6c514328b8bcffc7e7b7bbdd741fc99fb9
-record_sha256: 754b3657caf3a94168191806216712905a0acf2bcf75d8c464de086a6af3658a
+  model:
+    path: datasets/model/equity/markovian/sabr/parameters/sabr_01.json
+    sha256: 007b5cf9be3f65671449e2e68a9039c64791f9aa5c34d3f33373196cd0f8012e
+  product:
+    path: datasets/product/range_accrual/range_accruals_01.json
+    sha256: 02da73cd4fb249f09d32ab091f883c6c514328b8bcffc7e7b7bbdd741fc99fb9
+output:
+  path: datasets/model/equity/markovian/sabr/prices/range_accruals/sabr_01__range_accruals_01__01.json
+  sha256: 9742f51ba3b6342a0d28fd78c1cf460f2f17fc52cfd477b81cfb870eadd0a7e9
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

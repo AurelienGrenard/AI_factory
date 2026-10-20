@@ -1,51 +1,16 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 8a51c15a49afbac2f6dd07a7802c8f34d199002e8e7eb5f2a2b01ff7a47f373e
-execution:
-  mode: native_parameter_generator
-  binary_sha256: 77eb0f63ae0093033e9489e8bc4ee38ff8819296a3222314d36cda17d0beb858
-  generator_sha256: 94ecd18fa0076c72c7e566f418c8adb42f34d83efd20f5977c9432dfa598d8ba
-  declared_method:
-    engine: product_parameters
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
-    CMakeFiles/generate_asian_options_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
-timing:
-  wall_seconds: 0.0
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/asian_option/asian_options_01/recipe.yaml
-  sha256: ef86479e2e31cfbe065f8b754b3173e3741974199fe1f110e70d410461fef34d
 inputs: {}
-provenance:
-  generator: catalog/product/asian_option/asian_options_01/generator.cpp
-  input_files: {}
-  hardware_used:
-    device: cpu
-    model: 13th Gen Intel(R) Core(TM) i9-13900HK
-    host: ALIENWAREAG
-  build_options:
-    cmake_generator: Unix Makefiles
-    build_type: Release
-    cxx_standard: 20
-    cuda_standard: 20
-    cuda_architectures: '89'
-    tuning_profile: sm89_cuda12_unqualified_v1
-    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
-    cxx_compiler: /usr/bin/g++-14
-    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
-    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
-    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
-    cuda_host_compiler: /usr/bin/g++-14
-    cxx_release_flags: -O3 -DNDEBUG
-    cuda_release_flags: -O3 -DNDEBUG
-    target_flags:
-      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
-      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
-    cuda_dependency_flags: {}
-    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
-  generated_at_utc: '2026-10-12T21:52:28.127334+00:00'
-record_sha256: baf1f321812bea739b0e9f2731bdad0877e976e5fcc429b717d223d1e51a41f7
+output:
+  path: datasets/product/asian_option/asian_options_01.json
+  sha256: 8a51c15a49afbac2f6dd07a7802c8f34d199002e8e7eb5f2a2b01ff7a47f373e
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  cmake: cmake version 3.22.1
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

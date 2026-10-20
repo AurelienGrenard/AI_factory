@@ -11,9 +11,10 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json", "datasets/product/cliquet/cliquets_01.json", "datasets/model/equity/markovian/schobel_zhu/price_gradients/cliquets/schobel_zhu_01__cliquets_01__01_price_gradient.json", "catalog/model/equity/markovian/schobel_zhu/price_gradients/cliquets/schobel_zhu_01__cliquets_01__01_price_gradient/generation.yaml", "catalog/model/equity/markovian/schobel_zhu/prices/cliquets/schobel_zhu_01__cliquets_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
-        {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.initial_volatility", {0.005, pg::BumpScale::relative}},
         {"model.correlation", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.mean_reversion", {0.005, pg::BumpScale::relative}},
         {"model.long_run_volatility", {0.005, pg::BumpScale::relative}},
         {"model.volatility_of_volatility", {0.005, pg::BumpScale::relative}},
@@ -24,6 +25,7 @@ int main() {
         {"product.global_cap", {0.002, pg::BumpScale::absolute}},
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f/504.0f, 2U}, false};
+        recipe.reconstructible_sensitivities = {{"model.spot", "0", "0"}};
         const auto models = model::equity::schobel_zhu::load_models(recipe.model_input);
         const auto products = product::load_cliquets(recipe.product_input);
         return offline::pricing::price_gradients::execute_dataset<true>(recipe,

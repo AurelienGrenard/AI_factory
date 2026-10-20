@@ -1,0 +1,19 @@
+schema_version: 4
+status: complete
+inputs:
+  source_model:
+    path: datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json
+    sha256: bf3d6dfdd509d39d519c32d2183f10a0fe215682972c859c1adb3280cb323a73
+output:
+  path: datasets/model/equity/rough/rough_stein_stein/factor_parameters/rough_stein_stein_factors_01.json
+  sha256: bb449eb5e23efeb155059c6d472a4556335710d30af88bd18f508872f59f7cbb
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

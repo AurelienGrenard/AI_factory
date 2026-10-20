@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/kou/parameters/kou_01.json
   sha256: f3171db0ff41d63d68f0dfc1db7ba891897fa61264c824d50611d097f0da24f8
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/kou/parameters/kou_01/generator.cpp
-  source_sha256: 37e221cc9d4d7e69d6a69c6b240acfcbba81b6ccfa18e7a07d17efcafc8dfebe
-  binary_sha256: f1bafef4cab11a34279f41e2186c994a5fdd35a37c812c80c4b32d100672bfbb
-  recipe_sha256: df29a1640b2757d54dbf67b2d3f24a1f8e9a0551387b23f7febb178f1a1951f3
-  started_at_utc: '2026-10-07T13:47:27.552686+00:00'
-  seed: 1610000701
-timing:
-  wall_seconds: 0.018678789001569385
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/kou/parameters/kou_01/recipe.yaml
-  sha256: df29a1640b2757d54dbf67b2d3f24a1f8e9a0551387b23f7febb178f1a1951f3
-provenance:
-  generator: catalog/model/equity/markovian/kou/parameters/kou_01/generator.cpp
-  generator_sha256: 37e221cc9d4d7e69d6a69c6b240acfcbba81b6ccfa18e7a07d17efcafc8dfebe
-  binary_sha256: f1bafef4cab11a34279f41e2186c994a5fdd35a37c812c80c4b32d100672bfbb
-  parameter_campaign: full model/product refresh
-record_sha256: 98635e6726ba073cf9b1c2f90ef62fc496f9eb12526373b2b9e039997276dc26
+hardware:
+  device: cpu

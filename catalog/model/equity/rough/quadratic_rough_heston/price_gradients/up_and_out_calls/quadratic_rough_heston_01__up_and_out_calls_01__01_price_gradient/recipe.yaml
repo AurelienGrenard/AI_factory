@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/equity/rough/quadratic_rough_heston/price_gradients/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/equity/rough/quadratic_rough_heston/parameters/quadratic_rough_heston_01.json",
     "product": "datasets/product/up_and_out_option/up_and_out_options_01.json"
@@ -11,7 +11,7 @@
     "path": "datasets/model/equity/rough/quadratic_rough_heston/price_gradients/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/equity/rough/quadratic_rough_heston/price_gradients/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/equity/rough/quadratic_rough_heston/price_gradients/up_and_out_calls/quadratic_rough_heston_01__up_and_out_calls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {
@@ -21,6 +21,18 @@
         "parameter": "model.spot",
         "displacement": 0.005,
         "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.risk_free_rate",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.dividend_yield",
+        "displacement": 0.0005,
+        "scale": "absolute",
         "boundary": "central_then_one_sided_order2"
       },
       {

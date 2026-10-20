@@ -1,0 +1,30 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "rough_heston_factors_01"
+generator: "catalog/model/equity/rough/rough_heston/factor_parameters/rough_heston_factors_01/generator.cpp"
+output:
+  path: "datasets/model/equity/rough/rough_heston/factor_parameters/rough_heston_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/equity/rough/rough_heston/factor_parameters/rough_heston_factors_01/generation.yaml"
+model_family: "rough Heston"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json"
+parameters:
+  spot: "Model parameter."
+  dividend_yield: "Model parameter."
+  initial_variance: "Model parameter."
+  mean_reversion: "Model parameter."
+  variance_drift: "Model parameter."
+  volatility_of_variance: "Model parameter."
+  hurst_exponent: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

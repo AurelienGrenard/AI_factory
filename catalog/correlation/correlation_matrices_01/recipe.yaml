@@ -1,0 +1,13 @@
+schema_version: 1
+kind: correlation_parameters
+dataset_id: correlation_matrices_01
+generator: catalog/correlation/correlation_matrices_01/generator.cpp
+output:
+  path: datasets/correlation/correlation_matrices_01.json
+  format: json
+generation_details: catalog/correlation/correlation_matrices_01/generation.yaml
+row_count: 1
+factors: [asset_0.spot, asset_1.spot]
+construction:
+  method: fixed two-factor reference matrix
+  correlation: 0.4

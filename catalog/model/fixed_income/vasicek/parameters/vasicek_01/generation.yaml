@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/fixed_income/vasicek/parameters/vasicek_01.json
   sha256: 229dc48a8d8d698a366b624d1dab7521487dda6a81ceb874609e36de2eb751d9
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/fixed_income/vasicek/parameters/vasicek_01/generator.cpp
-  source_sha256: a3c23c4db105cbde529fb250eb6da6f863e4a291d649d31dfaac908b22ea9fb8
-  binary_sha256: 66313058fdd36e4400c4742a6b9af6dbb181a56ff9a5ca3daebd40cf1b70904d
-  recipe_sha256: dd315e13ce18ed77addb1dbf71ef255ed296eda7c84d5ebc169206180ecfc06f
-  started_at_utc: '2026-10-07T13:47:28.724840+00:00'
-  seed: 1650000201
-timing:
-  wall_seconds: 0.017445266999857267
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/fixed_income/vasicek/parameters/vasicek_01/recipe.yaml
-  sha256: dd315e13ce18ed77addb1dbf71ef255ed296eda7c84d5ebc169206180ecfc06f
-provenance:
-  generator: catalog/model/fixed_income/vasicek/parameters/vasicek_01/generator.cpp
-  generator_sha256: a3c23c4db105cbde529fb250eb6da6f863e4a291d649d31dfaac908b22ea9fb8
-  binary_sha256: 66313058fdd36e4400c4742a6b9af6dbb181a56ff9a5ca3daebd40cf1b70904d
-  parameter_campaign: full model/product refresh
-record_sha256: 5a6bf58e64c97db10306f026f5cdc147cedd70ed3741d8e2c7f76dd728464cc4
+hardware:
+  device: cpu

@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/product/european_swaption/european_swaptions_01.json
   sha256: 30d42fbe5343826a6421913808a768d3e27b1c093e1103cc0d1bba5e9fe5052e
-execution:
-  mode: native_parameter_generator
-  generator: catalog/product/european_swaption/european_swaptions_01/generator.cpp
-  source_sha256: 588cccc92877d357dd0b69a82d53fb27a2e520e1222eba644f046ed7c9150c86
-  binary_sha256: 4c52dd60e62bbc9166279f2964bd8f1638e693f37d654f0d4ccbf1ee2347f3b8
-  recipe_sha256: 4aa1d1c1b2572f7bc3b0f4531dcee5513a2d7f6a1a3b80c203dfbd04a4632636
-  started_at_utc: '2026-10-07T13:47:29.118212+00:00'
-  seed: null
-timing:
-  wall_seconds: 0.011070087002735818
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/european_swaption/european_swaptions_01/recipe.yaml
-  sha256: 4aa1d1c1b2572f7bc3b0f4531dcee5513a2d7f6a1a3b80c203dfbd04a4632636
-provenance:
-  generator: catalog/product/european_swaption/european_swaptions_01/generator.cpp
-  generator_sha256: 588cccc92877d357dd0b69a82d53fb27a2e520e1222eba644f046ed7c9150c86
-  binary_sha256: 4c52dd60e62bbc9166279f2964bd8f1638e693f37d654f0d4ccbf1ee2347f3b8
-  parameter_campaign: full model/product refresh
-record_sha256: e6c1dcb9b162c380a805a994008b7f9b7b85f22a95d65e72f0c89c77d9fc53e9
+hardware:
+  device: cpu

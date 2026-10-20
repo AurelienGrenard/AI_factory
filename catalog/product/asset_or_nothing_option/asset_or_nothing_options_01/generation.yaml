@@ -1,51 +1,16 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 603e7c9e39d0a66ea99b8e1ba2590594282b391c8a221fc2f06e1a06f91b9481
-execution:
-  mode: native_parameter_generator
-  binary_sha256: 5d7059a08e664fd8c7ef2364ea61359094e389ca33243d8f5c02ce7e27a35ba2
-  generator_sha256: 7ae60bb38694c2b94e5d51ec2aaf6aca3e9aa67db89bcda3cd96f089fd740529
-  declared_method:
-    engine: product_parameters
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
-    CMakeFiles/generate_asset_or_nothing_options_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
-timing:
-  wall_seconds: 0.0
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/asset_or_nothing_option/asset_or_nothing_options_01/recipe.yaml
-  sha256: 3350b408784d8aa977c4e23476c341eb9cab33ce4e67d190aab6bc473620097b
 inputs: {}
-provenance:
-  generator: catalog/product/asset_or_nothing_option/asset_or_nothing_options_01/generator.cpp
-  input_files: {}
-  hardware_used:
-    device: cpu
-    model: 13th Gen Intel(R) Core(TM) i9-13900HK
-    host: ALIENWAREAG
-  build_options:
-    cmake_generator: Unix Makefiles
-    build_type: Release
-    cxx_standard: 20
-    cuda_standard: 20
-    cuda_architectures: '89'
-    tuning_profile: sm89_cuda12_unqualified_v1
-    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
-    cxx_compiler: /usr/bin/g++-14
-    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
-    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
-    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
-    cuda_host_compiler: /usr/bin/g++-14
-    cxx_release_flags: -O3 -DNDEBUG
-    cuda_release_flags: -O3 -DNDEBUG
-    target_flags:
-      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
-      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
-    cuda_dependency_flags: {}
-    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
-  generated_at_utc: '2026-10-12T21:52:32.448670+00:00'
-record_sha256: e448a703b5aaa68abc9f879e3536e38c38798dfaaeb36df9e622c3508faf8667
+output:
+  path: datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json
+  sha256: 603e7c9e39d0a66ea99b8e1ba2590594282b391c8a221fc2f06e1a06f91b9481
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  cmake: cmake version 3.22.1
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

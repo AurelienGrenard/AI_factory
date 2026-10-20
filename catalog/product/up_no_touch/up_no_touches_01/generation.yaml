@@ -1,51 +1,16 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: dec4206818f8d8d766837e69b95e8d966e8c11681f62867ae6f014a54b8125fb
-execution:
-  mode: native_parameter_generator
-  binary_sha256: abf3a699348e1748bce43dea3bd9cbdbd44a39c44271fdd582e5ffec40f39747
-  generator_sha256: 21d8466aa846ac7574f860a5063e06c37e2e5423a2aa201f448710e0d744f88b
-  declared_method:
-    engine: product_parameters
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
-    CMakeFiles/generate_up_no_touches_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
-timing:
-  wall_seconds: 0.0
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/up_no_touch/up_no_touches_01/recipe.yaml
-  sha256: 8dae0527cb4bdaa5c5bdedc796536234a828e8bef6784fdd8035a3399fc10e12
 inputs: {}
-provenance:
-  generator: catalog/product/up_no_touch/up_no_touches_01/generator.cpp
-  input_files: {}
-  hardware_used:
-    device: cpu
-    model: 13th Gen Intel(R) Core(TM) i9-13900HK
-    host: ALIENWAREAG
-  build_options:
-    cmake_generator: Unix Makefiles
-    build_type: Release
-    cxx_standard: 20
-    cuda_standard: 20
-    cuda_architectures: '89'
-    tuning_profile: sm89_cuda12_unqualified_v1
-    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
-    cxx_compiler: /usr/bin/g++-14
-    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
-    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
-    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
-    cuda_host_compiler: /usr/bin/g++-14
-    cxx_release_flags: -O3 -DNDEBUG
-    cuda_release_flags: -O3 -DNDEBUG
-    target_flags:
-      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
-      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
-    cuda_dependency_flags: {}
-    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
-  generated_at_utc: '2026-10-12T21:54:25.159545+00:00'
-record_sha256: 027c570e8731a82353c6498775a74a78f6342445726b0f0b9a40b48ea9091746
+output:
+  path: datasets/product/up_no_touch/up_no_touches_01.json
+  sha256: dec4206818f8d8d766837e69b95e8d966e8c11681f62867ae6f014a54b8125fb
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  cmake: cmake version 3.22.1
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

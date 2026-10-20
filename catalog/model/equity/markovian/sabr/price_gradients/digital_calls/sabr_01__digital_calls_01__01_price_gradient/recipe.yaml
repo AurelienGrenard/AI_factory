@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "sabr_01__digital_calls_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/equity/markovian/sabr/price_gradients/digital_calls/sabr_01__digital_calls_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/equity/markovian/sabr/parameters/sabr_01.json",
     "product": "datasets/product/digital_option/digital_options_01.json"
@@ -11,7 +11,7 @@
     "path": "datasets/model/equity/markovian/sabr/price_gradients/digital_calls/sabr_01__digital_calls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/equity/markovian/sabr/price_gradients/digital_calls/sabr_01__digital_calls_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/equity/markovian/sabr/price_gradients/digital_calls/sabr_01__digital_calls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {
@@ -42,6 +42,18 @@
         "boundary": "central_then_one_sided_order2"
       },
       {
+        "parameter": "model.risk_free_rate",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.dividend_yield",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
         "parameter": "model.volatility_of_volatility",
         "displacement": 0.005,
         "scale": "relative",
@@ -49,12 +61,6 @@
       },
       {
         "parameter": "product.strike",
-        "displacement": 0.005,
-        "scale": "relative",
-        "boundary": "central_then_one_sided_order2"
-      },
-      {
-        "parameter": "product.cash_payoff",
         "displacement": 0.005,
         "scale": "relative",
         "boundary": "central_then_one_sided_order2"
@@ -68,7 +74,14 @@
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/equity/markovian/sabr/prices/digital_calls/sabr_01__digital_calls_01__01/recipe.yaml",
-    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios."
+    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios.",
+    "reconstructible_from_price": [
+      {
+        "parameter": "product.cash_payoff",
+        "formula": "price / product.cash_payoff",
+        "standard_error": "standard_error / product.cash_payoff"
+      }
+    ]
   },
   "option_side": "call",
   "sensitivity_strategy": "mono",

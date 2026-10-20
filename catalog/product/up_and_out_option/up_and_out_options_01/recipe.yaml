@@ -1,12 +1,11 @@
 schema_version: 1
 kind: "product_parameters"
 dataset_id: "up_and_out_options_01"
-generator: "generator.cpp"
+generator: "catalog/product/up_and_out_option/up_and_out_options_01/generator.cpp"
 output:
   path: "datasets/product/up_and_out_option/up_and_out_options_01.json"
   format: "json"
-generation_output: "catalog/product/up_and_out_option/up_and_out_options_01/generation.yaml"
-url: "https://datasets.ai-factory.example/v1/product/up_and_out_options/up_and_out_options_01.json"
+generation_details: "catalog/product/up_and_out_option/up_and_out_options_01/generation.yaml"
 product_family: "Up-and-Out Options"
 row_count: 1000
 time_convention:

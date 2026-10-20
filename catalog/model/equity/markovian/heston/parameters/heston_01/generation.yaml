@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/heston/parameters/heston_01.json
   sha256: f75ce14adf6364f0a8f01e563ddd12c36367d8a34fa452e1e6210f3b5bee23b9
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/heston/parameters/heston_01/generator.cpp
-  source_sha256: ad84aebdf0ef67968f6b520a97b859f4658cb310a337163d529c7a60865d8ad4
-  binary_sha256: 3c2054404184fdcee021ebb541884d5f561423653a7e5f325f03db53572e0955
-  recipe_sha256: c9fdf21d9d389123d288861152cfac5bd2752f4480d573053ff87a66e94b18c1
-  started_at_utc: '2026-10-07T13:47:27.430044+00:00'
-  seed: 1610000201
-timing:
-  wall_seconds: 0.024038163999648532
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/heston/parameters/heston_01/recipe.yaml
-  sha256: c9fdf21d9d389123d288861152cfac5bd2752f4480d573053ff87a66e94b18c1
-provenance:
-  generator: catalog/model/equity/markovian/heston/parameters/heston_01/generator.cpp
-  generator_sha256: ad84aebdf0ef67968f6b520a97b859f4658cb310a337163d529c7a60865d8ad4
-  binary_sha256: 3c2054404184fdcee021ebb541884d5f561423653a7e5f325f03db53572e0955
-  parameter_campaign: full model/product refresh
-record_sha256: 5648e603aa398d211c37b22c9d4030d6c9d7c088a9d7d6f73c23fed61bed6131
+hardware:
+  device: cpu

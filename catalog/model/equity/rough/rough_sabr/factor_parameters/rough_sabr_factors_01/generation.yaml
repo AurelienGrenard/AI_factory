@@ -1,0 +1,19 @@
+schema_version: 4
+status: complete
+inputs:
+  source_model:
+    path: datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json
+    sha256: e8d05a8fa7f2872cd19503ac8ad5b2f15d1a3b24a6ca63a80844f51d5f71bd70
+output:
+  path: datasets/model/equity/rough/rough_sabr/factor_parameters/rough_sabr_factors_01.json
+  sha256: d1d524ba35d8cc7497793b1ba8c5e023a2c2116caf2f55c900dadd4fa742cb32
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

@@ -16,6 +16,8 @@ int main() {
         {"model.volatility", {0.005, pg::BumpScale::relative}},
         {"model.jump_intensity", {0.05, pg::BumpScale::absolute}},
         {"model.up_probability", {0.002, pg::BumpScale::absolute}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.positive_jump_rate", {0.005, pg::BumpScale::relative}},
         {"model.negative_jump_rate", {0.005, pg::BumpScale::relative}},
         {"product.strike", {0.005, pg::BumpScale::relative}}

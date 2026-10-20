@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/cev/parameters/cev_01.json
   sha256: 5b7da83275dcc111b394543b8cff5a92b131b81b54f9c5aaea4531c464ca64a7
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/cev/parameters/cev_01/generator.cpp
-  source_sha256: 15f088b65f90100945a8917e84d27bed1844378b5a34349c08d48ee613b3034d
-  binary_sha256: 2c09c98ffcfb1efcf740c3a041d69cebbbafac6b3ce2388ced66c98fdffbf5d6
-  recipe_sha256: 81922896b2a143554e68a43310378585dd6d77a49a2a49f8e50d20409a189d5c
-  started_at_utc: '2026-10-07T13:47:27.373632+00:00'
-  seed: 1610000801
-timing:
-  wall_seconds: 0.012983020998944994
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/cev/parameters/cev_01/recipe.yaml
-  sha256: 81922896b2a143554e68a43310378585dd6d77a49a2a49f8e50d20409a189d5c
-provenance:
-  generator: catalog/model/equity/markovian/cev/parameters/cev_01/generator.cpp
-  generator_sha256: 15f088b65f90100945a8917e84d27bed1844378b5a34349c08d48ee613b3034d
-  binary_sha256: 2c09c98ffcfb1efcf740c3a041d69cebbbafac6b3ce2388ced66c98fdffbf5d6
-  parameter_campaign: full model/product refresh
-record_sha256: fdc7b97730a7c1f8c62e3d611c04ea300ab27b31bf77a00f3f9563136d48e6fa
+hardware:
+  device: cpu

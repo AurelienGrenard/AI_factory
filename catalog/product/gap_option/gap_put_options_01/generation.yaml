@@ -1,51 +1,16 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: b378d3286ad41354683fc6211c6b353b6da957bc8661b034d11cf5570e869236
-execution:
-  mode: native_parameter_generator
-  binary_sha256: 2950cffc662b50a202055e0fc2f9dcd1266a9e48aee17a0a59dbbac41a9429b7
-  generator_sha256: 07c909e8a714218868bd72345b32e5f76936acaf8b90e5d8ec811aa437aed815
-  declared_method:
-    engine: product_parameters
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 48efca33e0c2a06cad338ae54def56a504cae369dccfd1b88b876f32ae731bc0
-    CMakeFiles/generate_gap_put_options_01.dir/flags.make: 10b0bd1caa9f0633405a994bc84bdb98273872f7d573bfe2de8f5926fd6be2e0
-timing:
-  wall_seconds: 0.0
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/gap_option/gap_put_options_01/recipe.yaml
-  sha256: 8e0dfed01de5abe2c7e5c8ecf11be58361ae1c7020ee85f08ff3af01dde9efe6
 inputs: {}
-provenance:
-  generator: catalog/product/gap_option/gap_put_options_01/generator.cpp
-  input_files: {}
-  hardware_used:
-    device: cpu
-    model: 13th Gen Intel(R) Core(TM) i9-13900HK
-    host: ALIENWAREAG
-  build_options:
-    cmake_generator: Unix Makefiles
-    build_type: Release
-    cxx_standard: 20
-    cuda_standard: 20
-    cuda_architectures: '89'
-    tuning_profile: sm89_cuda12_unqualified_v1
-    mathdx_root: /home/aurelieng/projects/quant_research/.toolchains/nvidia-mathdx-25.12.1-cuda12/nvidia/mathdx/25.12
-    cxx_compiler: /usr/bin/g++-14
-    cxx_compiler_version: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
-    cuda_compiler: /home/aurelieng/projects/quant_research/AI_factory/../.toolchains/cuda-12.9.0/bin/nvcc
-    cuda_compiler_version: Cuda compilation tools, release 12.9, V12.9.41
-    cuda_host_compiler: /usr/bin/g++-14
-    cxx_release_flags: -O3 -DNDEBUG
-    cuda_release_flags: -O3 -DNDEBUG
-    target_flags:
-      CXX_DEFINES: -DJSON_DIAGNOSTICS=0 -DJSON_USE_IMPLICIT_CONVERSIONS=1
-      CXX_FLAGS: -O3 -DNDEBUG -std=gnu++20
-    cuda_dependency_flags: {}
-    cuda_math_header_sha256: 2f2189d1752d862e96122f985484c89e16bd03a485a01e1f114514f738a2ed4f
-  generated_at_utc: '2026-10-12T21:53:26.678745+00:00'
-record_sha256: 1789a023601af74a922f71eeb50bce05c5077a6f6ee598f4dc85a3439a18c2f3
+output:
+  path: datasets/product/gap_option/gap_put_options_01.json
+  sha256: b378d3286ad41354683fc6211c6b353b6da957bc8661b034d11cf5570e869236
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  cmake: cmake version 3.22.1
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

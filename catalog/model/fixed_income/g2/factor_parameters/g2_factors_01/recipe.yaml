@@ -1,0 +1,29 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "g2_factors_01"
+generator: "catalog/model/fixed_income/g2/factor_parameters/g2_factors_01/generator.cpp"
+output:
+  path: "datasets/model/fixed_income/g2/factor_parameters/g2_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/fixed_income/g2/factor_parameters/g2_factors_01/generation.yaml"
+model_family: "G2 Gaussian two-factor short rate"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/fixed_income/g2/parameters/g2_01.json"
+parameters:
+  mean_reversion_x: "Model parameter."
+  volatility_x: "Model parameter."
+  mean_reversion_y: "Model parameter."
+  volatility_y: "Model parameter."
+  initial_state_x: "Model parameter."
+  initial_state_y: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/fixed_income/g2/parameters/g2_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/fixed_income/g2/parameters/g2_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

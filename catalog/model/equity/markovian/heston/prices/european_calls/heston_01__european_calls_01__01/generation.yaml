@@ -1,86 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: d88c32d2bae0349e7c6707497231b28b04f7afe18c39568aa68aa111436cbdfe
-execution:
-  simulation_steps_per_day: 2
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: equity_step_mc
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: heston
-    product: european_option
-    curve: ''
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 512
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 1000
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: markovian_pricing
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  checkpoint:
-    schema_version: 1
-    resumed_prices: 0
-    timing_scope: current process attempt
-  paths_per_price: 1048576
-  binary_sha256: 71377b5ed9e8d19a4b4506d84d92c26a92e3ef60eab56049545909563d91141e
-  generator_sha256: 83e277744c34ef143cc83206355ad183abc5cca6b594ae4b11e287649a58f8d9
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: european_calls
-    construction: aligned
-    has_curve: false
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 28.622278973
-  kernel_seconds: 26.85067578125
-recipe:
-  path: catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/recipe.yaml
-  sha256: ac7c52b1a88188db744ac8a0fa9bca643575c7732c8939553baa53bb336adb77
 inputs:
-  models: 3cec002453ad9b52d2333b7fc78dcf9fbf1114ef8e5acd04515299b5d060946c
-  products: 68c7b4fb6b163c6c255a816638df8fc613c43b8725a179fbc9bd763a677c64e3
-provenance:
-  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
-  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
-  runtime_observation:
-    unix_time: 1791493649.66532
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 72, 46.17 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/generator.cpp
-  input_files:
-    datasets/model/equity/markovian/heston/parameters/heston_01.json: f75ce14adf6364f0a8f01e563ddd12c36367d8a34fa452e1e6210f3b5bee23b9
-    datasets/product/european_option/european_options_01.json: 83b6d0ee6c251360f59bd8469fc2515951b350e3a20959ddb297aca9e86759bc
-record_sha256: 4e1811004474fd2769c870be84c8cbab2701e86bfb9feea49ee10d1716440c15
+  model:
+    path: datasets/model/equity/markovian/heston/parameters/heston_01.json
+    sha256: f75ce14adf6364f0a8f01e563ddd12c36367d8a34fa452e1e6210f3b5bee23b9
+  product:
+    path: datasets/product/european_option/european_options_01.json
+    sha256: 83b6d0ee6c251360f59bd8469fc2515951b350e3a20959ddb297aca9e86759bc
+output:
+  path: datasets/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01.json
+  sha256: d88c32d2bae0349e7c6707497231b28b04f7afe18c39568aa68aa111436cbdfe
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

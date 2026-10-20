@@ -11,8 +11,9 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json", "datasets/product/cliquet/cliquets_01.json", "datasets/model/equity/markovian/black_scholes/price_gradients/cliquets/black_scholes_01__cliquets_01__01_price_gradient.json", "catalog/model/equity/markovian/black_scholes/price_gradients/cliquets/black_scholes_01__cliquets_01__01_price_gradient/generation.yaml", "catalog/model/equity/markovian/black_scholes/prices/cliquets/black_scholes_01__cliquets_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
-        {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"product.participation_rate", {0.005, pg::BumpScale::relative}},
         {"product.local_floor", {0.002, pg::BumpScale::absolute}},
         {"product.local_cap", {0.002, pg::BumpScale::absolute}},
@@ -21,6 +22,7 @@ int main() {
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f/504.0f, 2U}, true};
         recipe.exact_schedule_transition = true;
+        recipe.reconstructible_sensitivities = {{"model.spot", "0", "0"}};
         const auto models = model::equity::black_scholes::load_models(recipe.model_input);
         const auto products = product::load_cliquets(recipe.product_input);
         return offline::pricing::price_gradients::execute_dataset<true>(recipe,

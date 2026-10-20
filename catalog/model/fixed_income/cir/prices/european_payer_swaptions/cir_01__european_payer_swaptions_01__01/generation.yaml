@@ -1,73 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 3d133ffe7dc9b54f5a28c3bd6939a0812f286a779fcbe092f7a28e3bf1f8f3eb
-execution:
-  block_count: 1000
-  threads_per_block: 128
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: jamshidian
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: cir
-    product: european_swaption
-    curve: ''
-    qualification: native_geometry_pending_confirmation
-    evidence: docs/performance-reports/jamshidian-strategy-scaling-sm89-2026-09-08.md
-    price_count: 1000
-    paths_per_price: 0
-    threads_per_block: 128
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 1000
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  kernel_launch_count: 1
-  requested_work_distribution: one price per block
-  paths_per_price: 0
-  binary_sha256: 4fe447ec606a046e4adea14c8a5359d1f214bd4be91470d8e742a82b18d96a30
-  generator_sha256: 04653c87fd6b408c60702ad917981cf87b2f4545a598c8a656658f28c2b25978
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: european_payer_swaptions
-    construction: aligned
-    has_curve: false
-    random_number_generator: null
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 0.267525104
-  kernel_seconds: 0.0002682879865169525
-recipe:
-  path: catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/recipe.yaml
-  sha256: d344cb0b05ff2f9f4fd25775203bd5ea1c401914c90c4ccaf3dcb66c50c6929a
 inputs:
-  models: 6608068922a452c176fab5aa2b03668e83a1e9ad446d2f4ee61d85beb4c85749
-  products: f351c92984bc8838cee9f8ebf482bc8aeeb049dc6e2b42631b8aaf9c6fd8c9b6
-provenance:
-  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
-  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
-  runtime_observation:
-    unix_time: 1791411361.7890582
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 68, 53.43 W, [N/A], 2310 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01/generator.cpp
-  input_files:
-    datasets/model/fixed_income/cir/parameters/cir_01.json: 04f1027dcf994e9741ac058d9627efdd77df8a8f203f056f0c6f7fdc7fc1c0de
-    datasets/product/european_swaption/european_swaptions_01.json: 30d42fbe5343826a6421913808a768d3e27b1c093e1103cc0d1bba5e9fe5052e
-record_sha256: 5f6b49f53f96f01598cfc250282300d9b6da2487e221ecac5186be0350af3c1e
+  model:
+    path: datasets/model/fixed_income/cir/parameters/cir_01.json
+    sha256: 04f1027dcf994e9741ac058d9627efdd77df8a8f203f056f0c6f7fdc7fc1c0de
+  product:
+    path: datasets/product/european_swaption/european_swaptions_01.json
+    sha256: 30d42fbe5343826a6421913808a768d3e27b1c093e1103cc0d1bba5e9fe5052e
+output:
+  path: datasets/model/fixed_income/cir/prices/european_payer_swaptions/cir_01__european_payer_swaptions_01__01.json
+  sha256: 3d133ffe7dc9b54f5a28c3bd6939a0812f286a779fcbe092f7a28e3bf1f8f3eb
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

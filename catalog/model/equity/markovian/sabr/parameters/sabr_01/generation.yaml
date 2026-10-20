@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/sabr/parameters/sabr_01.json
   sha256: 007b5cf9be3f65671449e2e68a9039c64791f9aa5c34d3f33373196cd0f8012e
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/sabr/parameters/sabr_01/generator.cpp
-  source_sha256: ad475e6dd3e881e7e2f6100eaf362d08041c45373108dc42600a015673dd490c
-  binary_sha256: 7314cd0fca8a68d1149b04bbfef27dc73ce71be3cd0effefb9bc1f12f7f2be2d
-  recipe_sha256: 23c92f8d5445ab7368bdb2e66b481644d0f5da5f40aee9c623ac3884397c02f4
-  started_at_utc: '2026-10-07T13:47:27.716759+00:00'
-  seed: 1610001301
-timing:
-  wall_seconds: 0.025581091998901684
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/sabr/parameters/sabr_01/recipe.yaml
-  sha256: 23c92f8d5445ab7368bdb2e66b481644d0f5da5f40aee9c623ac3884397c02f4
-provenance:
-  generator: catalog/model/equity/markovian/sabr/parameters/sabr_01/generator.cpp
-  generator_sha256: ad475e6dd3e881e7e2f6100eaf362d08041c45373108dc42600a015673dd490c
-  binary_sha256: 7314cd0fca8a68d1149b04bbfef27dc73ce71be3cd0effefb9bc1f12f7f2be2d
-  parameter_campaign: full model/product refresh
-record_sha256: adf69f614a437c6b531bb9bc265413d1510d0eac55bfaae0d473960df3db5139
+hardware:
+  device: cpu

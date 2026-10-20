@@ -14,6 +14,8 @@ int main() {
             "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json", "datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json", "datasets/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01_price_gradient.json", "catalog/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_heston/prices/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01/recipe.yaml", PriceConstruction::Aligned, {{
         {"model.spot", {0.01, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.initial_variance", {0.004, pg::BumpScale::absolute}},
         {"model.mean_reversion", {0.02, pg::BumpScale::relative}},
         {"model.variance_drift", {0.004, pg::BumpScale::absolute}},

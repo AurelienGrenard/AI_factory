@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/fixed_income/g2/parameters/g2_01.json
   sha256: eafbe3fca21bfdd36a2006f8c33724ca68ad8e8d876abbcffb82b54d6cf1416a
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/fixed_income/g2/parameters/g2_01/generator.cpp
-  source_sha256: cc42d1ad49dd156299984d8ff4ae5c32f70f6dd6f72ffd06ca397333fa20a8d8
-  binary_sha256: 255c2143394f97e19b21bc37710804374fdbe8d230b55f2627d41c55daa7fc6d
-  recipe_sha256: 7eb149ab23bafdc42268cddda8f047c90a28a5c138c125ee1880406d5c3b9d04
-  started_at_utc: '2026-10-07T13:47:28.530766+00:00'
-  seed: 1650000201
-timing:
-  wall_seconds: 0.021171339001739398
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/fixed_income/g2/parameters/g2_01/recipe.yaml
-  sha256: 7eb149ab23bafdc42268cddda8f047c90a28a5c138c125ee1880406d5c3b9d04
-provenance:
-  generator: catalog/model/fixed_income/g2/parameters/g2_01/generator.cpp
-  generator_sha256: cc42d1ad49dd156299984d8ff4ae5c32f70f6dd6f72ffd06ca397333fa20a8d8
-  binary_sha256: 255c2143394f97e19b21bc37710804374fdbe8d230b55f2627d41c55daa7fc6d
-  parameter_campaign: full model/product refresh
-record_sha256: 7b0b0667c08c62f709ee3b44454b901f95f10616543393a898503e6682d0e66b
+hardware:
+  device: cpu

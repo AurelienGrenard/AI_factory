@@ -13,7 +13,8 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json", "datasets/product/forward_start_option/forward_start_options_01.json", "datasets/model/equity/rough/rough_bergomi/price_gradients/forward_start_puts/rough_bergomi_01__forward_start_puts_01__01_price_gradient.json", "catalog/model/equity/rough/rough_bergomi/price_gradients/forward_start_puts/rough_bergomi_01__forward_start_puts_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_bergomi/prices/forward_start_puts/rough_bergomi_01__forward_start_puts_01__01/recipe.yaml", PriceConstruction::Aligned, {{
-        {"model.spot", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.xi_0", {0.001, pg::BumpScale::absolute}},
         {"model.eta", {0.005, pg::BumpScale::relative}},
         {"model.hurst_exponent", {0.001, pg::BumpScale::absolute}},
@@ -25,6 +26,7 @@ int main() {
             pg::SensitivityStrategy::node_graph
         };
         recipe.option_side = "put";
+        recipe.reconstructible_sensitivities = {{"model.spot", "price / model.spot", "standard_error / model.spot"}};
         const auto models = binding::load_models(recipe.model_input);
         const auto products = product::load_forward_start_options(recipe.product_input);
         using Graph = binding::ForwardStartOptionNodeGraph<

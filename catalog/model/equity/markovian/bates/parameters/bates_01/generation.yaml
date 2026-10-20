@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/markovian/bates/parameters/bates_01.json
   sha256: d7e9d93ea57e3d5c30ec48e3e75a651f02a60bb23f241d56c2c7c90e17e967d8
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/markovian/bates/parameters/bates_01/generator.cpp
-  source_sha256: 5bd3cc34539566e802836ba26df7fe59ccf15e38c7905a1ea91f5c15d9ada2fc
-  binary_sha256: ecb59a9f5b98b7c4a7b8d6833506591dcfe38f0fc53f03bf3444a4576ae6d1cd
-  recipe_sha256: 7aaa11589ee56e88a7bb1539e5c47196c271503508d4ea4eeb87bd73c7d7e5b6
-  started_at_utc: '2026-10-07T13:47:27.240813+00:00'
-  seed: 1610000301
-timing:
-  wall_seconds: 0.026403520998428576
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/markovian/bates/parameters/bates_01/recipe.yaml
-  sha256: 7aaa11589ee56e88a7bb1539e5c47196c271503508d4ea4eeb87bd73c7d7e5b6
-provenance:
-  generator: catalog/model/equity/markovian/bates/parameters/bates_01/generator.cpp
-  generator_sha256: 5bd3cc34539566e802836ba26df7fe59ccf15e38c7905a1ea91f5c15d9ada2fc
-  binary_sha256: ecb59a9f5b98b7c4a7b8d6833506591dcfe38f0fc53f03bf3444a4576ae6d1cd
-  parameter_campaign: full model/product refresh
-record_sha256: f8e22d44bcbe4980161ffe633185422e05058ac9655d114d4546114c20bf3740
+hardware:
+  device: cpu

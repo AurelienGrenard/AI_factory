@@ -14,6 +14,8 @@ int main() {
             "datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json", "datasets/product/geometric_asian_option/geometric_asian_options_01.json", "datasets/model/equity/rough/rough_stein_stein/price_gradients/geometric_asian_puts/rough_stein_stein_01__geometric_asian_puts_01__01_price_gradient.json", "catalog/model/equity/rough/rough_stein_stein/price_gradients/geometric_asian_puts/rough_stein_stein_01__geometric_asian_puts_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_stein_stein/prices/geometric_asian_puts/rough_stein_stein_01__geometric_asian_puts_01__01/recipe.yaml", PriceConstruction::Aligned, {{
         {"model.spot", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.volatility_level", {0.005, pg::BumpScale::relative}},
         {"model.mean_reversion", {0.005, pg::BumpScale::relative}},
         {"model.volatility_of_volatility", {0.005, pg::BumpScale::relative}},

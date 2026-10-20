@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/product/rate_option/rate_options_01.json
   sha256: 5cc5f56b2171b08e1ee92253be9542b7ff8410239708e5e73d7d0eef48ef3a36
-execution:
-  mode: native_parameter_generator
-  generator: catalog/product/rate_option/rate_options_01/generator.cpp
-  source_sha256: 6b69db04d75ada36f091457f78fada6ca5e7ae0a46fee1922460fe8c6b605aaf
-  binary_sha256: f22c89efd80db19bb0c291738e89e8ca3aac963b97c453df5db8042d2747b8cf
-  recipe_sha256: 5b1e9a73dff78fc17350e6d7c4cf3e38250041e39542f2a3f3a82153275f927e
-  started_at_utc: '2026-10-07T13:47:29.448299+00:00'
-  seed: null
-timing:
-  wall_seconds: 0.007857705000787973
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/product/rate_option/rate_options_01/recipe.yaml
-  sha256: 5b1e9a73dff78fc17350e6d7c4cf3e38250041e39542f2a3f3a82153275f927e
-provenance:
-  generator: catalog/product/rate_option/rate_options_01/generator.cpp
-  generator_sha256: 6b69db04d75ada36f091457f78fada6ca5e7ae0a46fee1922460fe8c6b605aaf
-  binary_sha256: f22c89efd80db19bb0c291738e89e8ca3aac963b97c453df5db8042d2747b8cf
-  parameter_campaign: full model/product refresh
-record_sha256: 149877e434e00726b2ec5053a4235f0f5ad32ea9ad09a8196ceb55b817389fc0
+hardware:
+  device: cpu

@@ -1,73 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: 178f08df2c88850b08e2cb1abd5c0f42900db12013e641147a68ce33589f855c
-execution:
-  block_count: 4
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: closed_form
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: g2
-    product: zero_coupon_bond_option
-    curve: ''
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/closed-form-price-count-scaling-sm89-2026-09-06.md
-    price_count: 1000
-    paths_per_price: 0
-    threads_per_block: 256
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per thread at a time
-    block_count: 4
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  threads_per_block: 256
-  kernel_launch_count: 1
-  work_distribution: one price per thread
-  paths_per_price: 0
-  binary_sha256: 8c1eb729af83b71b26740e94a64f74a91ccf51c20e7c2a35e40785fba6331be6
-  generator_sha256: 496e4b3a6f43878f4b7a89ec1e8ba5f2cbb427dfa1351da87c6ecc959ccb04fe
-  declared_method:
-    engine: fixed_income_closed_form
-    profile: closed_form_price_profile
-    variant: zero_coupon_bond_calls
-    construction: aligned
-    has_curve: false
-    random_number_generator: null
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 0.446458787
-  kernel_seconds: 2.7648000046610834e-05
-recipe:
-  path: catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/recipe.yaml
-  sha256: 1f9fb17623071b472cd68834182c626ce88786c70e87231609aa074ed45edb5d
 inputs:
-  models: 41bb150cfafd84f658eec46eb4692136118920386e8aeb78e735d587a6d5c58d
-  products: 1ae2fe789191ffa1fd563c2617c38c3538d913f213948331961684cbd8d6fbd7
-provenance:
-  revision: 74ce34681da9d3d89af166b2206a224ac39856fe
-  source_archive_sha256: 6167f2ae66e7be0017a39c3444a2399b996e68332a9fc84863089bd7008dd893
-  runtime_observation:
-    unix_time: 1791411427.5811472
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 74, 48.53 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01/generator.cpp
-  input_files:
-    datasets/model/fixed_income/g2/parameters/g2_01.json: eafbe3fca21bfdd36a2006f8c33724ca68ad8e8d876abbcffb82b54d6cf1416a
-    datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json: 775a85dbbbc1c78878bb5cfccdda6e93790130ea47b8fb21da19132d4a557eaa
-record_sha256: 83486544b243ab6c76f5d9223dff1cb042dc65450fa8a82850d22db145d3cae7
+  model:
+    path: datasets/model/fixed_income/g2/parameters/g2_01.json
+    sha256: eafbe3fca21bfdd36a2006f8c33724ca68ad8e8d876abbcffb82b54d6cf1416a
+  product:
+    path: datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json
+    sha256: 775a85dbbbc1c78878bb5cfccdda6e93790130ea47b8fb21da19132d4a557eaa
+output:
+  path: datasets/model/fixed_income/g2/prices/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01.json
+  sha256: 178f08df2c88850b08e2cb1abd5c0f42900db12013e641147a68ce33589f855c
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

@@ -1,0 +1,30 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "log_modulated_rough_bergomi_factors_01"
+generator: "catalog/model/equity/rough/log_modulated_rough_bergomi/factor_parameters/log_modulated_rough_bergomi_factors_01/generator.cpp"
+output:
+  path: "datasets/model/equity/rough/log_modulated_rough_bergomi/factor_parameters/log_modulated_rough_bergomi_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/equity/rough/log_modulated_rough_bergomi/factor_parameters/log_modulated_rough_bergomi_factors_01/generation.yaml"
+model_family: "log-modulated rough Bergomi"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json"
+parameters:
+  dividend_yield: "Model parameter."
+  xi_0: "Model parameter."
+  eta: "Model parameter."
+  hurst_exponent: "Model parameter."
+  log_modulation_scale: "Model parameter."
+  log_modulation_power: "Model parameter."
+  spot: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

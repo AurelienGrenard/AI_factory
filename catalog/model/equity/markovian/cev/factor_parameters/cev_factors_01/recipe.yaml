@@ -1,0 +1,27 @@
+schema_version: 1
+kind: "model_parameters"
+dataset_id: "cev_factors_01"
+generator: "catalog/model/equity/markovian/cev/factor_parameters/cev_factors_01/generator.cpp"
+output:
+  path: "datasets/model/equity/markovian/cev/factor_parameters/cev_factors_01.json"
+  format: "json"
+generation_details: "catalog/model/equity/markovian/cev/factor_parameters/cev_factors_01/generation.yaml"
+model_family: "CEV"
+row_count: 1000
+parameterization: "factorized"
+inputs:
+  source_model: "datasets/model/equity/markovian/cev/parameters/cev_01.json"
+parameters:
+  spot: "Model parameter."
+  dividend_yield: "Model parameter."
+  sigma: "Model parameter."
+  beta: "Model parameter."
+dynamics:
+  source_model_dataset: "datasets/model/equity/markovian/cev/parameters/cev_01.json"
+construction:
+  method: "projection of complete model parameters"
+  source_model_dataset: "datasets/model/equity/markovian/cev/parameters/cev_01.json"
+  excluded:
+    - "risk_free_rate"
+    - "rho"
+    - "correlation"

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "hull_white_01__flat_01__european_payer_swaptions_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/fixed_income/hull_white/price_gradients/flat/european_payer_swaptions/hull_white_01__flat_01__european_payer_swaptions_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/fixed_income/hull_white/parameters/hull_white_01.json",
     "product": "datasets/product/european_swaption/european_swaptions_01.json",
@@ -12,7 +12,7 @@
     "path": "datasets/model/fixed_income/hull_white/price_gradients/flat/european_payer_swaptions/hull_white_01__flat_01__european_payer_swaptions_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/fixed_income/hull_white/price_gradients/flat/european_payer_swaptions/hull_white_01__flat_01__european_payer_swaptions_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/fixed_income/hull_white/price_gradients/flat/european_payer_swaptions/hull_white_01__flat_01__european_payer_swaptions_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 0,
   "sensitivity": {

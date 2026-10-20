@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json
   sha256: 6b489663f2ed147604fd648ddbf9d96f4faea8551819d131e8e1445691cc5527
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/rough/rough_heston/parameters/rough_heston_01/generator.cpp
-  source_sha256: ec1ea8b712e1546a14dd68d74c6ed79350632669cd855799cdfefa79e260b7b7
-  binary_sha256: c30bd3b9708f9b3a0a2eb14c83bfd341f117feb6585bb7e008fc881ac9151d04
-  recipe_sha256: 65181289c01b37434051f96fc3a30d00fc9ddc06e85dac7a59c072888ea43230
-  started_at_utc: '2026-10-07T13:47:28.159425+00:00'
-  seed: 1610001101
-timing:
-  wall_seconds: 0.03309651399831637
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/rough/rough_heston/parameters/rough_heston_01/recipe.yaml
-  sha256: 65181289c01b37434051f96fc3a30d00fc9ddc06e85dac7a59c072888ea43230
-provenance:
-  generator: catalog/model/equity/rough/rough_heston/parameters/rough_heston_01/generator.cpp
-  generator_sha256: ec1ea8b712e1546a14dd68d74c6ed79350632669cd855799cdfefa79e260b7b7
-  binary_sha256: c30bd3b9708f9b3a0a2eb14c83bfd341f117feb6585bb7e008fc881ac9151d04
-  parameter_campaign: full model/product refresh
-record_sha256: ca0d99e33aa1c63ec257002029363b504ca7181e75a9569eb59fe89cb87681e9
+hardware:
+  device: cpu

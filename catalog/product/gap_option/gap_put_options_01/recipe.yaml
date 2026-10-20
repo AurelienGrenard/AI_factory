@@ -1,12 +1,11 @@
 schema_version: 1
 kind: "product_parameters"
 dataset_id: "gap_put_options_01"
-generator: "generator.cpp"
+generator: "catalog/product/gap_option/gap_put_options_01/generator.cpp"
 output:
   path: "datasets/product/gap_option/gap_put_options_01.json"
   format: "json"
-generation_output: "catalog/product/gap_option/gap_put_options_01/generation.yaml"
-url: "https://datasets.ai-factory.example/v1/product/gap_options/gap_put_options_01.json"
+generation_details: "catalog/product/gap_option/gap_put_options_01/generation.yaml"
 product_family: "Gap Puts"
 row_count: 1000
 time_convention:

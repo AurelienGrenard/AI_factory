@@ -13,7 +13,8 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json", "datasets/product/forward_start_option/forward_start_options_01.json", "datasets/model/equity/rough/rough_heston/price_gradients/forward_start_calls/rough_heston_01__forward_start_calls_01__01_price_gradient.json", "catalog/model/equity/rough/rough_heston/price_gradients/forward_start_calls/rough_heston_01__forward_start_calls_01__01_price_gradient/generation.yaml",
             "catalog/model/equity/rough/rough_heston/prices/forward_start_calls/rough_heston_01__forward_start_calls_01__01/recipe.yaml", PriceConstruction::Aligned, {{
-        {"model.spot", {0.005, pg::BumpScale::relative}},
+        {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
+        {"model.dividend_yield", {0.0005, pg::BumpScale::absolute}},
         {"model.initial_variance", {0.002, pg::BumpScale::absolute}},
         {"model.mean_reversion", {0.01, pg::BumpScale::relative}},
         {"model.variance_drift", {0.002, pg::BumpScale::absolute}},
@@ -27,6 +28,7 @@ int main() {
             pg::SensitivityStrategy::node_graph
         };
         recipe.option_side = "call";
+        recipe.reconstructible_sensitivities = {{"model.spot", "price / model.spot", "standard_error / model.spot"}};
         const auto models = binding::load_models(recipe.model_input);
         const auto products = product::load_forward_start_options(recipe.product_input);
         using Graph = binding::ForwardStartOptionNodeGraph<

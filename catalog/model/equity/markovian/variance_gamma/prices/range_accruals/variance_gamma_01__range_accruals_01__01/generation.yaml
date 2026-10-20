@@ -1,85 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: d88361ed497dfeb343dc5a26b9505972c4fe2a116a22ccad449f9477bcadf037
-execution:
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: equity_exact_mc
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: variance_gamma
-    product: range_accrual
-    curve: ''
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 512
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 1000
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: markovian_pricing
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  checkpoint:
-    schema_version: 1
-    resumed_prices: 0
-    timing_scope: current process attempt
-  paths_per_price: 1048576
-  binary_sha256: ba5da076858452cc192d326930dc3b2811d093671af6a09023f8867938c43d08
-  generator_sha256: 51fcac564a736b6ffb358b7c3fbcfe522d090589a074f386966b7eeaac7191cc
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: range_accruals
-    construction: aligned
-    has_curve: false
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 26.193156562
-  kernel_seconds: 20.247541015625
-recipe:
-  path: catalog/model/equity/markovian/variance_gamma/prices/range_accruals/variance_gamma_01__range_accruals_01__01/recipe.yaml
-  sha256: 37a8c0ac710a5901c2dfb42d43957b9ba7cd97f0f6f93fa9fae960707b422b84
 inputs:
-  models: 27a2011a50833b7a10b6216d10663827ebbe280e773c8a9eea9e233fe83cebb1
-  products: 69ce978d2232031cddd43efba96db71b4bcccd805ca9e5b51231e8ffdf432148
-provenance:
-  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
-  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
-  runtime_observation:
-    unix_time: 1791498498.6455505
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 75, 47.38 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/equity/markovian/variance_gamma/prices/range_accruals/variance_gamma_01__range_accruals_01__01/generator.cpp
-  input_files:
-    datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json: 3c1260ac67cd924460f612c14b6a6ecd7964ce02a00afd9b793f705414353cbc
-    datasets/product/range_accrual/range_accruals_01.json: 02da73cd4fb249f09d32ab091f883c6c514328b8bcffc7e7b7bbdd741fc99fb9
-record_sha256: 503f04af474316cc5db59ed711404acdee2abb7ea33ed2812d4486a076e07878
+  model:
+    path: datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json
+    sha256: 3c1260ac67cd924460f612c14b6a6ecd7964ce02a00afd9b793f705414353cbc
+  product:
+    path: datasets/product/range_accrual/range_accruals_01.json
+    sha256: 02da73cd4fb249f09d32ab091f883c6c514328b8bcffc7e7b7bbdd741fc99fb9
+output:
+  path: datasets/model/equity/markovian/variance_gamma/prices/range_accruals/variance_gamma_01__range_accruals_01__01.json
+  sha256: d88361ed497dfeb343dc5a26b9505972c4fe2a116a22ccad449f9477bcadf037
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

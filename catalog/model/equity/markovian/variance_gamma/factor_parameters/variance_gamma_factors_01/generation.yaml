@@ -1,0 +1,19 @@
+schema_version: 4
+status: complete
+inputs:
+  source_model:
+    path: datasets/model/equity/markovian/variance_gamma/parameters/variance_gamma_01.json
+    sha256: 3c1260ac67cd924460f612c14b6a6ecd7964ce02a00afd9b793f705414353cbc
+output:
+  path: datasets/model/equity/markovian/variance_gamma/factor_parameters/variance_gamma_factors_01.json
+  sha256: 7bc1d94feeb0e182fedaa475d02509e8580bde552924bd7a15b6a031e73c1e3b
+hardware:
+  device: cpu
+  host: ALIENWAREAG
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

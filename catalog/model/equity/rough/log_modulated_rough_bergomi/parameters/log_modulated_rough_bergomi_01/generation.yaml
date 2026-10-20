@@ -1,26 +1,8 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
+inputs: {}
+output:
   path: datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json
   sha256: 45e9c23518c161823174b02a4e1e4dff31b292ccb46d82fb833f29c5b8a97940
-execution:
-  mode: native_parameter_generator
-  generator: catalog/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01/generator.cpp
-  source_sha256: 47abdce7cf3b106ff7e2e1ffee19e9a44800133a3462e3369da0bb00d65c2df4
-  binary_sha256: 67223dbe3d5d647316339ade6a9aed80ede1ff5f9df9f2a7590fcfe97b6ad08e
-  recipe_sha256: 830056dbcc8ec0773394594ab2b64c05c1e665f5067f02588975fec49412753e
-  started_at_utc: '2026-10-07T13:47:27.963885+00:00'
-  seed: 1610001601
-timing:
-  wall_seconds: 0.029548329999670386
-  kernel_seconds: 0.0
-recipe:
-  path: catalog/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01/recipe.yaml
-  sha256: 830056dbcc8ec0773394594ab2b64c05c1e665f5067f02588975fec49412753e
-provenance:
-  generator: catalog/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01/generator.cpp
-  generator_sha256: 47abdce7cf3b106ff7e2e1ffee19e9a44800133a3462e3369da0bb00d65c2df4
-  binary_sha256: 67223dbe3d5d647316339ade6a9aed80ede1ff5f9df9f2a7590fcfe97b6ad08e
-  parameter_campaign: full model/product refresh
-record_sha256: 299bb8d2d6a243fc2c3cef3d7af1c12498335754835451b16c132ad0dafa68ab
+hardware:
+  device: cpu

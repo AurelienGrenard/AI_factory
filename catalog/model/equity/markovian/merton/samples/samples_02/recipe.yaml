@@ -2,14 +2,13 @@
   "schema_version": 1,
   "kind": "samples",
   "dataset_id": "samples_02",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/equity/markovian/merton/samples/samples_02/generator.cpp",
   "model": "merton",
   "output": {
     "path": "datasets/model/equity/markovian/merton/samples/samples_02.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/equity/markovian/merton/samples/samples_02/generation.yaml",
-  "url": "https://datasets.ai-factory.example/v2/model/equity/markovian/merton/samples/samples_02.json",
+  "generation_details": "catalog/model/equity/markovian/merton/samples/samples_02/generation.yaml",
   "row_count": 3000000,
   "shape": {
     "parameter_count": 3000000,
@@ -18,11 +17,9 @@
   },
   "parameter_sampling": {
     "regime": "plausible core only",
-    "distribution": "independent Philox uniform proposals; accepted rows retain proposal order",
+    "distribution": "independent Philox uniform proposals with counter-local rejection per parameter row",
     "proposal_draw_order": [
       "spot",
-      "risk_free_rate",
-      "dividend_yield",
       "volatility",
       "jump_intensity",
       "jump_log_mean",
@@ -32,14 +29,6 @@
       "spot": [
         1.0,
         1.0
-      ],
-      "risk_free_rate": [
-        0.001,
-        0.08
-      ],
-      "dividend_yield": [
-        0.0,
-        0.06
       ],
       "volatility": [
         0.08,
@@ -59,7 +48,11 @@
       ]
     },
     "acceptance": "true",
-    "derived_parameters": {}
+    "derived_parameters": {},
+    "fixed_model_inputs": {
+      "risk_free_rate": 0.0,
+      "dividend_yield": 0.0
+    }
   },
   "maturity_sampling": {
     "distribution": "discrete uniform without modulo bias",

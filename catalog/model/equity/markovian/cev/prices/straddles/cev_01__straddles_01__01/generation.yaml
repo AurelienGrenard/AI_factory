@@ -1,86 +1,24 @@
-schema_version: 1
+schema_version: 4
 status: complete
-artifact:
-  row_count: 1000
-  sha256: d7489f3d3e61381e69eea023943f9d463c9c786cb47a123f321625bacaf6db85
-execution:
-  simulation_steps_per_day: 2
-  block_count: 1000
-  threads_per_block: 512
-  kernel_launch_count: 1
-  maximum_prices_per_block: 1
-  launch_plan:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: equity_step_mc
-    selection: host launch plan; no runtime autotuning
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-    model: cev
-    product: straddle
-    curve: ''
-    qualification: reference_default_not_pair_qualified
-    evidence: docs/performance-reports/pricing-workload-scaling-sm89-2026-09-07.md
-    price_count: 1000
-    paths_per_price: 1048576
-    threads_per_block: 512
-    prices_per_launch: 1000
-    price_launch_count: 1
-    memory_batching: price launch bound; engine workspace guards still apply
-    work_distribution: one price per block at a time
-    block_count: 1000
-    device_resources_checked: false
-    scope: offline proposed launch; native engine guards and qualification still required
-  tuning_profile:
-    profile_id: sm89_cuda12_unqualified_v1
-    family: markovian_pricing
-    selection: compile-time CMake profile
-    measured_on: user-declared profile
-    portability: valid only for the separately documented target environment
-  checkpoint:
-    schema_version: 1
-    resumed_prices: 0
-    timing_scope: current process attempt
-  paths_per_price: 1048576
-  binary_sha256: bd40535be8c6a678e57fcfdfa4f18b84f921e8167d056412aa08ab7bcfe195c8
-  generator_sha256: ff0b3cfd8f6a1dcaedbdfad8fb35162916d79f28880dee4153a231a9ce8d68e5
-  declared_method:
-    engine: equity_markovian
-    profile: catalog_price_profile
-    variant: straddles
-    construction: aligned
-    has_curve: false
-    random_number_generator:
-      name: philox
-      mapping_version: philox_source_step_v2
-  build_hashes:
-    CMakeCache.txt: 4b881774526876b14ddf589f176e467508cf6d02958a0d21e7811e83a985333a
-    Makefile: 71bb890f5cbb0528cdaf15e373860bffefbc17a6ddad6e1cbd0aa9fc7dfd6cb7
-    CMakeFiles/Makefile2: 0c603cc17422e0fc43dd65900aec192ca2a00a5b986da11297e0ca45c648d290
-timing:
-  wall_seconds: 14.552053984
-  kernel_seconds: 13.677259765625001
-recipe:
-  path: catalog/model/equity/markovian/cev/prices/straddles/cev_01__straddles_01__01/recipe.yaml
-  sha256: 63be55fc906ae1afd226a10ce2781787ae8645f832c966d1a6243ed2b3dddfa3
 inputs:
-  models: 04b7665649c74852e002d8a2b97b3851ffaec866968fcf2cb85ff47ffae18940
-  products: 7f079ba895794576c80c0cb48a0b15fdd324ec485cecf2c7d86c71fb3541bb88
-provenance:
-  revision: da7fac1a20770fcb92073d98a8084302af0cdb45
-  source_archive_sha256: 5f1921c170b02f6b32e2d7326d441e676ca6b58e07bf21d2caadafa4ebcc5417
-  runtime_observation:
-    unix_time: 1791493169.1968029
-    returncode: 0
-    stdout: 'index, name, uuid, driver_version, pstate, temperature.gpu, power.draw
-      [W], power.limit [W], clocks.current.sm [MHz], clocks.current.memory [MHz]
-
-      0, NVIDIA GeForce RTX 4090 Laptop GPU, GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4,
-      610.60, P0, 74, 47.09 W, [N/A], 2040 MHz, 9001 MHz
-
-      '
-    stderr: ''
-  generator: catalog/model/equity/markovian/cev/prices/straddles/cev_01__straddles_01__01/generator.cpp
-  input_files:
-    datasets/model/equity/markovian/cev/parameters/cev_01.json: 5b7da83275dcc111b394543b8cff5a92b131b81b54f9c5aaea4531c464ca64a7
-    datasets/product/straddle/straddles_01.json: 0c80ae4f742d25e3fd5d6f88b4ed7f2fea48578879513a214adbae4be6d4771d
-record_sha256: 7ae296799871787bf76c20bb859d49cf28f3182d5688923125f21d6cbf686a55
+  model:
+    path: datasets/model/equity/markovian/cev/parameters/cev_01.json
+    sha256: 5b7da83275dcc111b394543b8cff5a92b131b81b54f9c5aaea4531c464ca64a7
+  product:
+    path: datasets/product/straddle/straddles_01.json
+    sha256: 0c80ae4f742d25e3fd5d6f88b4ed7f2fea48578879513a214adbae4be6d4771d
+output:
+  path: datasets/model/equity/markovian/cev/prices/straddles/cev_01__straddles_01__01.json
+  sha256: d7489f3d3e61381e69eea023943f9d463c9c786cb47a123f321625bacaf6db85
+hardware:
+  device: gpu
+  index: '0'
+  name: NVIDIA GeForce RTX 4090 Laptop GPU
+  uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
+  driver_version: '610.60'
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (major version recorded by CMake)
+  cuda_compiler: nvcc from CUDA 12.9.0 toolkit (patch version not recorded)
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

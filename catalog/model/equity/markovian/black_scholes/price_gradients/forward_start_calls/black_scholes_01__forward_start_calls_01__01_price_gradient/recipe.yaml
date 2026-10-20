@@ -2,7 +2,7 @@
   "schema_version": 1,
   "kind": "price_gradients",
   "dataset_id": "black_scholes_01__forward_start_calls_01__01_price_gradient",
-  "generator": "generator.cpp",
+  "generator": "catalog/model/equity/markovian/black_scholes/price_gradients/forward_start_calls/black_scholes_01__forward_start_calls_01__01_price_gradient/generator.cpp",
   "inputs": {
     "model": "datasets/model/equity/markovian/black_scholes/parameters/black_scholes_01.json",
     "product": "datasets/product/forward_start_option/forward_start_options_01.json"
@@ -11,22 +11,28 @@
     "path": "datasets/model/equity/markovian/black_scholes/price_gradients/forward_start_calls/black_scholes_01__forward_start_calls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_output": "catalog/model/equity/markovian/black_scholes/price_gradients/forward_start_calls/black_scholes_01__forward_start_calls_01__01_price_gradient/generation.yaml",
+  "generation_details": "catalog/model/equity/markovian/black_scholes/price_gradients/forward_start_calls/black_scholes_01__forward_start_calls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 0,
   "sensitivity": {
     "method": "finite_difference",
     "parameters": [
       {
-        "parameter": "model.spot",
+        "parameter": "model.volatility",
         "displacement": 0.005,
         "scale": "relative",
         "boundary": "central_then_one_sided_order2"
       },
       {
-        "parameter": "model.volatility",
-        "displacement": 0.005,
-        "scale": "relative",
+        "parameter": "model.risk_free_rate",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.dividend_yield",
+        "displacement": 0.0005,
+        "scale": "absolute",
         "boundary": "central_then_one_sided_order2"
       },
       {
@@ -44,7 +50,14 @@
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/equity/markovian/black_scholes/prices/forward_start_calls/black_scholes_01__forward_start_calls_01__01/recipe.yaml",
-    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios."
+    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios.",
+    "reconstructible_from_price": [
+      {
+        "parameter": "model.spot",
+        "formula": "price / model.spot",
+        "standard_error": "standard_error / model.spot"
+      }
+    ]
   },
   "option_side": "call",
   "time_representation": {

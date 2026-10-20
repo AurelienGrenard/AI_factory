@@ -1,12 +1,11 @@
 schema_version: 1
 kind: "product_parameters"
 dataset_id: "bermudan_swaptions_01"
-generator: "generator.cpp"
+generator: "catalog/product/bermudan_swaption/bermudan_swaptions_01/generator.cpp"
 output:
   path: "datasets/product/bermudan_swaption/bermudan_swaptions_01.json"
   format: "json"
-generation_output: "catalog/product/bermudan_swaption/bermudan_swaptions_01/generation.yaml"
-url: "https://datasets.ai-factory.example/v1/product/bermudan_swaptions/bermudan_swaptions_01.json"
+generation_details: "catalog/product/bermudan_swaption/bermudan_swaptions_01/generation.yaml"
 product_family: "Bermudan Swaptions"
 row_count: 1000
 time_convention:
