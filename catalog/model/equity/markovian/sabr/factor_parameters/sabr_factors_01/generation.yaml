@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/markovian/sabr/parameters/sabr_01.json
-    sha256: 007b5cf9be3f65671449e2e68a9039c64791f9aa5c34d3f33373196cd0f8012e
+    sha256: c02e005bd3eb40858e3d9ade80a31cdcee309cc0d73540a5035405ae2b35382f
 output:
   path: datasets/model/equity/markovian/sabr/factor_parameters/sabr_factors_01.json
-  sha256: 96273bf81a46f614e06df324e4ec630c247b733d61a91b561bd16801e9579a03
+  sha256: 243b631b0980eee4ca92aa4bfa6c7d7e3493a515eab52df39780c2bc8f210de2
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

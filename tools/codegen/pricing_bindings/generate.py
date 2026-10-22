@@ -13,6 +13,7 @@ import sys
 from string import Template
 
 import yaml
+from fixed_income_quote import quote_convention
 
 from manifest import (
     AMERICAN_RECIPE_SPECS,
@@ -193,9 +194,11 @@ def _render_sample_binding(model: SampleModelSpec, suffix: str) -> str:
         "volterra": "rough/volterra_fft",
         "n_factor": "rough/markovian_n_factor",
     }[model.backend]
+    template = f"sampling/{family}/model_binding.{suffix}.tpl"
+    if model.name == "rough_heston" and suffix == "cu":
+        template = "sampling/rough/markovian_n_factor/rough_heston_binding.cu.tpl"
     return _render_dollar_template(
-        f"sampling/{family}/model_binding.{suffix}.tpl",
-        _sample_binding_template_values(model),
+        template, _sample_binding_template_values(model),
     )
 
 
@@ -513,7 +516,6 @@ def _sample_recipe_metadata(
             "path": dataset.dataset_path,
             "format": "json",
         },
-        "generation_details": dataset.generation_yaml_path,
         "row_count": dataset.row_count,
         "shape": {
             "parameter_count": parameter_count,
@@ -1025,7 +1027,6 @@ def generate_price_delta_recipes(output_root: Path) -> list[Path]:
             "generator": dataset.generator_path, "model_input": values["model_input"],
             "product_input": values["product_input"],
             "output": {"path": dataset.dataset_path, "format": "json"},
-            "generation_details": dataset.generation_yaml_path,
             "construction": dataset.construction,
             "paths_per_price": 1048576 if stochastic else 0,
             "launch_profile": "inherited price profile; inspect compiled plan; not delta-tuned",
@@ -1693,7 +1694,6 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         "generator": dataset.generator_path,
         "inputs": roles,
         "output": {"path": dataset.dataset_path, "format": "json"},
-        "generation_details": dataset.generation_yaml_path,
         "row_count": dataset.row_count,
         "numerical_method": {
             "engine": dataset.engine,
@@ -1703,6 +1703,17 @@ def _price_recipe_metadata(dataset, source: str) -> dict:
         ),
         "paths_per_price": 1_048_576 if stochastic else 0,
     }
+    if dataset.asset_class == "fixed_income":
+        metadata["quote_convention"] = quote_convention(dataset.product)
+    variant = dataset.variant or ""
+    if "payer" in variant:
+        metadata["option_side"] = "payer"
+    elif "receiver" in variant:
+        metadata["option_side"] = "receiver"
+    elif "calls" in variant or variant == "caplets":
+        metadata["option_side"] = "call"
+    elif "puts" in variant or variant == "floorlets":
+        metadata["option_side"] = "put"
     if dataset.construction == "cartesian" and dataset.curve is not None:
         metadata["curve_assignment"] = CURVE_ASSIGNMENT
     if dataset.engine.startswith("equity_lsm_") or dataset.engine == "fixed_income_lsm":

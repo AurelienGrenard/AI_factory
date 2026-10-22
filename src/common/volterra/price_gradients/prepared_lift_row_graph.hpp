@@ -53,12 +53,12 @@ PreparedLiftGraphRow<
         host.products.size(),
         host.construction
     );
+    const auto product = equity::spot_relative::selected_central_product(
+        host.models[indices.model_index],
+        host.products[indices.product_index], host.relative_quotes);
     typename Preparation::Scenario central{};
     if (!Preparation::make_central(
-            host.models[indices.model_index],
-            host.products[indices.product_index],
-            host.time,
-            central
+            host.models[indices.model_index], product, host.time, central
         )) {
         throw std::invalid_argument("Invalid prepared-lift central row.");
     }

@@ -38,7 +38,9 @@ typename Plan::Preparation::Scenario central_row(
     require(
         Plan::Preparation::make_central(
             plan.models[indices.model],
-            plan.products[indices.product],
+            equity::spot_relative::selected_central_product(
+                plan.models[indices.model], plan.products[indices.product],
+                plan.relative_quotes),
             plan.time,
             central
         ),
@@ -115,10 +117,11 @@ void selection() {
     const auto prepare = [&](const auto& config) { return bs::prepare_black_scholes_european_option_price_gradients(models, products,
         PriceConstruction::CartesianProduct, {}, config); };
     const auto plan = prepare(selected);
-    require(plan.result_count == 4U && plan.models.size() == 4U
-            && plan.products.size() == 4U && plan.sensitivities.size() == 2U
-            && plan.construction == PriceConstruction::Aligned,
-        "Cartesian quote pairs were not resolved in model-major order.");
+    require(plan.result_count == 4U && plan.models.size() == 2U
+            && plan.products.size() == 2U && plan.sensitivities.size() == 2U
+            && plan.construction == PriceConstruction::CartesianProduct
+            && plan.relative_quotes,
+        "Cartesian quote mapping was not retained compactly.");
     for (std::size_t row = 0U; row < plan.result_count; ++row) {
         const auto central = central_row(plan, row);
         require(
@@ -273,7 +276,11 @@ void heston_device_preparation() {
         typename decltype(plan)::Preparation::Scenario central{};
         require(
             decltype(plan)::Preparation::make_central(
-                plan.models[row], plan.products[row], plan.time, central
+                plan.models[row],
+                equity::spot_relative::selected_central_product(
+                    plan.models[row], plan.products[row],
+                    plan.relative_quotes),
+                plan.time, central
             ),
             "Heston central device row is invalid."
         );
@@ -353,7 +360,10 @@ void heston_device_preparation() {
     );
     typename decltype(short_plan)::Preparation::Scenario short_central{};
     require(decltype(short_plan)::Preparation::make_central(
-                short_plan.models[0U], short_plan.products[0U],
+                short_plan.models[0U],
+                equity::spot_relative::selected_central_product(
+                    short_plan.models[0U], short_plan.products[0U],
+                    short_plan.relative_quotes),
                 short_plan.time, short_central),
             "Short Heston maturity central row is invalid.");
     pg::SensitivityTask<
@@ -428,11 +438,12 @@ void spot_relative_contract() {
     const auto plan = bs::prepare_black_scholes_european_option_price_gradients(
         models, products, PriceConstruction::Aligned, {}, selected
     );
-    require(std::abs(plan.products[0].strike - 2.7f) < 1.e-6f,
-        "Quoted strike was not resolved against central spot.");
+    require(plan.products[0].strike == .9f && plan.relative_quotes,
+        "Quoted strike was not retained in its source dataset.");
     const auto spot = first_order_task(plan, 0U, 0U);
-    require(spot.nodes[1U].product.strike == plan.products[0].strike
-            && spot.nodes[2U].product.strike == plan.products[0].strike,
+    const float frozen_strike = central_row(plan, 0U).product.strike;
+    require(spot.nodes[1U].product.strike == frozen_strike
+            && spot.nodes[2U].product.strike == frozen_strike,
         "Spot bump moved the frozen strike.");
     const auto strike = first_order_task(plan, 0U, 1U);
     require(std::abs(strike.nodes[2U].product.strike
@@ -498,11 +509,13 @@ void spot_relative_contract() {
         );
     const auto spot_barrier_task = first_order_task(barrier_plan, 0U, 0U);
     const auto lower_barrier_task = first_order_task(barrier_plan, 0U, 1U);
-    require(std::abs(barrier_plan.products[0].lower_barrier - 2.7f) < 1.e-6f
+    const float frozen_lower = central_row(
+        barrier_plan, 0U).product.lower_barrier;
+    require(barrier_plan.products[0].lower_barrier == .9f
             && spot_barrier_task.nodes[1U].product.lower_barrier
-                == barrier_plan.products[0].lower_barrier
+                == frozen_lower
             && spot_barrier_task.nodes[2U].product.lower_barrier
-                == barrier_plan.products[0].lower_barrier
+                == frozen_lower
             && std::abs(lower_barrier_task.nodes[2U].product.lower_barrier
                 - lower_barrier_task.nodes[1U].product.lower_barrier
                 - .06f) < 2.e-6f,

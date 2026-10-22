@@ -1,0 +1,18 @@
+schema_version: 4
+status: complete
+inputs:
+  source_product:
+    path: datasets/product/range_accrual/range_accruals_01.json
+    sha256: 17ce7be15de1a437fb0e87545213dc0c5eb9b730139abc8918b2d4175fd19349
+output:
+  path: datasets/product/range_accrual/range_accruals_01_shard00.json
+  sha256: 4410b02bdbed74d7b1a8569c01f482f2d6cfb088883984e11386be5d62638f92
+hardware:
+  device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

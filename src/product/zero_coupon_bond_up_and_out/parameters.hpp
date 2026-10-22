@@ -12,6 +12,7 @@ struct ZeroCouponBondUpAndOutParameters {
     float barrier;
     std::uint32_t option_expiry_days;
     std::uint32_t bond_maturity_days;
+    bool quote_is_relative = false;
 };
 
 static_assert(std::is_trivially_copyable_v<ZeroCouponBondUpAndOutParameters>);

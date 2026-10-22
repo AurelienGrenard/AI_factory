@@ -92,8 +92,8 @@ int main() {
         {63U, 126U, 252U, 504U, 756U,
          1260U, 1764U, 2520U, 3780U, 5040U},
         core_schedules,
-        {0.005f, 0.0125f, 0.020f, 0.0275f, 0.035f,
-         0.0425f, 0.050f, 0.065f, 0.080f},
+        {-0.006f, -0.004f, -0.002f, -0.001f, 0.0f,
+         0.001f, 0.002f, 0.004f, 0.006f},
         "Standard expiries, one-to-twenty-year swaps, annual or semiannual "
         "fixed legs, and strikes concentrated around ordinary rate levels."
     );
@@ -106,7 +106,7 @@ int main() {
             {252U, 30U, 1.0f},
             {252U, 1U, 1.0f},
         },
-        {0.0f, 0.005f, 0.08f, 0.15f},
+        {-0.015f, -0.008f, 0.008f, 0.015f},
         "One-month to twenty-five-year expiries, one-to-thirty-year fixed "
         "legs, monthly through annual schedules, and moderate strike tails."
     );
@@ -114,7 +114,7 @@ int main() {
         std::move(core), std::move(stress)
     );
 
-    write_product_dataset(
+    write_fixed_income_product_dataset(
         "european_swaptions_01",
         "European Swaptions",
         dataset_path,
@@ -122,7 +122,7 @@ int main() {
         url,
         {
             {"notional", "Contract notional N."},
-            {"strike", "Fixed swap rate K."},
+            {"strike", "Annualized decimal spread from the initial par swap rate; 0.005 means +50 bp."},
             {
                 "exercise_time",
                 "Exercise date and underlying swap start T_e in business days."
@@ -147,7 +147,9 @@ int main() {
             {"settlement", "physical"},
             {"normalization", "N = 1"},
         },
-        rows
-    );
+        rows,
+        { {"strike", { {"mode", "additive_to_initial_par_swap_rate"}, {"unit", "annualized_decimal_rate"}, {"effective_level", "strike = initial_par_swap_rate + strike_spread"} } },
+          {"reference_policy", "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."} }
+);
     validate_product_dataset_file(dataset_path);
 }

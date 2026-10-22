@@ -157,6 +157,21 @@ struct DevicePreparedInputAdapter {
     }
 };
 
+template<typename PreparedInput,typename PreparedInputSource>
+__global__ void prepare_sample_input_rows_kernel(
+    PreparedInputSource source,
+    std::size_t first_parameter,
+    std::size_t parameter_count,
+    std::uint64_t parameter_seed,
+    PreparedInput* prepared_inputs
+) {
+    if(threadIdx.x==0U)
+        for(std::size_t local=blockIdx.x;local<parameter_count;
+            local+=gridDim.x)
+            prepared_inputs[local]=source.load(
+                first_parameter+local,parameter_seed);
+}
+
 template<
     ExecutableSamplingPolicy Policy,
     ParameterSourceFor<

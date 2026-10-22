@@ -3,6 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/model/equity/rough/log_modulated_rough_bergomi/parameters/log_modulated_rough_bergomi_01.json
-  sha256: 45e9c23518c161823174b02a4e1e4dff31b292ccb46d82fb833f29c5b8a97940
+  sha256: 84d278aeca0ddfd3793725de0d906917a4dd7d67fc23650681b9ca25e2a03464
 hardware:
   device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

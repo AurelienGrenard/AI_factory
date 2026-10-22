@@ -1,7 +1,7 @@
 // Canonical model/product lookup for aligned and Cartesian price rows.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "common/result_index.cuh"
 
 #include <cuda_runtime.h>
 
@@ -19,8 +19,9 @@ __host__ __device__ inline PriceRowIndices price_row_indices(
     PriceConstruction construction,
     std::size_t product_count
 ) {
-    if (construction == PriceConstruction::Aligned) return {row, row};
-    return {row / product_count, row % product_count};
+    const auto selected = decode_model_product_result_index(
+        row, product_count, construction);
+    return {selected.model_index, selected.product_index};
 }
 
 }  // namespace ai_factory::workbench::price_gradients

@@ -70,7 +70,8 @@ def _historical_environment(recipe: dict, previous: dict) -> tuple[dict, dict]:
             "cxx_compiler": options.get("cxx_compiler_version"),
             "cuda_compiler": options.get("cuda_compiler_version"),
         }
-    hardware = known_fields(hardware)
+    hardware = known_fields({key: value for key, value in hardware.items()
+                             if key not in {"host", "index", "cuda_visible_devices"}})
     if "model" in hardware:
         hardware["cpu_model"] = hardware.pop("model")
     software = known_fields(software)
@@ -107,6 +108,9 @@ def refresh(recipe: dict, previous: dict, dataset: Path, root: Path,
         record["hardware"] = hardware
     if software:
         record["software"] = software
+    if (recipe.get("kind") in {"prices", "price_gradients", "price_delta"}
+            and previous.get("timing") and previous.get("schema_version") == 4):
+        record["timing"] = previous["timing"]
     validate_document(record, "generation", dataset)
     result = assess(recipe, record, dataset)
     if result["status"] != "compatible":

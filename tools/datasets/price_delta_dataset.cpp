@@ -55,8 +55,7 @@ void write_price_delta_dataset(const PriceDeltaRecipe& recipe, const PriceDeltaR
                            {"represented_width", result.bump_widths[i]}}}, {"outputs", outputs}});
     }
     const auto reference = [](const auto& input) {
-        return nlohmann::ordered_json{{"id", input.at("database_id")},
-            {"catalog", input.at("catalog")}, {"url", input.at("url")}};
+        return nlohmann::ordered_json{{"id", input.at("database_id")}};
     };
     const nlohmann::ordered_json sensitivity{
         {"parameter", "spot"}, {"method", recipe.delta_method},
@@ -74,7 +73,6 @@ void write_price_delta_dataset(const PriceDeltaRecipe& recipe, const PriceDeltaR
     }
     nlohmann::ordered_json catalog{
         {"title", recipe.dataset.stem().string()}, {"database_id", recipe.dataset.stem().string()},
-        {"catalog", recipe.catalog.parent_path().generic_string()}, {"url", recipe.url},
         {"row_count", count}, {"time_convention", products.at("time_convention")},
         {"model_dataset", reference(models)}, {"product_dataset", reference(products)},
         {"price_construction", price_construction},

@@ -1,0 +1,18 @@
+schema_version: 4
+status: complete
+inputs:
+  source_product:
+    path: datasets/product/forward_start_option/forward_start_options_01.json
+    sha256: 408e81b9d102794338b560feb278550de1398b9a21c6f0ccd0ce3c4e65e064e1
+output:
+  path: datasets/product/forward_start_option/forward_start_options_01_shard00.json
+  sha256: 9f270b7eee9773154f03af684fedec6654a6f603dbadea42378ae60885763220
+hardware:
+  device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: american_options_01_shard00
+generator: catalog/product/american_option/american_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/american_option/american_options_01.json
+output:
+  path: datasets/product/american_option/american_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: a3b594fdd91c179716f6499212251764f0ce328291894658a057401b2826da8b
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 0
+  - 14
+  - 21
+  - 33
+  - 49
+  - 59
+  - 69
+  - 76
+  - 85
+  - 96
+  - 109
+  - 116
+  - 126
+  - 133
+  - 145
+  - 159
+  - 162
+  - 179
+  - 181
+  - 194
+  - 201
+  - 210
+  - 222
+  - 239
+  - 249
+  - 252
+  - 263
+  - 278
+  - 285
+  - 290
+  - 309
+  - 317
+  - 328
+  - 330
+  - 343
+  - 353
+  - 362
+  - 370
+  - 380
+  - 396
+  - 409
+  - 419
+  - 427
+  - 439
+  - 441
+  - 459
+  - 467
+  - 479
+  - 487
+  - 496
+  - 502
+  - 513
+  - 525
+  - 536
+  - 545
+  - 559
+  - 565
+  - 577
+  - 589
+  - 594
+  - 603
+  - 617
+  - 626
+  - 634
+  - 648
+  - 650
+  - 660
+  - 679
+  - 683
+  - 696
+  - 701
+  - 716
+  - 725
+  - 738
+  - 740
+  - 754
+  - 768
+  - 777
+  - 788
+  - 793
+  - 803
+  - 817
+  - 825
+  - 839
+  - 842
+  - 858
+  - 865
+  - 876
+  - 884
+  - 898
+  - 907
+  - 919
+  - 925
+  - 930
+  - 948
+  - 958
+  - 967
+  - 975
+  - 983
+  - 993
+quote_convention:
+  strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: strike * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

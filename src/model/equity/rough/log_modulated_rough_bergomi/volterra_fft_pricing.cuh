@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/price_construction.cuh"
-#include "common/volterra/hybrid_fft_pricer.cuh"
+#include "common/volterra/hybrid_fft_pricer_kernel.cuh"
 #include "common/volterra/log_modulated_hybrid_kernel.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dynamics_impl.cuh"
 

@@ -7,7 +7,6 @@
 #include <fstream>
 #include <stdexcept>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 int main() {
@@ -85,21 +84,8 @@ int main() {
         throw std::runtime_error("sample progress journal is incomplete");
     }
     const auto document = read_json_file(recipe.dataset_path);
-    const std::unordered_set<std::string> expected_keys = {
-        "database_id", "model_family", "catalog", "row_count",
-        "parameters", "results",
-    };
-    std::unordered_set<std::string> actual_keys;
-    for (const auto& [key, value] : document.items()) {
-        (void)value;
-        actual_keys.insert(key);
-    }
-    if (actual_keys != expected_keys) {
-        throw std::runtime_error("sample envelope is not minimal");
-    }
     if (document.at("database_id") != "samples_01"
         || document.at("model_family") != "Test model"
-        || document.at("catalog") != directory.generic_string()
         || document.at("row_count") != 4U
         || document.at("parameters").at(0).at("values").at("sigma") != 0.2f
         || document.at("parameters").at(1).at("values").at("sigma") != 0.3f

@@ -12,6 +12,7 @@ struct RateOptionParameters {
     std::uint32_t fixing_time_days;
     std::uint32_t payment_time_days;
     std::uint32_t accrual_period_days;
+    bool quote_is_relative = false;
 };
 
 static_assert(std::is_trivially_copyable_v<RateOptionParameters>);

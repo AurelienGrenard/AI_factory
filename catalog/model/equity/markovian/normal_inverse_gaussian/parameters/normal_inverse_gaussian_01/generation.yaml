@@ -3,6 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/model/equity/markovian/normal_inverse_gaussian/parameters/normal_inverse_gaussian_01.json
-  sha256: c04a5c9c37f467b72392a8e1a996cbeae8b2e64971f0e33bf5c960cf6180dcfc
+  sha256: 0371ced4f1f4f3e240a3059ee3f6476d1a6045f2cd70f076f54c16ad7e3a72df
 hardware:
   device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

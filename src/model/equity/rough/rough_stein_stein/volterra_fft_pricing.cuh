@@ -3,7 +3,7 @@
 
 #include "common/price_construction.cuh"
 #include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_fft_pricer.cuh"
+#include "common/volterra/hybrid_fft_pricer_kernel.cuh"
 #include "model/equity/rough/rough_stein_stein/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {

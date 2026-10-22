@@ -5,7 +5,6 @@ generator: "catalog/model/equity/rough/rough_sabr/factor_parameters/rough_sabr_f
 output:
   path: "datasets/model/equity/rough/rough_sabr/factor_parameters/rough_sabr_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/rough/rough_sabr/factor_parameters/rough_sabr_factors_01/generation.yaml"
 model_family: "rough SABR"
 row_count: 1000
 parameterization: "factorized"

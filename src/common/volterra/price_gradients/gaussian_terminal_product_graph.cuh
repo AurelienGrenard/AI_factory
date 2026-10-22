@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/volterra/price_gradients/terminal_product_graph.cuh"
-#include "common/volterra/price_gradients/gaussian_fft_node_graph.cuh"
+#include "common/volterra/price_gradients/gaussian_fft_node_graph_kernel.cuh"
 
 namespace ai_factory::workbench::volterra::price_gradients {
 

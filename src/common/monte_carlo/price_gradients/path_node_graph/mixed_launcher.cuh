@@ -4,9 +4,9 @@
 #include "common/cuda_kernel_diagnostics.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/kernel_shared_memory.cuh"
 #include "common/monte_carlo/price_gradients/node_graph/mixed_launch_validation.hpp"
-#include "common/monte_carlo/price_gradients/node_graph/mixed_reconstruction.cuh"
-#include "common/monte_carlo/price_gradients/path_node_graph/mixed_evaluation.cuh"
-#include "common/monte_carlo/price_gradients/path_node_graph/mixed_preparation.cuh"
+#include "common/monte_carlo/price_gradients/node_graph/mixed_reconstruction_kernel.cuh"
+#include "common/monte_carlo/price_gradients/path_node_graph/mixed_evaluation_kernel.cuh"
+#include "common/monte_carlo/price_gradients/path_node_graph/mixed_preparation_kernel.cuh"
 #include "common/monte_carlo/price_gradients/path_node_graph/mixed_workspace.cuh"
 #include "common/monte_carlo/price_gradients/tuning.cuh"
 

@@ -25,8 +25,8 @@ int main() {
     for (const float coordinate : linear_grid(-1.0f, 1.0f, 25U)) {
         const float cube = coordinate * coordinate * coordinate;
         core_strikes.push_back(
-            coordinate < 0.0f ? 0.97f + 0.17f * cube
-                              : 0.97f + 0.13f * cube
+            coordinate < 0.0f ? 0.975f + 0.105f * cube
+                              : 0.975f + 0.025f * cube
         );
     }
     const auto regime = [](
@@ -62,19 +62,19 @@ int main() {
         linear_business_day_grid(63U, 1260U, 18U),
         {126U, 252U},
         core_strikes,
-        "Representative expiries and strikes concentrated around 0.97."
+        "Expiry/tenor grid with strike ratios concentrated below the initial forward bond price."
     );
     GeneratedRows stress = regime(
         linear_business_day_grid(21U, 1890U, 10U),
         {63U, 1260U},
-        {0.55f, 0.75f, 0.97f, 1.10f, 1.25f},
-        "One-month to 7.5-year expiries, quarterly to five-year tenors, and moderate bond-price strike tails."
+        {0.78f, 0.87f, 0.95f, 0.99f, 1.03f},
+        "One-month to 7.5-year expiries with moderate dimensionless strike-ratio tails."
     );
     const GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)
     );
 
-    write_product_dataset(
+    write_fixed_income_product_dataset(
         "zero_coupon_bond_options_01",
         "Zero-Coupon Bond Options",
         dataset_path,
@@ -82,7 +82,7 @@ int main() {
         url,
         {
             {"notional", "Normalized contract notional."},
-            {"strike", "Strike expressed as a zero-coupon bond price."},
+            {"strike", "Dimensionless strike ratio to P(0,U)/P(0,T)."},
             {"option_expiry", "Option expiry S in business days."},
             {"bond_maturity", "Underlying bond maturity T > S in business days."},
         },
@@ -91,7 +91,9 @@ int main() {
             {"payment_time", "S"},
             {"normalization", "N = 1"},
         },
-        rows
+        rows,
+        { {"strike", { {"mode", "ratio_to_initial_forward_bond_price"}, {"unit", "dimensionless"}, {"effective_level", "strike = strike_ratio * P(0,U)/P(0,T)"} } },
+          {"reference_policy", "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."} }
     );
     validate_product_dataset_file(dataset_path);
 }

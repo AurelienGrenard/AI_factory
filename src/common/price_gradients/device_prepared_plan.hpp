@@ -45,6 +45,7 @@ struct DevicePreparedSensitivityPlan {
     std::vector<SensitivitySpec> sensitivities;
     std::size_t result_count;
     SensitivityGraphPlan sensitivity_graph;
+    bool relative_quotes = false;
 
     std::size_t sensitivity_count() const noexcept {
         return sensitivities.size();
@@ -86,6 +87,7 @@ struct CurveDevicePreparedSensitivityPlan {
     std::vector<SensitivitySpec> sensitivities;
     std::size_t result_count;
     SensitivityGraphPlan sensitivity_graph;
+    bool relative_quotes = false;
 
     std::size_t sensitivity_count() const noexcept {
         return sensitivities.size();
@@ -106,7 +108,8 @@ Plan prepare_device_sensitivities_absolute(
     PriceConstruction construction,
     TimeConfiguration time,
     const PriceGradientConfiguration& configuration,
-    SensitivityRequest request
+    SensitivityRequest request,
+    bool relative_quotes = false
 ) {
     using Preparation = typename Plan::PreparationPolicy;
     time.validate();
@@ -147,22 +150,26 @@ Plan prepare_device_sensitivities_absolute(
         }
     }
     for (std::size_t row = 0U; row < rows; ++row) {
-        const auto model_index = construction == PriceConstruction::Aligned
-            ? row
-            : row / products.size();
-        const auto product_index = construction == PriceConstruction::Aligned
-            ? row
-            : row % products.size();
+        const auto indices = decode_model_product_result_index(
+            row, products.size(), construction);
+        const auto& model = models[indices.model_index];
+        auto product = products[indices.product_index];
+        if constexpr (requires { model.spot; }) {
+            if (relative_quotes) {
+                product = equity::spot_relative::resolve_product(
+                    product, model.spot);
+            }
+        }
         typename Preparation::Scenario central{};
         if (!Preparation::make_central(
-                models[model_index], products[product_index], time, central
+                model, product, time, central
             )) {
             throw std::invalid_argument(
                 "Invalid central sensitivity row " + std::to_string(row)
             );
         }
     }
-    return {
+    Plan plan{
         configuration,
         request,
         time,
@@ -173,6 +180,12 @@ Plan prepare_device_sensitivities_absolute(
         rows,
         std::move(sensitivity_graph),
     };
+    plan.relative_quotes = relative_quotes;
+    if constexpr (requires(Product& value) { value.quote_is_ratio; }) {
+        for (auto& product : plan.products)
+            product.quote_is_ratio = relative_quotes;
+    }
+    return plan;
 }
 
 // Equity public plans accept spot-relative product quotes. Resolve each pair
@@ -188,13 +201,9 @@ Plan prepare_device_sensitivities(
     SensitivityRequest request
 ) {
     if constexpr (requires(const Model& model) { model.spot; }) {
-        auto rows = equity::spot_relative::resolve_rows(
-            models, products, construction
-        );
         return prepare_device_sensitivities_absolute<Plan>(
-            std::span<const Model>(rows.models),
-            std::span<const Product>(rows.products),
-            rows.construction, time, configuration, request
+            models, products, construction, time, configuration, request,
+            true
         );
     } else {
         return prepare_device_sensitivities_absolute<Plan>(

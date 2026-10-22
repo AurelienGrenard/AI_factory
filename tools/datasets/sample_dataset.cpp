@@ -172,8 +172,6 @@ void write_streamed_json(
     output << "{\n"
            << "  \"database_id\": " << nlohmann::json(recipe.database_id).dump() << ",\n"
            << "  \"model_family\": " << nlohmann::json(recipe.model_family).dump() << ",\n"
-           << "  \"catalog\": "
-           << nlohmann::json(recipe.catalog_path.parent_path().generic_string()).dump() << ",\n"
            << "  \"row_count\": " << row_count << ",\n"
            << "  \"parameters\": [\n";
     for (std::size_t parameter_index = 0U;
@@ -311,12 +309,10 @@ void validate_model_sample_dataset_file(
     std::uint32_t maximum_maturity_days
 ) {
     const nlohmann::ordered_json document = read_json_file(dataset_path);
-    if (document.size() != 6U
+    if (document.size() != 5U
         || document.at("database_id") != dataset_path.stem().string()
         || !document.at("model_family").is_string()
         || document.at("model_family").get<std::string>().empty()
-        || !document.at("catalog").is_string()
-        || document.at("catalog").get<std::string>().empty()
         || document.at("row_count") != expected_row_count
         || !document.contains("parameters")
         || !document.contains("results")

@@ -95,13 +95,13 @@ add_cuda_workbench_test(price_gradients_diffusion_models_cuda
     tests/price_gradients/diffusion_models_cuda_test.cu
     "price_gradients;parity;heston_3_2;schobel_zhu;stein_stein" 180)
 add_cuda_workbench_test(price_gradients_merton_cuda
-    tests/price_gradients/merton_cuda_test.cu "price_gradients;parity;merton" 120)
+    tests/price_gradients/merton_kernel_cuda_test.cu "price_gradients;parity;merton" 120)
 add_cuda_workbench_test(price_gradients_kou_cuda
-    tests/price_gradients/kou_cuda_test.cu "price_gradients;parity;kou" 180)
+    tests/price_gradients/kou_kernel_cuda_test.cu "price_gradients;parity;kou" 180)
 add_cuda_workbench_test(price_gradients_bates_cuda
-    tests/price_gradients/bates_cuda_test.cu "price_gradients;parity;bates" 240)
+    tests/price_gradients/bates_kernel_cuda_test.cu "price_gradients;parity;bates" 240)
 add_cuda_workbench_test(price_gradients_levy_cuda
-    tests/price_gradients/levy_cuda_test.cu
+    tests/price_gradients/levy_kernel_cuda_test.cu
     "price_gradients;parity;variance_gamma;normal_inverse_gaussian" 240)
 add_cuda_workbench_test(price_gradients_terminal_products_cuda
     tests/price_gradients/terminal_products_cuda_test.cu
@@ -116,16 +116,16 @@ add_cuda_workbench_test(price_gradients_american_cuda
     tests/price_gradients/american_cuda_test.cu
     "price_gradients;parity;american_option;longstaff_schwartz;heston" 180)
 add_cuda_workbench_test(price_gradients_bates_american_cuda
-    tests/price_gradients/bates_american_cuda_test.cu
+    tests/price_gradients/bates_american_kernel_cuda_test.cu
     "price_gradients;parity;american_option;longstaff_schwartz;bates;jumps" 240)
 add_cuda_workbench_test(price_gradients_exact_transition_american_cuda
-    tests/price_gradients/exact_transition_american_cuda_test.cu
+    tests/price_gradients/exact_transition_american_kernel_cuda_test.cu
     "price_gradients;parity;american_option;longstaff_schwartz;exact_transition" 300)
 add_cuda_workbench_test(price_gradients_fixed_step_american_cuda
     tests/price_gradients/fixed_step_american_cuda_test.cu
     "price_gradients;parity;american_option;longstaff_schwartz;fixed_step" 240)
 add_cuda_workbench_test(price_gradients_cir_european_swaption_cuda
-    tests/price_gradients/cir_european_swaption_cuda_test.cu
+    tests/price_gradients/cir_european_swaption_kernel_cuda_test.cu
     "price_gradients;fixed_income;cir;jamshidian" 120)
 add_cuda_workbench_test(price_gradients_bond_barrier_first_cuda
     tests/price_gradients/bond_barrier_first_cuda_test.cpp

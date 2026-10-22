@@ -23,8 +23,7 @@ int main() {
     for (const float coordinate : linear_grid(-1.0f, 1.0f, 25U)) {
         const float cube = coordinate * coordinate * coordinate;
         core_strikes.push_back(
-            coordinate < 0.0f ? 0.04f + 0.04f * cube
-                              : 0.04f + 0.06f * cube
+            0.010f * cube
         );
     }
     const auto regime = [](const std::vector<std::uint32_t>& fixing_times,
@@ -63,19 +62,19 @@ int main() {
         linear_business_day_grid(63U, 1260U, 18U),
         {63U, 126U},
         core_strikes,
-        "Representative fixing dates and strikes concentrated around 4%."
+        "Representative fixing dates and strike spreads concentrated around ATM."
     );
     GeneratedRows stress = regime(
         linear_business_day_grid(21U, 2520U, 10U),
         {21U, 252U},
-        {-0.03f, 0.0f, 0.04f, 0.09f, 0.15f},
+        {-0.025f, -0.0125f, 0.0f, 0.0125f, 0.025f},
         "One-month to ten-year fixings, monthly or annual accruals, and moderate rate-strike tails."
     );
     const GeneratedRows rows = core_stress_rows(
         std::move(core), std::move(stress)
     );
 
-    write_product_dataset(
+    write_fixed_income_product_dataset(
         "rate_options_01",
         "Forward Rate Options",
         dataset_path,
@@ -83,7 +82,7 @@ int main() {
         url,
         {
             {"notional", "Normalized contract notional."},
-            {"strike", "Simple annualized forward rate option strike."},
+            {"strike", "Annualized decimal spread from the initial simple forward rate; 0.005 means +50 bp."},
             {"fixing_time", "Forward-rate fixing time T1 in business days."},
             {"payment_time", "Cashflow payment time T2 in business days."},
             {"accrual_period", "Business days in the interval [T1, T2]."},
@@ -93,7 +92,9 @@ int main() {
             {"payment_time", "T2"},
             {"normalization", "N = 1"},
         },
-        rows
-    );
+        rows,
+        { {"strike", { {"mode", "additive_to_initial_simple_forward_rate"}, {"unit", "annualized_decimal_rate"}, {"effective_level", "strike = initial_simple_forward_rate + strike_spread"} } },
+          {"reference_policy", "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."} }
+);
     validate_product_dataset_file(dataset_path);
 }

@@ -42,28 +42,32 @@ int main() {
     };
     auto core = regime(
         {1U, 2U, 3U, 5U, 10U}, {21U, 63U, 126U},
-        {0.85f, 0.90f, 0.95f, 0.98f, 1.01f, 1.05f},
-        {0.96f, 0.98f, 1.00f, 1.02f, 1.04f,
-         1.06f, 1.08f, 1.10f, 1.15f, 1.20f},
-        "Short expiry grid, including barriers breached at inception.");
+        {0.82f, 0.86f, 0.90f, 0.94f, 0.97f, 0.99f},
+        {1.015f, 1.02f, 1.03f, 1.04f, 1.06f,
+         1.08f, 1.10f, 1.13f, 1.17f, 1.22f},
+        "Short expiry grid with all core upper barriers above the initial bond price.");
     auto stress = regime(
         {1U, 5U, 21U, 42U, 63U}, {21U, 252U},
-        {0.80f, 1.10f}, {0.90f, 0.98f, 1.03f, 1.10f, 1.30f},
-        "Longer expiries and remote or initially breached barriers.");
+        {0.75f, 1.01f}, {1.008f, 1.012f, 1.025f, 1.06f, 1.30f},
+        "Longer expiries and near or remote upper-barrier ratios.");
     const auto rows = core_stress_rows(std::move(core), std::move(stress));
-    write_product_dataset(
+    write_fixed_income_product_dataset(
         "zero_coupon_bond_up_and_outs_01", "Zero-Coupon Bond Up-and-Out Calls",
         dataset_path, catalog_path, url,
         {{"notional", "Units of a zero-coupon bond paying 1 currency unit at U."},
-         {"strike", "Bond price per unit of face value, in currency units at T."},
-         {"barrier", "Upper bond-price threshold in the same units as strike."},
+         {"strike", "Dimensionless ratio to P(0,U)/P(0,T)."},
+         {"barrier", "Dimensionless ratio to P(0,U); exceeds 1 in core rows."},
          {"option_expiry", "Payoff date T in business days."},
          {"bond_maturity", "Bond face-value date U > T in business days."}},
         {{"expression", "N * exp(-integral_0^T r_s ds) * max(P(T,U)-K,0) * 1{P(t,U)<B for all monitored t}"},
          {"payment_time", "T"}, {"normalization", "N = 1"},
          {"barrier_breach", "P(t,U) >= B, including t=0"},
          {"monitoring", "numerical grid; continuous-barrier price is approximated"}},
-        rows);
+        rows,
+        { {"strike", { {"mode", "ratio_to_initial_forward_bond_price"}, {"unit", "dimensionless"}, {"effective_level", "strike = strike_ratio * P(0,U)/P(0,T)"} } },
+          {"barrier", { {"mode", "ratio_to_initial_bond_price"}, {"unit", "dimensionless"}, {"effective_level", "barrier = barrier_ratio * P(0,U)"} } },
+          {"reference_policy", "Resolved at the unbumped model and initial curve; absolute K and B stay fixed for model and curve bumps."} }
+);
     ai_factory::workbench::product::load_zero_coupon_bond_up_and_outs(dataset_path);
     validate_product_dataset_file(dataset_path);
 }

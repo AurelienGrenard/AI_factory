@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common/cuda_kernel_diagnostics.cuh"
-#include "common/monte_carlo/price_gradients/path_node_graph/evaluation.cuh"
-#include "common/monte_carlo/price_gradients/terminal_node_graph/reconstruction.cuh"
+#include "common/monte_carlo/price_gradients/path_node_graph/evaluation_kernel.cuh"
+#include "common/monte_carlo/price_gradients/terminal_node_graph/reconstruction_kernel.cuh"
 #include "common/monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
 #include "common/monte_carlo/price_gradients/tuning.cuh"
 

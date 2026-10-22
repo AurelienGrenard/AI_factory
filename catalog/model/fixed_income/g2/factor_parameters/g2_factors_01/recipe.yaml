@@ -5,7 +5,6 @@ generator: "catalog/model/fixed_income/g2/factor_parameters/g2_factors_01/genera
 output:
   path: "datasets/model/fixed_income/g2/factor_parameters/g2_factors_01.json"
   format: "json"
-generation_details: "catalog/model/fixed_income/g2/factor_parameters/g2_factors_01/generation.yaml"
 model_family: "G2 Gaussian two-factor short rate"
 row_count: 1000
 parameterization: "factorized"

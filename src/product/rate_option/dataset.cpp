@@ -13,6 +13,9 @@ namespace ai_factory::workbench::product {
 std::vector<RateOptionParameters> load_rate_options(
     const std::filesystem::path& dataset_path
 ) {
+    const bool quoted = datasets::read_parameter_dataset(
+        dataset_path, datasets::ParameterDatasetFamily::Product,
+        "Fixed-income product").contains("quote_convention");
     return datasets::load_parameter_rows<RateOptionParameters>(
         dataset_path,
         datasets::ParameterDatasetFamily::Product,
@@ -24,6 +27,7 @@ std::vector<RateOptionParameters> load_rate_options(
                 parameters.at("fixing_time").get<std::uint32_t>(),
                 parameters.at("payment_time").get<std::uint32_t>(),
                 parameters.at("accrual_period").get<std::uint32_t>(),
+                quoted,
             };
             if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
                 throw std::invalid_argument(prefix + "notional must be finite and positive.");

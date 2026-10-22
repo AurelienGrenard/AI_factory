@@ -54,7 +54,7 @@ inline datasets::ModelSampleRecipe recipe(
             {"distribution", "independent Philox uniform proposals with counter-local rejection per parameter row"},
             {"proposal_draw_order", {"spot", "initial_volatility", "volatility_of_volatility", "rho", "beta"}},
             {"latent_uniform_bounds", {
-                {"spot", {0.8f, 1.2f}},
+                {"spot", {0.25f, 4.0f}},
                 {"initial_volatility", {0.08f, 0.5f}},
                 {"volatility_of_volatility", {0.1f, 1.5f}},
                 {"rho", {-0.9f, -0.2f}},
@@ -72,7 +72,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
-    const model_binding::SampleParameterSampler::Configuration bounds{{{0.8f, 1.2f}, {0.08f, 0.5f}, {0.1f, 1.5f}, {-0.9f, -0.2f}, {0.5f, 0.95f}}};
+    const model_binding::SampleParameterSampler::Configuration bounds{{{0.25f, 4.0f}, {0.08f, 0.5f}, {0.1f, 1.5f}, {-0.9f, -0.2f}, {0.5f, 0.95f}}};
     const std::uint64_t parameter_seed = value.seeds.parameters;
 
     return generate_device_model_sample_dataset<ModelParameters>(

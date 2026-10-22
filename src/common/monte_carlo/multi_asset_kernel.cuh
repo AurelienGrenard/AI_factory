@@ -1,9 +1,9 @@
-// One block per joint price; one or several threads own each joint path.
+// One or several blocks per price; one or several threads own each path.
 #pragma once
 
 #include "common/check_cuda.cuh"
-#include "common/multi_asset_price_row.hpp"
 #include "common/monte_carlo/monte_carlo_kernel.cuh"
+#include "common/monte_carlo/multi_asset_limits.cuh"
 #include "common/philox.cuh"
 #include "common/reductions.cuh"
 #include "common/simulation/multi_asset_path.cuh"
@@ -21,8 +21,8 @@ template<typename Pack, typename Product>
 struct MultiAssetDeviceInputs {
     typename Pack::Inputs models;
     const typename Product::ProductParameters* products;
-    const MultiAssetPriceRow* rows;
     const float* packed_factors;
+    const RowIndexSelector* row_selectors;
 };
 
 __host__ __device__ constexpr std::size_t align_workspace(
@@ -68,7 +68,7 @@ __device__ __forceinline__ float evaluate_multi_asset_path(
         if (Product::is_observation_step(
                 step, steps, steps_per_day, product_parameters
             )) {
-            const float observation =
+            const auto observation =
                 Product::template observe<Pack, TeamSize>(
                     states, prepared, lane
                 );
@@ -100,6 +100,7 @@ __global__ void multi_asset_price_kernel(
     std::uint64_t base_seed,
     float* prices,
     float* standard_errors,
+    reductions::MomentSums* partial_moments,
     bool use_shared_normals
 ) {
     static_assert(Pack::kAssetCount > 0U);
@@ -110,7 +111,8 @@ __global__ void multi_asset_price_kernel(
     __shared__ typename Pack::Prepared prepared;
     __shared__ typename Product::PreparedProduct prepared_product;
     __shared__ typename Product::ProductParameters product_parameters;
-    __shared__ MultiAssetPriceRow row;
+    __shared__ std::uint32_t product_index;
+    __shared__ std::uint32_t correlation_index;
     __shared__ philox::PhiloxKey key;
     __shared__ std::uint32_t steps;
 
@@ -141,25 +143,29 @@ __global__ void multi_asset_price_kernel(
          launch_index += gridDim.x) {
         const std::size_t result_index = result_offset + launch_index;
         if (threadIdx.x == 0U) {
-            row = inputs.rows[result_index];
-            product_parameters = inputs.products[row.product_index];
-            prepared_product = Product::prepare(
-                product_parameters, row.discount_factor
-            );
-            Pack::prepare(
-                prepared, inputs.models, row.scenario_index, dt
-            );
+            product_index = inputs.row_selectors[Pack::kAssetCount].select(
+                static_cast<std::uint32_t>(result_index));
+            correlation_index = inputs.row_selectors[
+                Pack::kAssetCount + 1U].select(
+                    static_cast<std::uint32_t>(result_index));
+            product_parameters = inputs.products[product_index];
+            prepared_product = Product::prepare(product_parameters, 1.0f);
             steps = product_parameters.maturity_days
                 * simulation_steps_per_day;
             key = philox::make_key(base_seed + result_index);
         }
         __syncthreads();
         const float* factor = inputs.packed_factors
-            + static_cast<std::size_t>(row.correlation_index) * lower_count;
+            + static_cast<std::size_t>(correlation_index) * lower_count;
         for (std::size_t index = threadIdx.x;
              index < lower_count; index += blockDim.x) {
             lower[index] = factor[index];
         }
+        __syncthreads();
+        if (threadIdx.x == 0U)
+            Pack::prepare_selected(
+                prepared, inputs.models,
+                static_cast<std::uint32_t>(result_index), dt, lower);
         __syncthreads();
 
         // A logical bin is path % blockDim.x, regardless of TeamSize.
@@ -168,11 +174,13 @@ __global__ void multi_asset_price_kernel(
         double sums[TeamSize]{};
         double sums_squared[TeamSize]{};
         const std::size_t rounds =
-            1U + (paths_per_price - 1U) / blockDim.x;
+            1U + (paths_per_price - 1U) /
+                (static_cast<std::size_t>(blockDim.x) * gridDim.y);
         for (std::size_t round = 0U; round < rounds; ++round) {
             #pragma unroll
             for (unsigned int slot = 0U; slot < TeamSize; ++slot) {
-                const std::size_t path = round * blockDim.x
+                const std::size_t path =
+                    (round * gridDim.y + blockIdx.y) * blockDim.x
                     + slot * teams_per_block + team;
                 if (path >= paths_per_price) continue;
                 float value = 0.0f;
@@ -221,14 +229,18 @@ __global__ void multi_asset_price_kernel(
         const double sumsq = bin_squares[threadIdx.x];
         const auto moments = reductions::reduce_block(sum, sumsq);
         if (threadIdx.x == 0U) {
-            double price = 0.0;
-            double error = 0.0;
-            reductions::compute_statistics(
-                moments, paths_per_price, price, error,
-                rounds
-            );
-            prices[result_index] = static_cast<float>(price);
-            standard_errors[result_index] = static_cast<float>(error);
+            if (gridDim.y == 1U) {
+                double price = 0.0;
+                double error = 0.0;
+                reductions::compute_statistics(
+                    moments, paths_per_price, price, error, rounds
+                );
+                prices[result_index] = static_cast<float>(price);
+                standard_errors[result_index] = static_cast<float>(error);
+            } else {
+                partial_moments[launch_index * gridDim.y + blockIdx.y] =
+                    moments;
+            }
         }
         __syncthreads();
     }
@@ -247,23 +259,32 @@ inline void launch_multi_asset_cuda(
     std::size_t block_count,
     std::uint64_t base_seed,
     float* prices,
-    float* standard_errors
+    float* standard_errors,
+    std::size_t blocks_per_price = 1U,
+    reductions::MomentSums* partial_moments = nullptr
 ) {
+    static_assert(Pack::kFactorCount <= kMaximumSharedCholeskyFactors,
+        "Multi-asset Brownian dimension exceeds the shared-Cholesky factor limit.");
     if (result_count == 0U || launch_result_count == 0U
         || result_offset >= result_count
         || launch_result_count > result_count - result_offset
         || paths_per_price < 2U || !(dt > 0.0f)
         || steps_per_day == 0U || block_count == 0U
+        || blocks_per_price == 0U || blocks_per_price > 65535U
+        || (blocks_per_price > 1U && partial_moments == nullptr)
         || threads_per_block < 32U || threads_per_block > 1024U
         || threads_per_block % 32U != 0U
         || threads_per_block % TeamSize != 0U) {
         throw std::invalid_argument("Invalid multi-asset MC launch geometry.");
     }
     validate_device_pointer(inputs.products, "multi-asset products");
-    validate_device_pointer(inputs.rows, "multi-asset rows");
+    validate_device_pointer(
+        inputs.row_selectors, "multi-asset row selectors");
     validate_device_pointer(inputs.packed_factors, "multi-asset factors");
     validate_device_pointer(prices, "multi-asset prices");
     validate_device_pointer(standard_errors, "multi-asset standard errors");
+    if (blocks_per_price > 1U)
+        validate_device_pointer(partial_moments, "multi-asset moments");
     constexpr std::size_t lower_count =
         Pack::kFactorCount * (Pack::kFactorCount + 1U) / 2U;
     const std::size_t reduction_bytes =
@@ -316,11 +337,12 @@ inline void launch_multi_asset_cuda(
         ), "multi-asset shared memory opt-in");
     }
     multi_asset_price_kernel<Pack, Product, TeamSize>
-        <<<static_cast<unsigned int>(block_count),
+        <<<dim3(static_cast<unsigned int>(block_count),
+                  static_cast<unsigned int>(blocks_per_price)),
            threads_per_block, shared_bytes>>>(
             inputs, result_offset, launch_result_count, paths_per_price,
             dt, steps_per_day, base_seed, prices, standard_errors,
-            use_shared_normals
+            partial_moments, use_shared_normals
         );
     check_cuda(cudaGetLastError(), "multi-asset price kernel");
 }

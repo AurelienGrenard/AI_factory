@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/model/fixed_income/ornstein_uhlenbeck/parameters/ornstein_uhlenbeck_01.json
-  sha256: 659eef441992948fde9ffd367cc297f73b79059a7ecf642d57db8ec01429c624
-hardware:
-  device: cpu

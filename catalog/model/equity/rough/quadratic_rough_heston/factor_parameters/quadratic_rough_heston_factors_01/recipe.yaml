@@ -5,7 +5,6 @@ generator: "catalog/model/equity/rough/quadratic_rough_heston/factor_parameters/
 output:
   path: "datasets/model/equity/rough/quadratic_rough_heston/factor_parameters/quadratic_rough_heston_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/rough/quadratic_rough_heston/factor_parameters/quadratic_rough_heston_factors_01/generation.yaml"
 model_family: "quadratic rough Heston"
 row_count: 1000
 parameterization: "factorized"

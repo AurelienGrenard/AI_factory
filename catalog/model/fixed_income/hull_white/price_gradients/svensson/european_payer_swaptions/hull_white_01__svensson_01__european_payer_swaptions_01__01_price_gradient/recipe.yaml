@@ -12,7 +12,6 @@
     "path": "datasets/model/fixed_income/hull_white/price_gradients/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/fixed_income/hull_white/price_gradients/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 0,
   "sensitivity": {
@@ -87,5 +86,13 @@
     "kind": "exact_terminal_transition",
     "contractual_days_per_year": 252,
     "maturity_bump_steps_per_year": 504
+  },
+  "quote_convention": {
+    "strike": {
+      "mode": "additive_to_initial_par_swap_rate",
+      "unit": "annualized_decimal_rate",
+      "effective_level": "strike = initial_par_swap_rate + strike_spread"
+    },
+    "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
   }
 }

@@ -1,0 +1,18 @@
+schema_version: 4
+status: complete
+inputs:
+  source_product:
+    path: datasets/product/american_option/american_options_01.json
+    sha256: a3b594fdd91c179716f6499212251764f0ce328291894658a057401b2826da8b
+output:
+  path: datasets/product/american_option/american_options_01_shard00.json
+  sha256: 40edcab26a31f5ebd3d922e8924fe26b9ec064568f3bbf8f67a252d81beda681
+hardware:
+  device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

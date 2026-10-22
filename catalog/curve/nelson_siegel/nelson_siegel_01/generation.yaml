@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/curve/nelson_siegel/nelson_siegel_01.json
-  sha256: e912db7b263bc21ea2f65204b5993eb5d82326f5045ecbd158386459c2380b94
-hardware:
-  device: cpu

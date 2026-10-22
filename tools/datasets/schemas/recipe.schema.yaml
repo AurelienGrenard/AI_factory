@@ -8,7 +8,6 @@ required:
   - dataset_id
   - generator
   - output
-  - generation_details
   - row_count
 properties:
   schema_version:
@@ -43,9 +42,7 @@ properties:
       format:
         enum: [json, parquet]
     additionalProperties: false
-  generation_details:
-    type: string
-    pattern: "^catalog/.+/generation\\.yaml$"
+  generation_details: false
   generation_output: false
   url: false
   option_side:

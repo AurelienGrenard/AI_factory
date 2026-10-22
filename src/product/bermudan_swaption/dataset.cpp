@@ -16,11 +16,14 @@ namespace ai_factory::workbench::product {
 std::vector<BermudanSwaptionParameters> load_bermudan_swaptions(
     const std::filesystem::path& dataset_path
 ) {
+    const bool quoted = datasets::read_parameter_dataset(
+        dataset_path, datasets::ParameterDatasetFamily::Product,
+        "Fixed-income product").contains("quote_convention");
     return datasets::load_parameter_rows<BermudanSwaptionParameters>(
         dataset_path,
         datasets::ParameterDatasetFamily::Product,
         "Bermudan swaption",
-        [](const nlohmann::json& parameters, const std::string& prefix) {
+        [&](const nlohmann::json& parameters, const std::string& prefix) {
             const BermudanSwaptionParameters product{
                 parameters.at("notional").get<float>(),
                 parameters.at("strike").get<float>(),
@@ -29,6 +32,7 @@ std::vector<BermudanSwaptionParameters> load_bermudan_swaptions(
                 parameters.at("payment_interval").get<std::uint32_t>(),
                 parameters.at("payment_count").get<std::uint32_t>(),
                 parameters.at("exercise_count").get<std::uint32_t>(),
+                quoted,
             };
 
             bermudan_swaption::validate_parameters(product, prefix);

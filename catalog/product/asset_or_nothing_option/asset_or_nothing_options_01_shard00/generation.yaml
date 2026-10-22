@@ -1,0 +1,18 @@
+schema_version: 4
+status: complete
+inputs:
+  source_product:
+    path: datasets/product/asset_or_nothing_option/asset_or_nothing_options_01.json
+    sha256: 148d3dcfafcc65eb2789598426f1830976f2593f31c4e2c17931c7e4c6ec5878
+output:
+  path: datasets/product/asset_or_nothing_option/asset_or_nothing_options_01_shard00.json
+  sha256: 0b80ab764b5f790c7b5a51889543063c0c83dfe31553080a75dc7acaff4ff769
+hardware:
+  device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

@@ -5,12 +5,17 @@ generator: "catalog/product/up_no_touch/up_no_touches_01/generator.cpp"
 output:
   path: "datasets/product/up_no_touch/up_no_touches_01.json"
   format: "json"
-generation_details: "catalog/product/up_no_touch/up_no_touches_01/generation.yaml"
 product_family: "Up No-Touches"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  barrier:
+    mode: "ratio_to_central_spot"
+    unit: "dimensionless"
+    effective_level: "barrier * S0"
+  reference_policy: "Resolved at the unbumped model spot S0 for each model-product pair; absolute contract levels remain fixed for model bumps."
 parameters:
   barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   cash_payoff: "Cash amount paid at maturity without a touch."
@@ -18,10 +23,6 @@ parameters:
 payoff:
   expression: "cash_payoff if max(S_[0,T]) < barrier; otherwise 0"
   payment_time: "maturity"
-  spot_level_quote:
-    unit: "ratio_to_central_spot"
-    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
-    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 core-stress construction"
   row_order:

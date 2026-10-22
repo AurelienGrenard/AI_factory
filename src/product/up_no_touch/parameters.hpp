@@ -10,6 +10,7 @@ struct UpNoTouchParameters {
     float barrier;
     float cash_payoff;
     std::uint32_t maturity_days;
+    bool quote_is_ratio = false;
 };
 
 static_assert(std::is_trivially_copyable_v<UpNoTouchParameters>);

@@ -25,7 +25,7 @@ __host__ __device__ inline bool valid_parameters(
     const BermudanSwaptionParameters& product
 ) {
     if (!finite_parameter(product.notional) || !(product.notional > 0.0f)
-        || !finite_parameter(product.strike) || product.strike < 0.0f
+        || !finite_parameter(product.strike) || (!product.quote_is_relative && fmaf(product.accrual_fraction, product.strike, 1.0f) <= 0.0f)
         || !finite_parameter(product.accrual_fraction)
         || !(product.accrual_fraction > 0.0f)
         || product.first_exercise_time_days == 0U
@@ -47,8 +47,8 @@ inline const char* parameter_domain_error(
 ) {
     if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
         return "notional must be finite and positive.";
-    if (!std::isfinite(product.strike) || product.strike < 0.0f)
-        return "strike must be finite and non-negative.";
+    if (!std::isfinite(product.strike) || (!product.quote_is_relative && fmaf(product.accrual_fraction, product.strike, 1.0f) <= 0.0f))
+        return "1 + accrual_fraction * strike must be positive.";
     if (!std::isfinite(product.accrual_fraction)
         || !(product.accrual_fraction > 0.0f))
         return "accrual_fraction must be finite and positive.";

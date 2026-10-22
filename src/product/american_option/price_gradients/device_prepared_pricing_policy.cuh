@@ -110,6 +110,7 @@ struct AmericanOptionDevicePreparedSensitivityPolicy
         std::size_t input_result_offset;
         std::size_t sensitivity_count;
         pg::SensitivityOutputs outputs;
+        bool relative_quotes;
 
         std::size_t maximum_batch_size(std::size_t maximum_grid_y) const {
             return longstaff_schwartz::price_gradients::maximum_batch_size(
@@ -196,12 +197,13 @@ struct AmericanOptionDevicePreparedSensitivityPolicy
             const auto indices = pg::price_row_indices(
                 result_index, construction, product_count
             );
+            const auto product =
+                equity::spot_relative::selected_central_product(
+                    primary.models[indices.model],
+                    primary.products[indices.product], relative_quotes);
             Scenario central{};
             const bool valid = Preparation::make_central(
-                primary.models[indices.model],
-                primary.products[indices.product],
-                time,
-                central
+                primary.models[indices.model], product, time, central
             );
             if (!valid) {
                 sensitivity_preparation::record_error(
@@ -262,6 +264,7 @@ struct AmericanOptionDevicePreparedSensitivityPolicy
             result_offset,
             host.sensitivity_count(),
             outputs,
+            host.relative_quotes,
         };
     }
 

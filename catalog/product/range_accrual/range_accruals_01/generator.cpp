@@ -58,7 +58,13 @@ int main() {
             },
             {"intermediate_payments", "None."},
         },
-        rows
+        rows,
+        {
+            {"lower_barrier", {{"mode", "ratio_to_initial_spot"}, {"unit", "dimensionless"},
+                               {"observation", "S(t_i)/S(0)"}}},
+            {"upper_barrier", {{"mode", "ratio_to_initial_spot"}, {"unit", "dimensionless"},
+                               {"observation", "S(t_i)/S(0)"}}}
+        }
     );
     validate_product_dataset_file(dataset_path);
 }

@@ -100,12 +100,12 @@ int main() {
             {126U, 40U, 10U, 0.5f},
         },
         {
-            0.005f, 0.0125f, 0.020f, 0.0275f, 0.035f,
-            0.0425f, 0.050f, 0.065f, 0.080f,
+            -0.006f, -0.004f, -0.002f, -0.001f, 0.0f,
+            0.001f, 0.002f, 0.004f, 0.006f,
         },
         "Six-month to fifteen-year first exercise dates; two-to-twenty-year "
         "co-terminal swaps; annual or semiannual fixed legs; and two-to-ten "
-        "exercise opportunities at ordinary fixed rates."
+        "exercise opportunities with strike spreads around ATM."
     );
     const GeneratedRows stress = regular_regime(
         {21U, 63U, 252U, 2520U, 5040U},
@@ -116,14 +116,14 @@ int main() {
             {252U, 20U, 10U, 1.0f},
             {252U, 30U, 10U, 1.0f},
         },
-        {0.0f, 0.005f, 0.08f, 0.15f},
+        {-0.015f, -0.008f, 0.008f, 0.015f},
         "One-month to twenty-year first exercises, monthly through annual "
         "fixed legs, one-to-thirty-year co-terminal swaps, "
-        "and moderate low/high fixed-rate tails."
+        "and moderate ATM spread tails."
     );
     const GeneratedRows rows = core_stress_rows(core, stress);
 
-    write_product_dataset(
+    write_fixed_income_product_dataset(
         "bermudan_swaptions_01",
         "Bermudan Swaptions",
         dataset_path,
@@ -131,7 +131,7 @@ int main() {
         url,
         {
             {"notional", "Contract notional N."},
-            {"strike", "Fixed swap rate K."},
+            {"strike", "Annualized decimal spread from the initial par swap rate; 0.005 means +50 bp."},
             {
                 "accrual_fraction",
                 "Constant contractual coupon year fraction delta."
@@ -163,7 +163,9 @@ int main() {
             {"settlement", "physical"},
             {"normalization", "N = 1"},
         },
-        rows
-    );
+        rows,
+        { {"strike", { {"mode", "additive_to_initial_first_exercise_par_swap_rate"}, {"unit", "annualized_decimal_rate"}, {"effective_level", "strike = initial_first_exercise_par_swap_rate + strike_spread"} } },
+          {"reference_policy", "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."} }
+);
     validate_product_dataset_file(dataset_path);
 }

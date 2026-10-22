@@ -55,7 +55,11 @@ int main() {
         {
             {"expression", "max(side * (S_T - moneyness * S_reset), 0), side = +1 call / -1 put"},
         },
-        rows
+        rows,
+        {
+            {"moneyness", {{"mode", "multiplier_of_reset_spot"}, {"unit", "dimensionless"},
+                            {"effective_level", "moneyness * S(reset_time)"}}}
+        }
     );
     validate_product_dataset_file(dataset_path);
 }

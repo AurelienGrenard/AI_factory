@@ -3,6 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json
-  sha256: 1373cded62a27bcda490d91b34f4ef11cc1bd6c23767ab50a2c2609cf3566143
+  sha256: dc8640a9dd704a06dfcc4c4c2cb134d423220f41744c363959daeeb840d48372
 hardware:
   device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

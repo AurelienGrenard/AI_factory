@@ -11,7 +11,6 @@
     "path": "datasets/model/equity/rough/quadratic_rough_heston/price_gradients/asset_or_nothing_puts/quadratic_rough_heston_01__asset_or_nothing_puts_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/equity/rough/quadratic_rough_heston/price_gradients/asset_or_nothing_puts/quadratic_rough_heston_01__asset_or_nothing_puts_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {

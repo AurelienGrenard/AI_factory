@@ -11,7 +11,6 @@
     "path": "datasets/model/equity/markovian/normal_inverse_gaussian/price_gradients/asian_calls/normal_inverse_gaussian_01__asian_calls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/equity/markovian/normal_inverse_gaussian/price_gradients/asian_calls/normal_inverse_gaussian_01__asian_calls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {

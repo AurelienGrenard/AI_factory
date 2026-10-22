@@ -116,6 +116,19 @@ std::size_t checked_product(
 
 }  // namespace
 
+void require_product_quote_convention(const Recipe& recipe) {
+    if (!recipe.product_quote_mode.has_value()) return;
+    const auto product = read_json_file(recipe.product_input);
+    if (!product.contains("quote_convention")
+        || !product.at("quote_convention").contains("strike")
+        || product.at("quote_convention").at("strike").value(
+            "mode", std::string{}) != *recipe.product_quote_mode) {
+        throw std::invalid_argument(
+            "Product dataset quote convention differs from compiled generator."
+        );
+    }
+}
+
 void append_exercise_replay_metadata(
     const Recipe& recipe,
     nlohmann::ordered_json& metadata
@@ -633,7 +646,6 @@ void write_dataset(const Recipe& recipe, const Results& result) {
     const auto dataset_reference = [](const nlohmann::ordered_json& input) {
         return nlohmann::ordered_json{
             {"id", input.at("database_id")},
-            {"catalog", input.at("catalog")},
         };
     };
     nlohmann::ordered_json document = {
@@ -652,7 +664,9 @@ void write_dataset(const Recipe& recipe, const Results& result) {
         }
         document["option_side"] = side;
     }
-    document["catalog"] = recipe.catalog.parent_path().generic_string();
+    if (products.contains("quote_convention")) {
+        document["quote_convention"] = products.at("quote_convention");
+    }
     document["row_count"] = count;
     document["model_dataset"] = dataset_reference(models);
     if (curve_rows != nullptr) {

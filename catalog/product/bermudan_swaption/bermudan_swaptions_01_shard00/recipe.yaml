@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: bermudan_swaptions_01_shard00
+generator: catalog/product/bermudan_swaption/bermudan_swaptions_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/bermudan_swaption/bermudan_swaptions_01.json
+output:
+  path: datasets/product/bermudan_swaption/bermudan_swaptions_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: af04015b2627875baebab5bf3bea502383955dcc0217e5311a87c20d4bf5ec2c
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 2
+  - 12
+  - 28
+  - 32
+  - 44
+  - 56
+  - 68
+  - 77
+  - 81
+  - 96
+  - 102
+  - 115
+  - 128
+  - 139
+  - 142
+  - 157
+  - 161
+  - 171
+  - 183
+  - 192
+  - 202
+  - 214
+  - 220
+  - 238
+  - 242
+  - 254
+  - 266
+  - 274
+  - 280
+  - 293
+  - 301
+  - 316
+  - 321
+  - 338
+  - 343
+  - 355
+  - 365
+  - 372
+  - 381
+  - 395
+  - 400
+  - 415
+  - 423
+  - 431
+  - 440
+  - 455
+  - 464
+  - 477
+  - 488
+  - 499
+  - 508
+  - 512
+  - 522
+  - 535
+  - 541
+  - 551
+  - 564
+  - 575
+  - 585
+  - 591
+  - 604
+  - 614
+  - 621
+  - 633
+  - 641
+  - 652
+  - 661
+  - 674
+  - 688
+  - 696
+  - 700
+  - 713
+  - 728
+  - 739
+  - 746
+  - 759
+  - 768
+  - 776
+  - 783
+  - 798
+  - 808
+  - 813
+  - 826
+  - 838
+  - 849
+  - 850
+  - 864
+  - 876
+  - 888
+  - 897
+  - 907
+  - 910
+  - 926
+  - 936
+  - 948
+  - 958
+  - 968
+  - 970
+  - 985
+  - 992
+quote_convention:
+  strike:
+    mode: additive_to_initial_first_exercise_par_swap_rate
+    unit: annualized_decimal_rate
+    effective_level: strike = initial_first_exercise_par_swap_rate + strike_spread
+  reference_policy: Resolved at the unbumped model and initial curve; absolute contract
+    levels stay fixed for model and curve bumps.

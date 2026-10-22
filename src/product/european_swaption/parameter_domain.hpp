@@ -27,7 +27,7 @@ __host__ __device__ inline bool valid_parameters(
     if (!finite_parameter(parameters.notional)
         || !(parameters.notional > 0.0f)
         || !finite_parameter(parameters.strike)
-        || parameters.strike < 0.0f
+        || (!parameters.quote_is_relative && fmaf(parameters.accrual_fraction, parameters.strike, 1.0f) <= 0.0f)
         || !finite_parameter(parameters.accrual_fraction)
         || !(parameters.accrual_fraction > 0.0f)
         || parameters.exercise_time_days == 0U
@@ -50,8 +50,8 @@ inline const char* contract_parameter_domain_error(
 ) {
     if (!std::isfinite(notional) || !(notional > 0.0f))
         return "notional must be finite and positive.";
-    if (!std::isfinite(strike) || strike < 0.0f)
-        return "strike must be finite and non-negative for Jamshidian.";
+    if (!std::isfinite(strike) )
+        return "strike must be finite.";
     if (exercise_time_days == 0U)
         return "exercise_time must be a positive day count.";
     return nullptr;
@@ -84,6 +84,9 @@ inline const char* parameter_domain_error(
     if (!std::isfinite(parameters.accrual_fraction)
         || !(parameters.accrual_fraction > 0.0f))
         return "accrual_fraction must be finite and positive.";
+    if (!parameters.quote_is_relative
+        && 1.0f + parameters.accrual_fraction * parameters.strike <= 0.0f)
+        return "1 + accrual_fraction * strike must be positive.";
     if (parameters.payment_interval_days == 0U)
         return "payment_interval must be a positive day count.";
     if (parameters.payment_count == 0U)

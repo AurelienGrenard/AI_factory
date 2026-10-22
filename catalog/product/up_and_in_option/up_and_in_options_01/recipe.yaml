@@ -5,23 +5,27 @@ generator: "catalog/product/up_and_in_option/up_and_in_options_01/generator.cpp"
 output:
   path: "datasets/product/up_and_in_option/up_and_in_options_01.json"
   format: "json"
-generation_details: "catalog/product/up_and_in_option/up_and_in_options_01/generation.yaml"
 product_family: "Up-and-In Options"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  strike:
+    mode: "ratio_to_central_spot"
+    unit: "dimensionless"
+    effective_level: "strike * S0"
+  barrier:
+    mode: "ratio_to_central_spot"
+    unit: "dimensionless"
+    effective_level: "barrier * S0"
+  reference_policy: "Resolved at the unbumped model spot S0 for each model-product pair; absolute contract levels remain fixed for model bumps."
 parameters:
   strike: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   barrier: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   maturity: "Maturity in business days."
 payoff:
   expression: "max(side * (S_T - K), 0) if max(S_[0,T]) >= barrier; side = +1 call / -1 put"
-  payoff_homogeneity: "Scaling the entire spot path and all strike/barrier levels by c scales the payoff by c."
-  spot_level_quote:
-    unit: "ratio_to_central_spot"
-    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
-    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 core-stress construction"
   row_order:

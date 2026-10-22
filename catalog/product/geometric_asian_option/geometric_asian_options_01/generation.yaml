@@ -3,14 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/geometric_asian_option/geometric_asian_options_01.json
-  sha256: 687cf30181e769d22b52758478b7b9d35dbb07437491c44cce137deab65ce4f0
+  sha256: bcb1ecca8fefb524f28ee39927ba88a5521ee81405da0b6a11bcd38afd8ec0a0
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
+  cmake: cmake version 3.22.1
   cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
   cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
-  cmake: cmake version 3.22.1
   nlohmann_json: 3.10.5
   mathdx: 25.12.1

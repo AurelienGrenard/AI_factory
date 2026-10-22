@@ -31,13 +31,16 @@ struct EuropeanSwaptionMonteCarloHostInputs {
             const auto& product = products[index];
             simulation::validate_calendar(simulation::MaturityCalendar{product.exercise_time_days}, time);
             if (!std::isfinite(product.notional) || product.notional <= 0.0f
-                || !std::isfinite(product.strike) || product.strike < 0.0f || product.payment_count == 0U)
+                || !std::isfinite(product.strike) || product.payment_count == 0U)
                 throw std::invalid_argument("Invalid European-swaption payoff parameters.");
             if constexpr (std::is_same_v<Product, RegularEuropeanSwaptionParameters>) {
                 const auto maturity = static_cast<std::uint64_t>(product.exercise_time_days)
                     + static_cast<std::uint64_t>(product.payment_count) * product.payment_interval_days;
                 if (product.payment_interval_days == 0U || !std::isfinite(product.accrual_fraction)
-                    || product.accrual_fraction <= 0.0f || maturity > std::numeric_limits<std::uint32_t>::max())
+                    || product.accrual_fraction <= 0.0f
+                    || (!product.quote_is_relative
+                        && 1.0f + product.accrual_fraction * product.strike <= 0.0f)
+                    || maturity > std::numeric_limits<std::uint32_t>::max())
                     throw std::invalid_argument("Invalid regular European-swaption payment calendar.");
                 simulation::validate_calendar(simulation::MaturityCalendar{static_cast<std::uint32_t>(maturity)}, time);
             } else {

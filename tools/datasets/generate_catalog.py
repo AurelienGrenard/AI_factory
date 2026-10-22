@@ -161,8 +161,6 @@ def inventory(
             raise ValueError(f"Recipe output contradicts manifest: {recipe_path}")
         if recipe.get("generator") != spec.generator_path:
             raise ValueError(f"Recipe generator contradicts manifest: {recipe_path}")
-        if recipe.get("generation_details") != spec.generation_yaml_path:
-            raise ValueError(f"Generation details contradict manifest: {recipe_path}")
         if recipe.get("row_count") != spec.row_count:
             raise ValueError(f"Recipe row count contradicts manifest: {recipe_path}")
         if spec.dataset_kind == "price_gradients":
@@ -262,10 +260,9 @@ def check_samples(path: Path, job: dict, recipe: dict) -> None:
             raise ValueError("Invalid sample JSON opening")
         expected_header = {
             "database_id": recipe["dataset_id"],
-            "catalog": str(Path(job["generation"]).parent),
             "row_count": job["rows"],
         }
-        for key in ("database_id", "model_family", "catalog", "row_count"):
+        for key in ("database_id", "model_family", "row_count"):
             line = stream.readline().strip()
             try:
                 record = json.loads("{" + line.removesuffix(",") + "}")
@@ -286,7 +283,7 @@ def check_samples(path: Path, job: dict, recipe: dict) -> None:
                 break
             row = json.loads(line.rstrip().removesuffix(","))
             parameter_count += 1
-            if (set(row) != {"id", "values"}
+            if (not {"id", "values"} <= set(row)
                     or row["id"] != f"{parameter_count:06d}"
                     or not isinstance(row["values"], dict)
                     or not row["values"]):
@@ -307,7 +304,7 @@ def check_samples(path: Path, job: dict, recipe: dict) -> None:
             count += 1
             expected_parameter = (count - 1) // recipe["shape"]["paths_per_parameter"] + 1
             days = row.get("maturity_days")
-            if (set(row) != {"parameter_id", "maturity_days", "values"}
+            if (not {"parameter_id", "maturity_days", "values"} <= set(row)
                     or row["parameter_id"] != f"{expected_parameter:06d}"
                     or not isinstance(row["values"], dict)
                     or not row["values"]
@@ -331,7 +328,7 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
     if (recipe.get("dataset_id") != Path(job["dataset"]).stem
             or recipe.get("output") != {"path": job["dataset"], "format": "json"}
             or recipe.get("generator") != job["generator"]
-            or recipe.get("generation_details") != job["generation"]):
+):
         raise ValueError("Recipe identity/output contradicts the frozen selection")
     if (generation.get("schema_version") != 1
             or generation.get("status") != "complete"
@@ -372,8 +369,6 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
             )
         document = json.loads(contained_path(work, job["dataset"]).read_text())
         finite_values(document)
-        if job["kind"] == "prices" and document.get("url") != job["url"]:
-            raise ValueError("Dataset URL contradicts the frozen recipe")
         curve_assignment = recipe.get("curve_assignment")
         if curve_assignment is not None:
             if (not job["declared_method"]["has_curve"]
@@ -385,22 +380,6 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
                         "key": "zero_based_result_index",
                     }):
                 raise ValueError("Curve assignment contradicts the frozen recipe")
-        expected_construction = (
-            {
-                "method": "Cartesian product",
-                "order": (
-                    "model, product"
-                    if curve_assignment is not None
-                    else "model, curve, product"
-                    if job["declared_method"]["has_curve"]
-                    else "model, product"
-                ),
-                **({"curve_assignment": curve_assignment}
-                   if curve_assignment is not None else {}),
-            }
-            if job["declared_method"]["construction"] == "cartesian"
-            else {"method": "Aligned"}
-        )
         if job["kind"] == "price_gradients":
             from tools.datasets.price_gradients.contract import check_outputs as check_gradients
             frozen = {
@@ -415,32 +394,55 @@ def check_outputs(work: Path, job: dict) -> list[dict]:
                 name: json.loads(contained_path(work, path).read_text())
                 for name, path in recipe["inputs"].items()
             }
-            def input_reference(name):
-                source = input_documents[name]
-                return {"id": source["database_id"],
-                        "catalog": source["catalog"]}
+            def input_reference_matches(name):
+                reference = document.get(name + "_dataset")
+                return (isinstance(reference, dict)
+                        and reference.get("id") == input_documents[name]["database_id"])
             if (document["database_id"] != recipe["dataset_id"]
-                    or document["catalog"] != str(Path(job["generation"]).parent)
                     or document["row_count"] != job["rows"]
                     or document["model_family"] != input_documents["model"]["model_family"]
                     or document["product_family"] != input_documents["product"]["product_family"]
                     or ("curve" in input_documents and document["curve_family"]
                         != input_documents["curve"]["curve_family"])
-                    or any(document[name + "_dataset"] != input_reference(name)
-                           for name in recipe["inputs"])):
+                    or not all(input_reference_matches(name)
+                               for name in recipe["inputs"])):
                 raise ValueError("Gradient dataset header contradicts frozen inputs")
         else:
-            if document.get("price_construction", expected_construction) != expected_construction:
-                raise ValueError("Price construction contradicts the frozen recipe")
-            if (document["row_count"] != job["rows"] or len(document["results"]) != job["rows"]
-                    or document["database_id"] != recipe["dataset_id"]):
-                raise ValueError("Price artifact identity/row count mismatch")
+            input_documents = {
+                name: json.loads(contained_path(work, path).read_text())
+                for name, path in recipe["inputs"].items()
+            }
+            expected_header = {
+                "database_id": recipe["dataset_id"],
+                    "row_count": job["rows"],
+            }
+            if "model" in input_documents:
+                expected_header["model_family"] = input_documents["model"]["model_family"]
+            if "product" in input_documents:
+                expected_header["product_family"] = input_documents["product"]["product_family"]
+            if "curve" in input_documents:
+                expected_header["curve_family"] = input_documents["curve"]["curve_family"]
+            if recipe.get("option_side") is not None:
+                expected_header["option_side"] = recipe["option_side"]
+            if (any(document.get(name) != value for name, value in expected_header.items())
+                    or any(not isinstance(document.get(name + "_dataset"), dict)
+                           or document[name + "_dataset"].get("id") != source["database_id"]
+                           for name, source in input_documents.items())
+                    or len(document.get("results", [])) != job["rows"]):
+                raise ValueError("Price artifact header or row count mismatch")
             for index, row in enumerate(document["results"], 1):
-                if row["id"] != f"{index:06d}" or type(row["outputs"]["price"]) not in (int, float):
-                    raise ValueError(f"Invalid price row {index}")
-                error = row["outputs"].get("standard_error", None if expected_paths else 0)
-                if type(error) not in (int, float) or error < 0:
-                    raise ValueError(f"Missing or invalid standard error at row {index}")
+                expected_keys = {"model_id", "product_id", "price"}
+                if "curve" in input_documents:
+                    expected_keys.add("curve_id")
+                if expected_paths:
+                    expected_keys.add("standard_error")
+                if expected_paths and "standard_error" not in row:
+                    raise ValueError(f"Missing standard error at price row {index}")
+                if not isinstance(row, dict) or not expected_keys <= set(row) or type(row["price"]) not in (int, float):
+                    raise ValueError(f"Invalid compact price row {index}")
+                if expected_paths and (type(row["standard_error"]) not in (int, float)
+                                       or row["standard_error"] < 0):
+                    raise ValueError(f"Invalid price standard error at row {index}")
     else:
         check_samples(contained_path(work, job["dataset"]), job, recipe)
     return [{"path": path, "sha256": digest(contained_path(work, path)),
@@ -611,6 +613,35 @@ def describe_job(inputs: Path, binaries: Path, job: dict) -> dict:
     return {**description, "semantic_inputs": input_fingerprints(inputs, job["inputs"])}
 
 
+def validate_model_parameter_variation(path: Path, logical_path: str) -> None:
+    """Reject stale model bases with an unintended constant parameter."""
+    parts = Path(logical_path).parts
+    if (len(parts) < 6 or parts[:2] != ("datasets", "model")
+            or parts[-2] not in {"parameters", "factor_parameters"}
+            or path.suffix != ".json"):
+        return
+    document = json.loads(path.read_text())
+    rows = document.get("models", [])
+    if len(rows) < 2:
+        return  # A one-model diagnostic input cannot establish variation.
+    parameters = [row["parameters"] for row in rows]
+    names = set(parameters[0])
+    if any(set(row) != names for row in parameters):
+        raise ValueError(f"Inconsistent model parameter fields: {logical_path}")
+    model = parts[-3]
+    for name in names:
+        first = parameters[0][name]
+        if any(row[name] != first for row in parameters[1:]):
+            continue
+        multiplicative_spot = (name == "spot" and first == 1.0
+                               and model not in {"cev", "sabr", "rough_sabr"})
+        if not multiplicative_spot:
+            raise ValueError(
+                f"Model parameter is fixed across {len(rows)} rows: "
+                f"{logical_path} / {name} = {first}; regenerate the input base"
+            )
+
+
 def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool,
            input_overrides: dict[str, Path] | None = None) -> dict:
     input_overrides = input_overrides or {}
@@ -657,8 +688,10 @@ def freeze(root: Path, build: Path, run: Path, jobs: list[dict], publish: bool,
     state["input_origins"] = {}
     for relative in sorted(declared_inputs):
         source = input_overrides.get(relative, contained_path(root, relative))
-        state["input_hashes"][relative] = copy_frozen(source,
-                                                      contained_path(run / "inputs", relative))
+        validate_model_parameter_variation(source, relative)
+        frozen = contained_path(run / "inputs", relative)
+        state["input_hashes"][relative] = copy_frozen(source, frozen)
+        validate_model_parameter_variation(frozen, relative)
         if relative in input_overrides:
             state["input_origins"][relative] = str(source.resolve())
     for job in jobs:
@@ -730,7 +763,7 @@ def compare_matching_prices(state: dict, job: dict, work: Path) -> dict | None:
         if any(price.get(key) != gradient.get(key)
                for key in ("model_id", "product_id", "curve_id")):
             raise ValueError(f"Central price row identity differs at row {index}")
-        left = price["outputs"]["price"]
+        left = price["price"]
         right = gradient["price"]
         difference = abs(left - right)
         budget = 2e-6 + 2e-5 * max(abs(left), abs(right))

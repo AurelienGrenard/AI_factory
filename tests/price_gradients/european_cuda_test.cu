@@ -563,7 +563,11 @@ void heston_stencil_preparation() {
         hs::EuropeanOptionPriceGradientPlan::Preparation::Scenario central{};
         require(
             hs::EuropeanOptionPriceGradientPlan::Preparation::make_central(
-                plan.models[row], plan.products[row], plan.time, central
+                plan.models[row],
+                equity::spot_relative::selected_central_product(
+                    plan.models[row], plan.products[row],
+                    plan.relative_quotes),
+                plan.time, central
             ),
             "Host stencil oracle central preparation failed."
         );
@@ -600,6 +604,49 @@ void heston_stencil_preparation() {
     }
     std::cout << "Heston checkpoint stencil reconstruction passed\n";
 }
+void compact_cartesian_heston_parity() {
+    const std::vector<hs::ModelParameters> models{
+        {.8f,.02f,.01f,.04f,1.4f,.05f,.3f,-.7f},
+        {1.6f,.03f,.02f,.07f,1.1f,.06f,.4f,-.5f}
+    };
+    const std::vector<product::EuropeanOptionParameters> quotes{
+        {.85f,12U}, {1.0f,24U}, {1.15f,36U}
+    };
+    const pg::PriceGradientConfiguration selection{{
+        {"model.spot", {.005f,pg::BumpScale::relative}},
+        {"model.initial_variance", {.001f,pg::BumpScale::absolute}}
+    }};
+    constexpr auto orders=pg::SensitivityOrders::first_and_second;
+    const auto compact=hs::prepare_heston_european_option_sensitivities(
+        models,quotes,PriceConstruction::CartesianProduct,{},selection,
+        {orders});
+    const auto resolved=equity::spot_relative::resolve_rows(
+        models,quotes,PriceConstruction::CartesianProduct);
+    const auto expanded=pg::prepare_device_sensitivities_absolute<
+        hs::EuropeanOptionPriceGradientPlan>(
+            std::span<const hs::ModelParameters>(resolved.models),
+            std::span<const product::EuropeanOptionParameters>(
+                resolved.products),resolved.construction,{},
+            selection,{orders});
+    pg::LaunchConfiguration launch{pg::PricingMethod::monte_carlo,0U,6U,
+        heston_paths,128U,1U,1709U,1U};
+    const auto actual=execute_heston_diagonal<
+        OptionSide::call,orders>(compact,launch);
+    const auto expected=execute_heston_diagonal<
+        OptionSide::call,orders>(expanded,launch);
+    require_same_bits(expected.price,actual.price,"compact price");
+    require_same_bits(expected.price_error,actual.price_error,
+                      "compact price standard error");
+    require_same_bits(expected.gradient,actual.gradient,
+                      "compact gradient");
+    require_same_bits(expected.gradient_error,actual.gradient_error,
+                      "compact gradient standard error");
+    require_same_bits(expected.diagonal_hessian,actual.diagonal_hessian,
+                      "compact diagonal Hessian");
+    require_same_bits(expected.diagonal_hessian_error,
+                      actual.diagonal_hessian_error,
+                      "compact diagonal Hessian standard error");
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -620,6 +667,7 @@ int main(int argc, char** argv) {
         heston_diagonal<OptionSide::call>();
         heston_diagonal<OptionSide::put>();
         heston_stencil_preparation();
+        compact_cartesian_heston_parity();
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
 }

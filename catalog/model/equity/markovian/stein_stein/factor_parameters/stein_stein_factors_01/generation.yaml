@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/markovian/stein_stein/parameters/stein_stein_01.json
-    sha256: 8ba72ec79276877077a6254bf8bc1879d9ebed1d7e9c533c1c22cdfad7aafbbe
+    sha256: 7f35091735d43789f6a233306df9cce57cffc96b8b732f1a4f00bfcd9a3d5f9f
 output:
   path: datasets/model/equity/markovian/stein_stein/factor_parameters/stein_stein_factors_01.json
-  sha256: da8605172df4b3104130c08530936565b41f53553d80f25b4de329b9e130a8f5
+  sha256: 5b49329df97a1d747f2e3dab50f3bf6a3d02a971a706fabc53711fcf3e1c2730
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

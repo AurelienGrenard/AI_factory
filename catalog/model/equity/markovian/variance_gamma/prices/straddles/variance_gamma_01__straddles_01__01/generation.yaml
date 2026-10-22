@@ -12,7 +12,6 @@ output:
   sha256: 8f1c37e28f1da4facb7d02f3adb4d39d58c250db6a0483d15d0a194c6fdb87e9
 hardware:
   device: gpu
-  index: '0'
   name: NVIDIA GeForce RTX 4090 Laptop GPU
   uuid: GPU-214a7d0d-e7b0-ded2-983c-0c960ec5bcd4
   driver_version: '610.60'

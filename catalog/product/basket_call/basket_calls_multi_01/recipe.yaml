@@ -1,0 +1,40 @@
+schema_version: 1
+kind: "product_parameters"
+dataset_id: "basket_calls_multi_01"
+generator: "catalog/product/basket_call/basket_calls_multi_01/generator.cpp"
+output:
+  path: "datasets/product/basket_call/basket_calls_multi_01.json"
+  format: "json"
+product_family: "Arithmetic-mean basket call"
+row_count: 100
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+quote_convention:
+  strike:
+    mode: "strike_on_mean_normalized_spot"
+    unit: "dimensionless"
+    underlying: "mean_i(S_i(T)/S_i(0))"
+parameters:
+  strike: "Dimensionless strike on the terminal basket of initial-spot-normalized assets."
+  maturity: "Business days from valuation; 252 days per year."
+payoff:
+  expression: "max(mean_i(S_i(T)/S_i(0)) - strike, 0)"
+  notional: "one normalized basket unit"
+  discounting: "stochastic CIR short-rate integral"
+construction:
+  method: "ten maturities times ten exponential strikes"
+  maturities_business_days:
+    - 21
+    - 63
+    - 126
+    - 189
+    - 252
+    - 315
+    - 378
+    - 441
+    - 504
+    - 756
+  log_moneyness_slope_min: -0.15000000596046448
+  log_moneyness_slope_max: 0.15000000596046448
+  core_only: true

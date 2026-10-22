@@ -135,15 +135,12 @@ template<typename Dynamics, typename AuxiliaryRandom>
 concept RateAdjustedCorrelatedStepDynamicsPolicy =
     CorrelatedStepDynamicsPolicy<Dynamics, AuxiliaryRandom>
     && requires(
-        const typename Dynamics::Parameters& parameters,
         const typename Dynamics::PreparedDynamics& prepared,
         typename Dynamics::BrownianStep brownian,
         AuxiliaryRandom& auxiliary,
         typename Dynamics::State& state,
-        float delta_t, float carry_shift
+        float carry_shift
     ) {
-        { Dynamics::nominal_rate_step(parameters, delta_t) }
-            -> std::same_as<float>;
         { Dynamics::one_step_transition_with_rate(
             prepared, brownian, auxiliary, state, carry_shift)
         } -> std::same_as<void>;
@@ -152,13 +149,10 @@ concept RateAdjustedCorrelatedStepDynamicsPolicy =
 // A rough spot declares how a shared short-rate integral enters its scan.
 template<typename Policy>
 concept RateAdjustedRoughSpotPolicy = requires(
-    const typename Policy::Parameters& parameters,
     const typename Policy::PreparedModel& prepared,
-    float delta_t, float volatility, float normal,
+    float volatility, float normal,
     float& log_spot, float carry_shift
 ) {
-    { Policy::nominal_rate_step(parameters, delta_t) }
-        -> std::same_as<float>;
     { Policy::advance_spot_cell_with_rate(
         prepared, volatility, normal, log_spot, carry_shift)
     } -> std::same_as<void>;

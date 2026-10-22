@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/rough/rough_stein_stein/parameters/rough_stein_stein_01.json
-    sha256: bf3d6dfdd509d39d519c32d2183f10a0fe215682972c859c1adb3280cb323a73
+    sha256: 44d7daef29bc284e3de0380d1b65b63c924250e0f73a27d0f301a8d1ac858ae0
 output:
   path: datasets/model/equity/rough/rough_stein_stein/factor_parameters/rough_stein_stein_factors_01.json
-  sha256: bb449eb5e23efeb155059c6d472a4556335710d30af88bd18f508872f59f7cbb
+  sha256: 57847c241eb9f791126d2cd66c98d4e3c0fa335c88f6fda843943e9ec273cadd
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

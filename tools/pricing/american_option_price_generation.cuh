@@ -129,13 +129,12 @@ int generate_american_option_equity_price_dataset(
     const auto quotes = product::load_american_options(
         recipe.product_dataset_path
     );
-    const auto paired = equity::spot_relative::resolve_rows(
+    equity::spot_relative::validate_resolved_rows(
         models, quotes, recipe.construction
     );
-    const auto& resolved_models = paired.models;
-    const auto& products = paired.products;
+    const auto& products = quotes;
     const std::size_t result_count = price_row_count(
-        resolved_models.size(), products.size(), paired.construction
+        models.size(), products.size(), recipe.construction
     );
     cuda::GenerationProgress progress(result_count);
     longstaff_schwartz::LaunchResult execution{};
@@ -146,7 +145,7 @@ int generate_american_option_equity_price_dataset(
         profile.identity, result_count, profile.paths_per_price, settings
     );
     const auto run = cuda::run_monte_carlo(
-        cuda::inputs(resolved_models, products),
+        cuda::inputs(models, products),
         result_count,
         [&](auto& resources) {
             std::invoke(
@@ -170,11 +169,11 @@ int generate_american_option_equity_price_dataset(
                 launcher,
                 plan,
                 resources.template input<0U>(),
-                resolved_models.size(),
+                models.size(),
                 products.data(),
                 resources.template input<1U>(),
                 products.size(),
-                paired.construction,
+                recipe.construction,
                 result_count,
                 profile.paths_per_price,
                 resources.prices(),

@@ -5,12 +5,21 @@ generator: "catalog/product/athena_autocall/athena_autocalls_01/generator.cpp"
 output:
   path: "datasets/product/athena_autocall/athena_autocalls_01.json"
   format: "json"
-generation_details: "catalog/product/athena_autocall/athena_autocalls_01/generation.yaml"
 product_family: "Athena Autocalls"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  autocall_barrier:
+    mode: "ratio_to_central_spot"
+    unit: "dimensionless"
+    effective_level: "autocall_barrier * S0"
+  protection_barrier:
+    mode: "ratio_to_central_spot"
+    unit: "dimensionless"
+    effective_level: "protection_barrier * S0"
+  reference_policy: "Resolved at the unbumped model spot S0 for each model-product pair; absolute contract levels remain fixed for model bumps."
 parameters:
   maturity: "Time from issuance to final redemption in business days."
   observation_interval: "Business days between observation dates."
@@ -24,10 +33,6 @@ payoff:
   protected_redemption: "At maturity, protection_barrier <= S_T < autocall_barrier repays nominal 1 without gain."
   unprotected_redemption: "At maturity, S_T < protection_barrier repays S_T / S_ref on unit notional, with S_ref fixed at issuance."
   protection_monitoring: "European: protection_barrier is observed only at maturity."
-  spot_level_quote:
-    unit: "ratio_to_central_spot"
-    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
-    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 constrained core-stress sample"
   row_order:

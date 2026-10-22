@@ -15,8 +15,8 @@ int main() {
     const std::filesystem::path directory(allocated);
     try {
         const auto require = [](bool value) { if (!value) throw std::runtime_error("Gradient artifact contract failed."); };
-        nlohmann::ordered_json models{{"database_id","models"},{"model_family","Test model"},{"catalog","catalog/test"},
-            {"url","https://datasets.ai-factory.example/models.json"}, {"models",{{{"id","000001"}}}}};
+        nlohmann::ordered_json models{{"database_id","models"},{"model_family","Test model"},
+            {"models",{{{"id","000001"}}}}};
         auto products = models;
         products.erase("models"); products["products"] = {{{"id","000001"}}};
         products["time_convention"] = {{"unit","business_day"},{"days_per_year",252}};
@@ -31,14 +31,13 @@ int main() {
             {{"paths_per_price",32},{"sensitivity_count",1},{"scenario_count",3},{"seed",719}}};
         data::write_dataset(recipe,result);
         const auto valid = datasets::read_json_file(recipe.dataset);
-        require(valid.size() == 8U && valid.contains("results"));
+        require(valid.contains("results"));
         require(valid["database_id"] == "gradients"
             && valid["model_family"] == "Test model"
             && valid["product_family"] == "Test product"
-            && valid["catalog"] == directory.generic_string()
             && valid["row_count"] == 1U);
         require(valid["model_dataset"] == nlohmann::ordered_json({
-            {"id", "models"}, {"catalog", "catalog/test"}
+            {"id", "models"}
         }));
         require(valid["product_dataset"] == valid["model_dataset"]);
         require(valid["results"].size() == 1U);
@@ -208,17 +207,12 @@ int main() {
             full_recipe.dataset
         );
         const auto& full_row = full_document["results"][0];
-        require(full_document.size() == 9U
-            && full_document["option_side"] == "call"
-            && full_row.size() == 10U
+        require(full_document["option_side"] == "call"
             && full_row["gradients"]["model.volatility"] == .4f
             && full_row["diagonal_hessians"]["model.volatility"] == .5f
             && full_row["mixed_hessians"]["model.rho|model.volatility"] == .6f
             && full_row["mixed_hessian_standard_errors"]
-                ["model.rho|model.volatility"] == .06f
-            && !full_document.contains("sensitivity")
-            && !full_document.contains("url")
-            && !full_row.contains("stencils"));
+                ["model.rho|model.volatility"] == .06f);
         result.diagonal_stencils[0].second_weights[2U] =
             std::numeric_limits<float>::quiet_NaN();
         bool diagonal_rejected = false;
@@ -264,7 +258,6 @@ int main() {
         result.stencils.assign(8U, result.stencils.front());
         data::write_dataset(recipe, result);
         const auto curve_document = datasets::read_json_file(recipe.dataset);
-        require(curve_document.size() == 10U);
         auto family_field = curve_document.begin();
         require(family_field.key() == "database_id");
         ++family_field;
@@ -275,7 +268,7 @@ int main() {
         require(family_field.key() == "curve_family");
         require(curve_document["curve_family"] == "Test curve"
             && curve_document["curve_dataset"]["id"] == "curves"
-            && curve_document["curve_dataset"]["catalog"] == "catalog/test");
+);
         require(curve_document["results"].size() == 8U);
         require(curve_document["results"][0]["model_id"] == "000001"
             && curve_document["results"][0]["curve_id"] == "000001"

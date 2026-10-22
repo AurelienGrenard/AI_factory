@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/curve/svensson/svensson_01.json
-  sha256: 66e9b77c78c951f60fd9b93b93982fd712bbbac03c003eb6feb102eda3c39f0a
-hardware:
-  device: cpu

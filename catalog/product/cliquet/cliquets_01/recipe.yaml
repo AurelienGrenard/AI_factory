@@ -5,12 +5,27 @@ generator: "catalog/product/cliquet/cliquets_01/generator.cpp"
 output:
   path: "datasets/product/cliquet/cliquets_01.json"
   format: "json"
-generation_details: "catalog/product/cliquet/cliquets_01/generation.yaml"
 product_family: "Cliquets"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  periodic_return:
+    mode: "S(t_i)/S(t_{i-1}) - 1"
+    unit: "dimensionless"
+  local_floor:
+    mode: "periodic_return_bound"
+    unit: "dimensionless"
+  local_cap:
+    mode: "periodic_return_bound"
+    unit: "dimensionless"
+  global_floor:
+    mode: "cumulative_return_bound"
+    unit: "dimensionless"
+  global_cap:
+    mode: "cumulative_return_bound"
+    unit: "dimensionless"
 parameters:
   maturity: "Time from issuance to final payment in business days."
   observation_interval: "Business days between consecutive return observations."

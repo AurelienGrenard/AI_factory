@@ -459,7 +459,7 @@ ENGINE_SPECS = (
             S("src/common/volterra/concepts.cuh", "volterra::HybridKernelPolicy"),
             S("src/common/volterra/concepts.cuh", "volterra::HybridPathPolicyFor"),
         ),
-        launchers=(S("src/common/volterra/hybrid_fft_pricer.cuh", "volterra::hybrid_fft::launch_pricing_cuda"),),
+        launchers=(S("src/common/volterra/hybrid_fft_pricer_kernel.cuh", "volterra::hybrid_fft::launch_pricing_cuda"),),
         runners=(S("tools/pricing/equity_price_generation.cuh", "offline::pricing::generate_volterra_equity_price_dataset"),),
         instantiation_strategy="kernel/model/product/schedule specialization",
     ),

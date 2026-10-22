@@ -1,0 +1,19 @@
+schema_version: 4
+status: complete
+inputs: {}
+output:
+  path: datasets/model/equity/markovian/cev/samples/samples_02.json
+  sha256: 2a0a955ddeba8ee5344fac0db45e33cfef35640d043424d47666d18ee44c4082
+hardware:
+  cpu_model: Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz
+  device: gpu
+  name: NVIDIA A100 80GB PCIe
+  uuid: GPU-5102f6b2-92ef-1ca5-849f-649cb3851bf6
+  compute_capability: '8.0'
+  driver_version: 590.48.01
+software:
+  cmake: cmake version 3.31.6
+  cxx_compiler: g++-14 (Debian 14.2.0-19) 14.2.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  mathdx: 25.12.1
+  nlohmann_json: 3.10.5

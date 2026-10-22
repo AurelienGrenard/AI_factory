@@ -9,8 +9,8 @@
 #include "model/equity/markovian/merton/dynamics_impl.cuh"
 #include "model/equity/markovian/merton/price_gradients/coupled_dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"
-#include "product/american_option/price_gradients/device_prepared_frozen_replay_node_graph.cuh"
-#include "product/american_option/price_gradients/device_prepared_frozen_replay_mixed_node_graph.cuh"
+#include "product/american_option/price_gradients/device_prepared_frozen_replay_node_graph_kernel.cuh"
+#include "product/american_option/price_gradients/device_prepared_frozen_replay_mixed_node_graph_kernel.cuh"
 #include "product/american_option/price_gradients/device_prepared_pricing_policy.cuh"
 
 namespace ai_factory::workbench::model::equity::merton {

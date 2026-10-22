@@ -5,7 +5,6 @@ generator: "catalog/model/fixed_income/g2_plus_plus/factor_parameters/g2_plus_pl
 output:
   path: "datasets/model/fixed_income/g2_plus_plus/factor_parameters/g2_plus_plus_factors_01.json"
   format: "json"
-generation_details: "catalog/model/fixed_income/g2_plus_plus/factor_parameters/g2_plus_plus_factors_01/generation.yaml"
 model_family: "G2++ Gaussian two-factor"
 row_count: 1000
 parameterization: "factorized"

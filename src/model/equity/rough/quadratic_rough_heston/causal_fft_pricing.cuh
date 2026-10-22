@@ -1,7 +1,7 @@
 // Product-generic causal FFT binding for quadratic rough Heston.
 #pragma once
 
-#include "common/volterra/causal_fft_pricer.cuh"
+#include "common/volterra/causal_fft_pricer_kernel.cuh"
 #include "model/equity/rough/quadratic_rough_heston/causal_fft_dynamics.cuh"
 
 namespace ai_factory::workbench::model::equity::quadratic_rough_heston {

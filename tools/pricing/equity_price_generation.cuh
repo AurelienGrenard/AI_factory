@@ -47,6 +47,7 @@ struct BatchedMonteCarloProfile {
     nlohmann::ordered_json execution_metadata =
         nlohmann::ordered_json::object();
     cuda_tuning::PricingIdentity identity;
+    std::size_t blocks_per_price = 1U;
 };
 
 struct VolterraMonteCarloProfile {
@@ -593,12 +594,11 @@ int generate_monte_carlo_equity_price_dataset(
     const auto products = std::invoke(
         product_loader, recipe.product_dataset_path
     );
-    const auto paired = equity::spot_relative::resolve_rows(
+    equity::spot_relative::validate_resolved_rows(
         models, products, recipe.construction
     );
     MonteCarloExecution execution = std::invoke(
-        executor, paired.models, paired.products, paired.construction,
-        profile
+        executor, models, products, recipe.construction, profile
     );
     execution.execution_metadata["product_spot_levels"] =
         "quote ratio times central model spot; frozen for sensitivities";
@@ -639,12 +639,11 @@ int generate_volterra_equity_price_dataset(
     const auto products = std::invoke(
         product_loader, recipe.product_dataset_path
     );
-    const auto paired = equity::spot_relative::resolve_rows(
+    equity::spot_relative::validate_resolved_rows(
         models, products, recipe.construction
     );
     MonteCarloExecution execution = std::invoke(
-        executor, paired.models, paired.products, paired.construction,
-        profile
+        executor, models, products, recipe.construction, profile
     );
     execution.execution_metadata["product_spot_levels"] =
         "quote ratio times central model spot; frozen for sensitivities";
@@ -685,12 +684,11 @@ int generate_analytical_equity_price_dataset(
     const auto products = std::invoke(
         product_loader, recipe.product_dataset_path
     );
-    const auto paired = equity::spot_relative::resolve_rows(
+    equity::spot_relative::validate_resolved_rows(
         models, products, recipe.construction
     );
     AnalyticalExecution execution = std::invoke(
-        executor, paired.models, paired.products, paired.construction,
-        profile
+        executor, models, products, recipe.construction, profile
     );
     execution.execution_metadata["product_spot_levels"] =
         "quote ratio times central model spot";

@@ -5,7 +5,6 @@ generator: "catalog/model/equity/markovian/normal_inverse_gaussian/factor_parame
 output:
   path: "datasets/model/equity/markovian/normal_inverse_gaussian/factor_parameters/normal_inverse_gaussian_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/markovian/normal_inverse_gaussian/factor_parameters/normal_inverse_gaussian_factors_01/generation.yaml"
 model_family: "Normal-Inverse-Gaussian"
 row_count: 1000
 parameterization: "factorized"

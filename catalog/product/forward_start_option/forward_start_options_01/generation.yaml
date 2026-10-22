@@ -3,6 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/forward_start_option/forward_start_options_01.json
-  sha256: 55703842fd1e6bd07acb3a3e3252a59dec2f1a2305ff3ab8003a0e563d4524a7
+  sha256: 408e81b9d102794338b560feb278550de1398b9a21c6f0ccd0ce3c4e65e064e1
 hardware:
   device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

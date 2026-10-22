@@ -3,6 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/model/equity/rough/rough_sabr/parameters/rough_sabr_01.json
-  sha256: e8d05a8fa7f2872cd19503ac8ad5b2f15d1a3b24a6ca63a80844f51d5f71bd70
+  sha256: 5b4c16d54d626795b3484982ee1195528ab7b2da42154c0e8084563cb7764843
 hardware:
   device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

@@ -5,7 +5,6 @@ generator: "catalog/model/equity/rough/rough_stein_stein/factor_parameters/rough
 output:
   path: "datasets/model/equity/rough/rough_stein_stein/factor_parameters/rough_stein_stein_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/rough/rough_stein_stein/factor_parameters/rough_stein_stein_factors_01/generation.yaml"
 model_family: "rough Stein-Stein"
 row_count: 1000
 parameterization: "factorized"

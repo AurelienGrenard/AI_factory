@@ -71,6 +71,24 @@ def snapshot_sources(root: Path, destination: Path) -> str:
 SCHEMA_VERSION = 4
 
 
+def readable_duration(seconds: float) -> str:
+    """Render a measured wall time without leading zero units."""
+    if not math.isfinite(seconds) or seconds < 0:
+        raise ValueError("Generation wall time must be finite and non-negative")
+    milliseconds = round(seconds * 1000)
+    if milliseconds < 1000:
+        return (f"{seconds * 1000:.3f}".rstrip("0").rstrip(".") or "0") + " ms"
+    whole, ms = divmod(milliseconds, 1000)
+    days, remainder = divmod(whole, 86_400)
+    hours, remainder = divmod(remainder, 3_600)
+    minutes, remainder = divmod(remainder, 60)
+    fields = [(days, "j"), (hours, "h"), (minutes, "min"),
+              (remainder, "s"), (ms, "ms")]
+    first = next((i for i, (value, _) in enumerate(fields) if value), 4)
+    last = 4 if ms else 3
+    return " ".join(f"{value} {unit}" for value, unit in fields[first:last + 1])
+
+
 def _version(command: list[str]) -> str:
     try:
         result = subprocess.run(command, capture_output=True, text=True,
@@ -131,14 +149,12 @@ def hardware_from_observation(observation: dict | None, *, cpu: bool = False) ->
         result = {"device": "cpu"}
     else:
         result = {}
-    for source, target in (("hostname", "host"), ("cpu_model", "cpu_model")):
+    for source, target in (("cpu_model", "cpu_model"),):
         if observation.get(source):
             result[target] = observation[source]
     if cpu:
         return result
     visible = observation.get("cuda_visible_devices")
-    if visible is not None:
-        result["cuda_visible_devices"] = visible
     rows = list(csv.DictReader((observation.get("stdout") or "").splitlines(), skipinitialspace=True))
     if rows:
         selected = (visible or "0").split(",")[0].strip()
@@ -147,7 +163,7 @@ def hardware_from_observation(observation: dict | None, *, cpu: bool = False) ->
                                     row.get("uuid", "").strip()}), rows[0])
         if row.get("name"):
             result["device"] = "gpu"
-        for source, target in (("index", "index"), ("name", "name"),
+        for source, target in (("name", "name"),
                                ("uuid", "uuid"), ("compute_cap", "compute_capability"),
                                ("driver_version", "driver_version")):
             if row.get(source):
@@ -156,7 +172,8 @@ def hardware_from_observation(observation: dict | None, *, cpu: bool = False) ->
 
 def generation_record(native: dict, recipe_path: str, dataset_path: str,
                       input_paths: dict[str, str], input_root: Path,
-                      hardware: dict, software: dict) -> dict:
+                      hardware: dict, software: dict,
+                      wall_seconds: float | None = None) -> dict:
     """Keep a small editable receipt for the currently published JSON."""
     if not isinstance(native, dict) or native.get("status") != "complete":
         raise ValueError("Native generation receipt is incomplete")
@@ -172,14 +189,36 @@ def generation_record(native: dict, recipe_path: str, dataset_path: str,
         "output": {"path": dataset_path,
                    "sha256": digest(contained_path(input_root, dataset_path))},
     }
-    hardware = known_fields(hardware)
+    hardware = known_fields({key: value for key, value in hardware.items()
+                             if key not in {"host", "index", "cuda_visible_devices"}})
     software = known_fields(software)
     if hardware:
         record["hardware"] = hardware
     if software:
         record["software"] = software
+    if wall_seconds is not None:
+        record["timing"] = {
+            "wall_seconds": wall_seconds,
+            "duration": readable_duration(wall_seconds),
+        }
     validate_document(record, "generation", recipe_path)
     return record
+
+
+def measured_attempt_wall_seconds(work: Path, fallback: float | None) -> float | None:
+    """Sum generator invocations, including completed checkpoint attempts."""
+    total = 0.0
+    found = False
+    for journal in sorted(work.parents[1].glob("attempt-*/progress.jsonl")):
+        for line in journal.read_text().splitlines():
+            event = json.loads(line)
+            if event.get("event") == "generator_exited":
+                value = event.get("wall_seconds")
+                if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+                    raise ValueError(f"Invalid measured wall time: {journal}")
+                total += value
+                found = True
+    return total if found else fallback
 
 
 def attach_generation(work: Path, job: dict, state: dict) -> None:
@@ -200,6 +239,10 @@ def attach_generation(work: Path, job: dict, state: dict) -> None:
             cpu=job["kind"] in {"model_parameters", "product_parameters", "curve_parameters",
                                  "correlation_parameters"}),
         software_versions(Path(state["build"])),
+        wall_seconds=(measured_attempt_wall_seconds(
+            work, job.get("generation_wall_seconds"))
+            if job["kind"] in {"prices", "price_gradients", "price_delta"}
+            else None),
     )
     path.write_text(yaml.safe_dump(record, sort_keys=False))
 
@@ -239,18 +282,20 @@ def _check_published_json(recipe: dict, generation: dict, document: dict) -> Non
         results = document.get("results")
         if not isinstance(results, list) or len(results) != rows:
             raise ValueError("Price result count contradicts recipe")
+        expected_keys = {"model_id", "product_id", "price"}
+        if "curve" in recipe.get("inputs", {}):
+            expected_keys.add("curve_id")
+        if recipe.get("paths_per_price", 0) > 0:
+            expected_keys.add("standard_error")
         for index, row in enumerate(results, 1):
-            if not isinstance(row, dict) or row.get("id") != f"{index:06d}":
-                raise ValueError(f"Invalid price result ID at row {index}")
-            outputs = row.get("outputs", {})
-            value = outputs.get("price") if isinstance(outputs, dict) else None
-            error = outputs.get("standard_error") if isinstance(outputs, dict) else None
+            if not isinstance(row, dict) or not expected_keys <= set(row):
+                raise ValueError(f"Invalid compact price row at {index}")
+            value = row.get("price")
+            error = row.get("standard_error")
             if (type(value) not in (int, float) or not math.isfinite(value)
-                    or (recipe.get("paths_per_price", 0) > 0
+                    or ("standard_error" in expected_keys
                         and (type(error) not in (int, float)
-                             or not math.isfinite(error) or error < 0))
-                    or (error is not None and (type(error) not in (int, float)
-                                               or not math.isfinite(error) or error < 0))):
+                             or not math.isfinite(error) or error < 0))):
                 raise ValueError(f"Invalid price or standard error at row {index}")
     elif kind in {"model_parameters", "product_parameters", "curve_parameters",
                   "correlation_parameters"}:
@@ -303,7 +348,7 @@ def assess(recipe: dict, generation: dict, dataset: Path, root: Path | None = No
             from tools.datasets.generate_catalog import check_samples
             if version in (1, 2) and output.get("row_count") != recipe.get("row_count"):
                 raise ValueError("Sample row count contradicts recipe")
-            check_samples(dataset, {"generation": recipe["generation_details"],
+            check_samples(dataset, {"generation": str(Path(recipe["generator"]).with_name("generation.yaml")),
                                     "rows": recipe["row_count"]}, recipe)
             document = None
         else:
@@ -324,8 +369,7 @@ def assess(recipe: dict, generation: dict, dataset: Path, root: Path | None = No
                 else:
                     reference = document.get(role + "_dataset")
                 if (not isinstance(reference, dict)
-                        or reference.get("id") != source.get("database_id")
-                        or reference.get("catalog") != source.get("catalog")):
+                        or reference.get("id") != source.get("database_id")):
                     raise ValueError(f"{role} dataset reference contradicts recipe input")
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
         return result("invalid", str(error))

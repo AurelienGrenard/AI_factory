@@ -14,6 +14,9 @@
 
 #include <cuda_runtime.h>
 
+#include <algorithm>
+#include <memory>
+
 #include <cstddef>
 #include <cstdint>
 #include <stdexcept>
@@ -104,13 +107,70 @@ __device__ __forceinline__ bool contains_sample(
             < range.sample_offset + range.launch_sample_count;
 }
 
+// Keep one device function for fused and split scans so both routes use the
+// same floating-point instruction sequence and replay bit for bit.
+template<typename Policy,typename CalendarSource>
+__device__ __noinline__ void scan_prepared_volterra_sample(
+    const PreparedParameter<typename Policy::Kernel,
+                            typename Policy::Path>& row,
+    const CalendarSource& calendar_source,
+    const float* variances,const float2* far_convolutions,
+    std::size_t path_index,std::size_t sample_index,
+    std::size_t total_samples,std::uint32_t maximum_step_count,
+    std::uint64_t schedule_seed,
+    const typename Policy::Output& output
+) {
+    using Kernel=typename Policy::Kernel;
+    using Path=typename Policy::Path;
+    using Schedule=typename Policy::Schedule;
+    using Observation=typename Policy::Observation;
+    const typename Schedule::Calendar calendar=
+        calendar_source.load(sample_index,schedule_seed);
+    const std::uint64_t path_steps=
+        kSampleSimulationStepsPerDay*maturity_days(calendar);
+    if(path_steps==0U || path_steps>maximum_step_count) return;
+    const auto path_step_count=static_cast<std::uint32_t>(path_steps);
+    const volterra::HybridTimeConfiguration time_configuration{
+        kSampleDayFraction,kSampleFixedStepDt};
+    const typename Schedule::PreparedSchedule schedule=
+        Schedule::prepare(calendar,time_configuration,path_step_count);
+    typename Path::State state=Path::initial_state(row.model);
+    typename Observation::Handler handler=
+        Observation::make_handler(output,sample_index,total_samples);
+    typename Schedule::Cursor cursor=Schedule::make_cursor(schedule);
+    bool keep_running=Schedule::on_initial_state(
+        schedule,cursor,state,handler);
+    for(std::uint32_t step=0U;
+        keep_running && step<path_step_count;++step) {
+        const float rough_normal=volterra::hybrid_fft::normal_at(
+            row.dynamics_key,path_index,3ULL*step);
+        const float singular_normal=volterra::hybrid_fft::normal_at(
+            row.dynamics_key,path_index,3ULL*step+1ULL);
+        const float spot_normal=volterra::hybrid_fft::normal_at(
+            row.dynamics_key,path_index,3ULL*step+2ULL);
+        float far_convolution=0.0f;
+        if(step>0U) {
+            const float2 packed=far_convolutions[step-1U];
+            far_convolution=(path_index&1U)==0U
+                ? packed.x : packed.y;
+        }
+        const float volterra_value=Kernel::reconstruct_volterra_value(
+            row.kernel,far_convolution,rough_normal,singular_normal);
+        Path::advance(row.model,volterra_value,variances[step],
+            rough_normal,spot_normal,state);
+        keep_running=Schedule::on_step(
+            schedule,cursor,step,state,handler);
+    }
+}
+
 template<
     typename Policy,
     ParameterSourceFor<typename Policy::Parameters> ParameterSource,
     CalendarSourceFor<typename Policy::Schedule::Calendar> CalendarSource,
     unsigned int Length,
     class Forward,
-    class Inverse
+    class Inverse,
+    bool SplitScan
 >
 requires VolterraFftSamplingPolicy<
     Policy,
@@ -123,7 +183,10 @@ __global__ void parameter_block_sample_kernel(
     std::size_t total_samples,
     std::uint32_t maximum_step_count,
     SamplingSeeds seeds,
-    typename Policy::Output output
+    typename Policy::Output output,
+    PreparedParameter<typename Policy::Kernel,
+                      typename Policy::Path>* prepared_rows,
+    float* prepared_variances,float2* far_convolutions
 ) {
     using Kernel = typename Policy::Kernel;
     using Path = typename Policy::Path;
@@ -187,20 +250,26 @@ __global__ void parameter_block_sample_kernel(
                 philox::make_key(seeds.dynamics + parameter_index),
                 sqrtf(time_step),
             };
+            if constexpr (SplitScan)
+                prepared_rows[parameter_index-first_parameter]=row;
         }
         __syncthreads();
 
         for (std::uint32_t step = flat_thread;
              step < maximum_step_count;
              step += threads_per_block) {
-            if constexpr (Path::kUsesVolterraVariance) {
-                volterra_variances[step] = Kernel::volterra_variance(
-                    row.kernel,
-                    static_cast<float>(step + 1U) * kSampleFixedStepDt
-                );
-            } else {
-                volterra_variances[step] = 0.0f;
-            }
+            const float variance=[&]() {
+                if constexpr (Path::kUsesVolterraVariance)
+                    return Kernel::volterra_variance(
+                        row.kernel,
+                        static_cast<float>(step+1U)*kSampleFixedStepDt);
+                else return 0.0f;
+            }();
+            if constexpr (SplitScan)
+                prepared_variances[
+                    (parameter_index-first_parameter)*maximum_step_count
+                        +step]=variance;
+            else volterra_variances[step]=variance;
         }
 
         Complex kernel_data[Forward::storage_size];
@@ -326,110 +395,70 @@ __global__ void parameter_block_sample_kernel(
             );
             __syncthreads();
 
-            if (threadIdx.x < 2U && pair < pair_count) {
-                const std::size_t path_index =
-                    first_pair_path + threadIdx.x;
-                const std::size_t sample_index =
-                    parameter_sample_begin + path_index;
-                if (path_index < range.paths_per_parameter
-                    && contains_sample(range, sample_index)) {
-                    const typename Schedule::Calendar calendar =
-                        calendar_source.load(sample_index, seeds.schedule);
-                    const std::uint64_t path_steps =
-                        kSampleSimulationStepsPerDay
-                        * maturity_days(calendar);
-                    if (path_steps > 0U
-                        && path_steps <= maximum_step_count) {
-                        const std::uint32_t path_step_count =
-                            static_cast<std::uint32_t>(path_steps);
-                        const volterra::HybridTimeConfiguration
-                            time_configuration{
-                                kSampleDayFraction,
-                                kSampleFixedStepDt,
-                            };
-                        const typename Schedule::PreparedSchedule schedule =
-                            Schedule::prepare(
-                                calendar,
-                                time_configuration,
-                                path_step_count
-                            );
-                        typename Path::State state =
-                            Path::initial_state(row.model);
-                        typename Observation::Handler handler =
-                            Observation::make_handler(
-                                output,
-                                sample_index,
-                                total_samples
-                            );
-                        typename Schedule::Cursor cursor =
-                            Schedule::make_cursor(schedule);
-                        bool keep_running = Schedule::on_initial_state(
-                            schedule,
-                            cursor,
-                            state,
-                            handler
-                        );
-                        for (std::uint32_t step = 0U;
-                             keep_running && step < path_step_count;
-                             ++step) {
-                            const float rough_normal =
-                                volterra::hybrid_fft::normal_at(
-                                    row.dynamics_key,
-                                    path_index,
-                                    3ULL * step
-                                );
-                            const float singular_normal =
-                                volterra::hybrid_fft::normal_at(
-                                    row.dynamics_key,
-                                    path_index,
-                                    3ULL * step + 1ULL
-                                );
-                            const float spot_normal =
-                                volterra::hybrid_fft::normal_at(
-                                    row.dynamics_key,
-                                    path_index,
-                                    3ULL * step + 2ULL
-                                );
-                            float far_convolution = 0.0f;
-                            if (step > 0U) {
-                                const float2 packed = packed_outputs[
+            if constexpr (SplitScan) {
+                if(pair<pair_count)
+                    for(std::uint32_t step=threadIdx.x;
+                        step<maximum_step_count;step+=blockDim.x) {
+                        const std::size_t pair_capacity=
+                            (range.paths_per_parameter+1U)/2U;
+                        far_convolutions[((parameter_index-first_parameter)
+                            *pair_capacity+pair)*maximum_step_count+step]=
+                                packed_outputs[
                                     static_cast<std::size_t>(local_fft)
-                                        * Length
-                                        + step - 1U
-                                ];
-                                far_convolution = threadIdx.x == 0U
-                                    ? packed.x
-                                    : packed.y;
-                            }
-                            const float volterra_value =
-                                Kernel::reconstruct_volterra_value(
-                                    row.kernel,
-                                    far_convolution,
-                                    rough_normal,
-                                    singular_normal
-                                );
-                            Path::advance(
-                                row.model,
-                                volterra_value,
-                                volterra_variances[step],
-                                rough_normal,
-                                spot_normal,
-                                state
-                            );
-                            keep_running = Schedule::on_step(
-                                schedule,
-                                cursor,
-                                step,
-                                state,
-                                handler
-                            );
-                        }
+                                        *Length+step];
                     }
-                }
+            } else if(threadIdx.x<2U && pair<pair_count) {
+                const std::size_t path_index=
+                    first_pair_path+threadIdx.x;
+                const std::size_t sample_index=
+                    parameter_sample_begin+path_index;
+                if(path_index<range.paths_per_parameter
+                    &&contains_sample(range,sample_index))
+                    scan_prepared_volterra_sample<Policy>(
+                        row,calendar_source,volterra_variances,
+                        packed_outputs+
+                            static_cast<std::size_t>(local_fft)*Length,
+                        path_index,sample_index,total_samples,
+                        maximum_step_count,seeds.schedule,output);
             }
             __syncthreads();
         }
         __syncthreads();
+    }
+}
+
+template<typename Policy,typename CalendarSource>
+__global__ void split_volterra_sample_scan_kernel(
+    CalendarSource calendar_source,SampleRange range,
+    std::size_t total_samples,std::uint32_t maximum_step_count,
+    SamplingSeeds seeds,typename Policy::Output output,
+    const PreparedParameter<typename Policy::Kernel,
+                            typename Policy::Path>* prepared_rows,
+    const float* prepared_variances,const float2* far_convolutions
+) {
+    const std::size_t first_parameter=
+        range.sample_offset/range.paths_per_parameter;
+    const std::size_t pair_capacity=
+        (range.paths_per_parameter+1U)/2U;
+    const std::size_t thread=
+        static_cast<std::size_t>(blockIdx.x)*blockDim.x+threadIdx.x;
+    const std::size_t stride=
+        static_cast<std::size_t>(gridDim.x)*blockDim.x;
+    for(std::size_t local=thread;local<range.launch_sample_count;
+        local+=stride) {
+        const std::size_t sample_index=range.sample_offset+local;
+        const std::size_t parameter_index=
+            sample_index/range.paths_per_parameter;
+        const std::size_t path_index=
+            sample_index%range.paths_per_parameter;
+        const std::size_t parameter=parameter_index-first_parameter;
+        scan_prepared_volterra_sample<Policy>(
+            prepared_rows[parameter],calendar_source,
+            prepared_variances+parameter*maximum_step_count,
+            far_convolutions+(parameter*pair_capacity+path_index/2U)
+                *maximum_step_count,
+            path_index,sample_index,total_samples,maximum_step_count,
+            seeds.schedule,output);
     }
 }
 
@@ -499,7 +528,8 @@ template<
     CalendarSourceFor<typename Policy::Schedule::Calendar> CalendarSource,
     unsigned int Length,
     unsigned int ElementsPerThread,
-    unsigned int FftsPerBlock
+    unsigned int FftsPerBlock,
+    bool SplitScan
 >
 requires VolterraFftSamplingPolicy<
     Policy,
@@ -543,15 +573,17 @@ void launch_fft_length(
         : packed_output_bytes;
     const std::size_t shared_bytes = spectrum_bytes
         + execution_bytes
-        + static_cast<std::size_t>(launch_configuration.maximum_step_count)
-            * sizeof(float);
+        + (SplitScan ? 0U
+            : static_cast<std::size_t>(
+                launch_configuration.maximum_step_count)*sizeof(float));
     const auto kernel = parameter_block_sample_kernel<
         Policy,
         ParameterSource,
         CalendarSource,
         Length,
         Forward,
-        Inverse
+        Inverse,
+        SplitScan
     >;
     check_cuda(
         cudaFuncSetAttribute(
@@ -577,27 +609,95 @@ void launch_fft_length(
         );
     }
 
-    const dim3 grid(
-        static_cast<unsigned int>(launch_configuration.block_count)
-    );
-    report_cuda_kernel_launch_if_enabled(
-        diagnostic_name,
-        diagnostic_variant,
-        kernel,
-        grid,
-        Forward::block_dim,
-        shared_bytes
-    );
-    kernel<<<grid, Forward::block_dim, shared_bytes>>>(
-        parameter_source,
-        calendar_source,
-        range,
-        total_sample_count(range),
-        launch_configuration.maximum_step_count,
-        seeds,
-        output
-    );
-    check_cuda(cudaGetLastError(), operation_name);
+    if constexpr (!SplitScan) {
+        const dim3 grid(
+            static_cast<unsigned int>(launch_configuration.block_count));
+        report_cuda_kernel_launch_if_enabled(
+            diagnostic_name,diagnostic_variant,kernel,grid,
+            Forward::block_dim,shared_bytes);
+        kernel<<<grid,Forward::block_dim,shared_bytes>>>(
+            parameter_source,calendar_source,range,
+            total_sample_count(range),
+            launch_configuration.maximum_step_count,seeds,output,
+            nullptr,nullptr,nullptr);
+        check_cuda(cudaGetLastError(),operation_name);
+    } else {
+        using Row=PreparedParameter<typename Policy::Kernel,
+                                    typename Policy::Path>;
+        const std::size_t steps=launch_configuration.maximum_step_count;
+        const std::size_t pair_capacity=
+            (range.paths_per_parameter+1U)/2U;
+        const std::size_t bytes_per_parameter=sizeof(Row)
+            +steps*sizeof(float)
+            +pair_capacity*steps*sizeof(float2)+16U;
+        constexpr std::size_t workspace_limit=64U*1024U*1024U;
+        if(bytes_per_parameter>workspace_limit) {
+            launch_fft_length<Policy,ParameterSource,CalendarSource,
+                Length,ElementsPerThread,FftsPerBlock,false>(
+                    parameter_source,calendar_source,range,
+                    launch_configuration,seeds,output,diagnostic_name,
+                    diagnostic_variant,operation_name);
+            return;
+        }
+        const std::size_t maximum_parameters=std::max<std::size_t>(
+            1U,workspace_limit/bytes_per_parameter);
+        const std::size_t total_parameters=std::min(
+            launch_parameter_count(range),maximum_parameters);
+        const auto align=[](std::size_t bytes,std::size_t alignment) {
+            return (bytes+alignment-1U)&~(alignment-1U);
+        };
+        const std::size_t variance_offset=align(
+            total_parameters*sizeof(Row),alignof(float));
+        const std::size_t far_offset=align(
+            variance_offset+total_parameters*steps*sizeof(float),
+            alignof(float2));
+        const std::size_t workspace_bytes=far_offset
+            +total_parameters*pair_capacity*steps*sizeof(float2);
+        unsigned char* allocation=nullptr;
+        check_cuda(cudaMalloc(&allocation,workspace_bytes),
+            "Volterra split sample allocation");
+        std::unique_ptr<unsigned char,decltype(&cudaFree)> storage(
+            allocation,&cudaFree);
+        auto* rows=reinterpret_cast<Row*>(storage.get());
+        auto* variances=reinterpret_cast<float*>(
+            storage.get()+variance_offset);
+        auto* far=reinterpret_cast<float2*>(storage.get()+far_offset);
+        const std::size_t first_parameter=
+            range.sample_offset/range.paths_per_parameter;
+        const std::size_t final_parameter=(range.sample_offset
+            +range.launch_sample_count-1U)/range.paths_per_parameter;
+        const std::size_t final_sample=
+            range.sample_offset+range.launch_sample_count;
+        for(std::size_t first=first_parameter;first<=final_parameter;
+            first+=maximum_parameters) {
+            const std::size_t parameter_count=std::min(
+                maximum_parameters,final_parameter-first+1U);
+            const std::size_t sample_begin=std::max(
+                range.sample_offset,first*range.paths_per_parameter);
+            const std::size_t sample_end=std::min(final_sample,
+                (first+parameter_count)*range.paths_per_parameter);
+            const SampleRange chunk{
+                range.parameter_count,range.paths_per_parameter,
+                sample_begin,sample_end-sample_begin};
+            const dim3 fft_grid(static_cast<unsigned int>(std::min(
+                launch_configuration.block_count,parameter_count)));
+            kernel<<<fft_grid,Forward::block_dim,shared_bytes>>>(
+                parameter_source,calendar_source,chunk,
+                total_sample_count(range),
+                launch_configuration.maximum_step_count,seeds,output,
+                rows,variances,far);
+            check_cuda(cudaGetLastError(),operation_name);
+            const dim3 scan_grid(static_cast<unsigned int>(std::min<
+                std::size_t>(4096U,1U+(chunk.launch_sample_count-1U)
+                    /128U)));
+            split_volterra_sample_scan_kernel<Policy,CalendarSource>
+                <<<scan_grid,128U>>>(
+                    calendar_source,chunk,total_sample_count(range),
+                    launch_configuration.maximum_step_count,seeds,output,
+                    rows,variances,far);
+            check_cuda(cudaGetLastError(),"Volterra split sample scan");
+        }
+    }
 }
 
 template<
@@ -618,7 +718,8 @@ void launch_samples_cuda(
     const typename Policy::Output& output,
     const char* diagnostic_name,
     const char* diagnostic_variant,
-    const char* operation_name
+    const char* operation_name,
+    bool split_scan=true
 ) {
     validate_launch<Policy>(
         parameter_source,
@@ -631,24 +732,23 @@ void launch_samples_cuda(
     volterra::tuning::dispatch_hybrid_fft_specialization<2048U>(
         launch_configuration.maximum_step_count,
         [&]<typename Specialization>() {
-            launch_fft_length<
-                Policy,
-                ParameterSource,
-                CalendarSource,
-                Specialization::kLength,
-                Specialization::kSamplingElementsPerThread,
-                Specialization::kSamplingFftsPerBlock
-            >(
-                parameter_source,
-                calendar_source,
-                range,
-                launch_configuration,
-                seeds,
-                output,
-                diagnostic_name,
-                diagnostic_variant,
-                operation_name
-            );
+            if(split_scan && range.paths_per_parameter>1U)
+                launch_fft_length<
+                    Policy,ParameterSource,CalendarSource,
+                    Specialization::kLength,
+                    Specialization::kSamplingElementsPerThread,
+                    Specialization::kSamplingFftsPerBlock,true>(
+                        parameter_source,calendar_source,range,
+                        launch_configuration,seeds,output,diagnostic_name,
+                        diagnostic_variant,operation_name);
+            else launch_fft_length<
+                    Policy,ParameterSource,CalendarSource,
+                    Specialization::kLength,
+                    Specialization::kSamplingElementsPerThread,
+                    Specialization::kSamplingFftsPerBlock,false>(
+                        parameter_source,calendar_source,range,
+                        launch_configuration,seeds,output,diagnostic_name,
+                        diagnostic_variant,operation_name);
         }
     );
 }

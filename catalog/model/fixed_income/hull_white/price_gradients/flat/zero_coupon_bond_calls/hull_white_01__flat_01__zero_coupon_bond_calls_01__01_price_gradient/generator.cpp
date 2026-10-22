@@ -22,6 +22,8 @@ int main() {
             }}, {1.0f / 504.0f, 2U}, true
         };
         recipe.option_side = "call";
+        recipe.product_quote_mode = "ratio_to_initial_forward_bond_price";
+        datasets::price_gradients::require_product_quote_convention(recipe);
         recipe.curve_input = "datasets/curve/flat/flat_01.json";
         const auto models =
             model::fixed_income::hull_white::load_models(recipe.model_input);

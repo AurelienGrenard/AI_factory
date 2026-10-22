@@ -1,0 +1,18 @@
+schema_version: 4
+status: complete
+inputs:
+  source_product:
+    path: datasets/product/gap_option/gap_put_options_01.json
+    sha256: 6755e0e9ac1efd01d044675ca6b8e264e90870194d0d067571af9a72bf467b47
+output:
+  path: datasets/product/gap_option/gap_put_options_01_shard00.json
+  sha256: 552093587f66e8e73bba80aec7a484df4b8ba4b61502d4292008a46869eff6a7
+hardware:
+  device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

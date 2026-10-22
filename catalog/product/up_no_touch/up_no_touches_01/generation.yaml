@@ -3,14 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/up_no_touch/up_no_touches_01.json
-  sha256: dec4206818f8d8d766837e69b95e8d966e8c11681f62867ae6f014a54b8125fb
+  sha256: 8903953f7f9a088efaffeceb8315a1952cd10daff3ff07981ee9c46d6b0d0b5e
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
+  cmake: cmake version 3.22.1
   cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
   cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
-  cmake: cmake version 3.22.1
   nlohmann_json: 3.10.5
   mathdx: 25.12.1

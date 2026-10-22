@@ -19,6 +19,36 @@ The product path and file names identify the financial contract. Details that
 depend on a model or curve belong under
 `src/model/<asset-class>/<family>/<model>/product/[<curve>/]`.
 
+## Multi-asset product contract
+
+The multi-asset pricing kernels use one product policy for Markovian equities,
+rough equities, and a stochastic discount rate. A new product supplies:
+
+- `kTerminalCashflow = true` for the current cross-asset engine;
+- `ProductParameters` with `maturity_days`, plus a host validator when it has
+  extra calendar or domain constraints;
+- `prepare(parameters, discount_factor)` and `make_handler(prepared)`;
+- `is_observation_step(step, total_steps, steps_per_day, parameters)`;
+- `observe<Pack, TeamSize>(states, prepared, lane)` for a Markovian basket;
+- `observe_joint_group<MarkovPack, RoughPack, RoughCount, TeamSize>(...)`
+  for a basket containing rough assets;
+- a handler whose `on_observation(step, observation)` updates path state and
+  returns whether simulation should continue, then `finalize(prepared, handler)`.
+
+The observation type is chosen by the product policy: a scalar for these
+contracts, or a compact struct when a payoff needs several basket statistics.
+A terminal product observes only at maturity. A barrier product observes on its
+monitoring calendar and can stop a path early. The pricing kernels do not need
+a product-specific specialization. The worst-of, best-of, and basket calls share
+[`terminal_basket_call_path_policy.cuh`](terminal_basket_call_path_policy.cuh);
+the basket barrier uses the same arithmetic-mean observable.
+
+Basket observations use `S_i(t) / S_i(0)`. Worst-of takes their minimum,
+best-of their maximum, and basket call their equally weighted arithmetic
+mean. All three start at one, so their `strike` is dimensionless. The mean
+is over normalized assets, not over raw spots with different initial prices.
+Price barriers use the same normalized basket units.
+
 ## Equity quote units at pricing boundaries
 
 Equity product datasets quote strikes and price barriers as ratios of the

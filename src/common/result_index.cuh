@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/price_construction.cuh"
+#include "common/row_index_plan.cuh"
 
 #include <cuda_runtime.h>
 
@@ -23,20 +24,63 @@ struct ModelCurveProductIndices {
     std::size_t product_index;
 };
 
-// One reproducible curve draw with replacement per model-product result row.
-// The same key is used by prices, gradients, host validation and JSON output.
-inline constexpr std::uint64_t kSampledCurveSeed = 20261014ULL;
+struct ModelProductRowPlan {
+    RowIndexSelector model;
+    RowIndexSelector product;
+
+    __host__ __device__ constexpr ModelProductIndices select(
+        std::uint32_t row
+    ) const noexcept {
+        return {model.select(row), product.select(row)};
+    }
+};
+
+struct ModelCurveProductRowPlan {
+    RowIndexSelector model;
+    RowIndexSelector curve;
+    RowIndexSelector product;
+
+    __host__ __device__ constexpr ModelCurveProductIndices select(
+        std::uint32_t row
+    ) const noexcept {
+        return {model.select(row), curve.select(row), product.select(row)};
+    }
+};
+
+__host__ __device__ constexpr ModelProductRowPlan make_model_product_row_plan(
+    std::uint32_t model_count, std::uint32_t product_count,
+    PriceConstruction construction
+) noexcept {
+    const bool cartesian = is_cartesian(construction);
+    return {
+        {cartesian ? product_count : 1U, model_count},
+        {1U, product_count}
+    };
+}
+
+__host__ __device__ constexpr ModelCurveProductRowPlan
+make_model_curve_product_row_plan(
+    std::uint32_t model_count, std::uint32_t curve_count,
+    std::uint32_t product_count, PriceConstruction construction
+) noexcept {
+    if (construction == PriceConstruction::PairedModelCurveCartesianProduct)
+        return {{product_count, model_count},
+                {product_count, curve_count}, {1U, product_count}};
+    if (construction == PriceConstruction::SampledCurveCartesianProduct)
+        return {{product_count, model_count},
+                {1U, curve_count, RowIndexMode::SampledCurve},
+                {1U, product_count}};
+    if (construction == PriceConstruction::CartesianProduct)
+        return {{curve_count * product_count, model_count},
+                {product_count, curve_count}, {1U, product_count}};
+    return {{1U, model_count}, {1U, curve_count}, {1U, product_count}};
+}
 
 __host__ __device__ constexpr std::size_t sampled_curve_index(
     std::size_t result_index, std::size_t curve_count
 ) noexcept {
-    std::uint64_t value = kSampledCurveSeed
-        + static_cast<std::uint64_t>(result_index)
-        + 0x9e3779b97f4a7c15ULL;
-    value = (value ^ (value >> 30U)) * 0xbf58476d1ce4e5b9ULL;
-    value = (value ^ (value >> 27U)) * 0x94d049bb133111ebULL;
-    value ^= value >> 31U;
-    return static_cast<std::size_t>(value % curve_count);
+    return static_cast<std::size_t>(sampled_curve_row(
+        result_index, curve_count));
 }
 
 // Decode a result index for either aligned rows or a Cartesian product.

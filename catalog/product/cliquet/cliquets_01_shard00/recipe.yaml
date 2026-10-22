@@ -1,0 +1,135 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: cliquets_01_shard00
+generator: catalog/product/cliquet/cliquets_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/cliquet/cliquets_01.json
+output:
+  path: datasets/product/cliquet/cliquets_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 122b3dcd1e6961edc58bc6fb040fe969b4b5b12e4a90f75da99a44607f632ccc
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 1
+  - 16
+  - 23
+  - 39
+  - 45
+  - 52
+  - 67
+  - 73
+  - 84
+  - 91
+  - 102
+  - 110
+  - 121
+  - 135
+  - 148
+  - 152
+  - 164
+  - 177
+  - 188
+  - 190
+  - 200
+  - 214
+  - 220
+  - 231
+  - 248
+  - 256
+  - 267
+  - 275
+  - 284
+  - 297
+  - 308
+  - 311
+  - 326
+  - 331
+  - 345
+  - 356
+  - 368
+  - 378
+  - 382
+  - 394
+  - 408
+  - 414
+  - 427
+  - 439
+  - 443
+  - 459
+  - 469
+  - 474
+  - 481
+  - 495
+  - 502
+  - 513
+  - 523
+  - 536
+  - 546
+  - 557
+  - 566
+  - 572
+  - 581
+  - 592
+  - 609
+  - 613
+  - 625
+  - 639
+  - 646
+  - 651
+  - 660
+  - 675
+  - 681
+  - 695
+  - 707
+  - 718
+  - 727
+  - 739
+  - 741
+  - 756
+  - 762
+  - 777
+  - 789
+  - 798
+  - 802
+  - 817
+  - 824
+  - 833
+  - 843
+  - 854
+  - 866
+  - 870
+  - 883
+  - 897
+  - 904
+  - 919
+  - 920
+  - 931
+  - 940
+  - 954
+  - 968
+  - 977
+  - 988
+  - 993
+quote_convention:
+  periodic_return:
+    mode: S(t_i)/S(t_{i-1}) - 1
+    unit: dimensionless
+  local_floor:
+    mode: periodic_return_bound
+    unit: dimensionless
+  local_cap:
+    mode: periodic_return_bound
+    unit: dimensionless
+  global_floor:
+    mode: cumulative_return_bound
+    unit: dimensionless
+  global_cap:
+    mode: cumulative_return_bound
+    unit: dimensionless

@@ -1,0 +1,15 @@
+schema_version: 4
+status: complete
+inputs: {}
+output:
+  path: datasets/product/best_of_call/best_of_calls_multi_01.json
+  sha256: a0f7c76286f9729d6793bf68995f4d6817513057ec25048f0b32fc2091f45805
+hardware:
+  device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

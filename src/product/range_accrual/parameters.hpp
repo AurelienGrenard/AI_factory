@@ -14,6 +14,7 @@ struct RangeAccrualParameters {
     float lower_barrier;
     float upper_barrier;
     float coupon_rate;
+    bool quote_is_ratio = false;
 };
 
 static_assert(std::is_trivially_copyable_v<RangeAccrualParameters>);

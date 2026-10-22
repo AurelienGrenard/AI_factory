@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/product/european_swaption/european_swaptions_01.json
-  sha256: 30d42fbe5343826a6421913808a768d3e27b1c093e1103cc0d1bba5e9fe5052e
-hardware:
-  device: cpu

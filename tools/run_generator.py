@@ -9,11 +9,11 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
-import platform
 from runpy import run_path
 import shutil
 import subprocess
 import sys
+import time
 from uuid import uuid4
 
 try:
@@ -65,7 +65,6 @@ def recipe_for(spec) -> dict:
     recipe = yaml.safe_load(path.read_text())
     validate_document(recipe, "recipe", path)
     if (recipe["output"]["path"] != spec.dataset_path
-            or recipe["generation_details"] != spec.generation_yaml_path
             or recipe["generator"] != spec.generator_path):
         raise ValueError(f"Recipe does not match the manifest: {path}")
     return recipe
@@ -92,22 +91,23 @@ def cache_values(build: Path) -> dict[str, str]:
 
 def hardware(kind: str, gpu: str | None) -> dict:
     if kind in PARAMETER_KINDS:
-        return {"device": "cpu", "cpu_model": cpu_model(), "host": platform.node()}
+        return {"device": "cpu", "cpu_model": cpu_model()}
     selector = gpu if gpu is not None else os.environ.get("CUDA_VISIBLE_DEVICES", "0").split(",")[0]
     if not selector:
         raise ValueError("No GPU is visible; set --gpu or CUDA_VISIBLE_DEVICES")
     result = subprocess.run([
         "nvidia-smi", "-i", selector,
-        "--query-gpu=index,name,compute_cap,uuid,driver_version",
+        "--query-gpu=name,compute_cap,uuid,driver_version",
         "--format=csv,noheader,nounits",
     ], capture_output=True, text=True, check=True)
     parts = [part.strip() for part in result.stdout.strip().split(",")]
-    if len(parts) != 5:
+    if len(parts) != 4:
         raise ValueError(f"Cannot identify GPU {selector}: {result.stdout!r}")
-    return dict(zip(("index", "name", "compute_capability", "uuid", "driver_version"), parts)) | {"device": "gpu", "cpu_model": cpu_model(), "host": platform.node()}
+    return dict(zip(("name", "compute_capability", "uuid", "driver_version"), parts)) | {"device": "gpu", "cpu_model": cpu_model()}
 
 
-def enrich_receipt(spec, recipe: dict, stage: Path, build: Path, gpu: str | None) -> Path:
+def enrich_receipt(spec, recipe: dict, stage: Path, build: Path, gpu: str | None,
+                   wall_seconds: float) -> Path:
     generation_path = stage / spec.generation_yaml_path
     dataset_path = stage / spec.dataset_path
     if not generation_path.is_file() or not dataset_path.is_file():
@@ -116,6 +116,7 @@ def enrich_receipt(spec, recipe: dict, stage: Path, build: Path, gpu: str | None
     record = generation_record(
         native, spec.recipe_yaml_path, spec.dataset_path, recipe.get("inputs", {}),
         stage, hardware(spec.dataset_kind, gpu), software_versions(build),
+        wall_seconds=wall_seconds if spec.dataset_kind in {"prices", "price_gradients", "price_delta"} else None,
     )
     generation_path.write_text(yaml.safe_dump(record, sort_keys=False))
     return generation_path
@@ -126,13 +127,15 @@ def build_target(build: Path, target: str) -> None:
     subprocess.run(["cmake", "--build", str(build), "--target", target, "--parallel", "1"], cwd=ROOT, check=True)
 
 
-def run_binary(build: Path, target: str, stage: Path, gpu: str | None, smoke: bool = False) -> None:
+def run_binary(build: Path, target: str, stage: Path, gpu: str | None, smoke: bool = False) -> float:
     environment = os.environ.copy()
     if gpu is not None:
         environment["CUDA_VISIBLE_DEVICES"] = gpu
     command = [str(build / target)] + (["--smoke-test"] if smoke else [])
     print(f"Running {target} in {stage}", flush=True)
+    started = time.perf_counter()
     subprocess.run(command, cwd=stage, env=environment, check=True)
+    return time.perf_counter() - started
 
 
 def ensure_input(relative: str, stage: Path, build: Path, gpu: str | None) -> None:
@@ -149,8 +152,8 @@ def ensure_input(relative: str, stage: Path, build: Path, gpu: str | None) -> No
     dependency_recipe = recipe_for(dependency)
     copy_input(dependency.recipe_yaml_path, stage)
     build_target(build, dependency.cmake_target)
-    run_binary(build, dependency.cmake_target, stage, gpu)
-    enrich_receipt(dependency, dependency_recipe, stage, build, gpu)
+    wall_seconds = run_binary(build, dependency.cmake_target, stage, gpu)
+    enrich_receipt(dependency, dependency_recipe, stage, build, gpu, wall_seconds)
     if not destination.is_file():
         raise FileNotFoundError(f"Dependency generator did not create {relative}")
 
@@ -217,11 +220,11 @@ def main() -> int:
     for input_path in recipe.get("inputs", {}).values():
         ensure_input(input_path, stage, build, arguments.gpu)
     build_target(build, target)
-    run_binary(build, target, stage, arguments.gpu, arguments.smoke_test)
+    wall_seconds = run_binary(build, target, stage, arguments.gpu, arguments.smoke_test)
     if arguments.smoke_test:
         print("Smoke test passed; no dataset was generated.")
         return 0
-    receipt = enrich_receipt(spec, recipe, stage, build, arguments.gpu)
+    receipt = enrich_receipt(spec, recipe, stage, build, arguments.gpu, wall_seconds)
     dataset = stage / spec.dataset_path
     if arguments.publish:
         missing_published_inputs = [name for name in recipe.get("inputs", {}).values()

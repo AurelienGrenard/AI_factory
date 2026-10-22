@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/markovian/kou/parameters/kou_01.json
-    sha256: f3171db0ff41d63d68f0dfc1db7ba891897fa61264c824d50611d097f0da24f8
+    sha256: 3353abca9238231c7ffca99205097933c7be025a9935b556bf1e63b46b93eea5
 output:
   path: datasets/model/equity/markovian/kou/factor_parameters/kou_factors_01.json
-  sha256: 38e514bb238b9cb808e741ea374d8f10debf1838db7c59b6714e98330176ff42
+  sha256: 03441bb79fab0250fb1c64aae705a66d9137a84bc7516980e6898e20d3557975
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

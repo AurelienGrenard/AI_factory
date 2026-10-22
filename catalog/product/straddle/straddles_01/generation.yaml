@@ -3,14 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/straddle/straddles_01.json
-  sha256: 0c80ae4f742d25e3fd5d6f88b4ed7f2fea48578879513a214adbae4be6d4771d
+  sha256: bf27f26a8edf391734545834f5e219bafecf1d4384f3e2775ec47a6aa0f72ba3
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
+  cmake: cmake version 3.22.1
   cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
   cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
-  cmake: cmake version 3.22.1
   nlohmann_json: 3.10.5
   mathdx: 25.12.1

@@ -14,6 +14,7 @@ struct RegularEuropeanSwaptionParameters {
     std::uint32_t exercise_time_days;
     std::uint32_t payment_interval_days;
     std::uint32_t payment_count;
+    bool quote_is_relative = false;
 };
 
 struct ExplicitEuropeanSwaptionParameters {
@@ -30,7 +31,7 @@ static_assert(
 static_assert(
     std::is_trivially_copyable_v<ExplicitEuropeanSwaptionParameters>
 );
-static_assert(sizeof(RegularEuropeanSwaptionParameters) == 24U);
+static_assert(sizeof(RegularEuropeanSwaptionParameters) == 28U);
 static_assert(sizeof(ExplicitEuropeanSwaptionParameters) == 24U);
 
 }  // namespace ai_factory::workbench::product

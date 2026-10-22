@@ -31,6 +31,7 @@ RegularEuropeanSwaptionDataset load_european_swaptions(
     const std::filesystem::path& dataset_path
 ) {
     const nlohmann::json document = load_document(dataset_path);
+    const bool quoted = document.contains("quote_convention");
     const auto& rows = document.at("products");
     RegularEuropeanSwaptionDataset dataset{};
     dataset.products.reserve(rows.size());
@@ -51,6 +52,7 @@ RegularEuropeanSwaptionDataset load_european_swaptions(
             parameters.at("payment_interval").get<std::uint32_t>();
         product.payment_count =
             parameters.at("payment_count").get<std::uint32_t>();
+        product.quote_is_relative = quoted;
 
         european_swaption::validate_parameters(product, prefix);
         dataset.products.push_back(product);
