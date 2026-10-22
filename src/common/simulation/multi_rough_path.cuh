@@ -2,8 +2,9 @@
 #pragma once
 
 #include "common/simulation/concepts.cuh"
+#include "common/row_index_plan.cuh"
 #include "common/simulation/correlated_brownian.cuh"
-#include "common/volterra/causal_fft_core.cuh"
+#include "common/volterra/causal_fft_core_kernel.cuh"
 
 #include <cuda_runtime.h>
 
@@ -26,8 +27,9 @@ struct MultiRoughPack<> {
     struct Inputs {};
     struct Prepared {};
 
-    __device__ static void prepare(Prepared&, const Inputs&, std::uint32_t,
-                                   float) {}
+    template<std::size_t,std::size_t,std::size_t=0U,std::size_t=0U>
+    __device__ static void prepare_selected(
+        Prepared&,const Inputs&,std::uint32_t,float,const float*) {}
     template<std::size_t>
     __device__ static void initial_logs(
         float*,float*,const Prepared&) {}
@@ -52,23 +54,32 @@ struct MultiRoughPack<Head,Tail...> {
         || Head::kBrownianDimension==2U);
     struct Inputs {
         const typename Head::Parameters* models;
-        const std::uint32_t* scenario_indices;
         typename Rest::Inputs tail;
+        const RowIndexSelector* row_selectors;
     };
     struct Prepared {
         typename Head::PreparedModel model;
-        float nominal_rate_dt;
         typename Rest::Prepared tail;
     };
 
-    __device__ static void prepare(
-        Prepared& output,const Inputs& input,
-        std::uint32_t scenario,float dt
+    template<std::size_t RoughCount,std::size_t MarkovAndRateFactors,
+             std::size_t AssetOffset=0U,std::size_t SpotOffset=0U>
+    __device__ static void prepare_selected(
+        Prepared& output,const Inputs& input,std::uint32_t row,
+        float dt,const float* lower
     ) {
-        const auto& parameters=input.models[input.scenario_indices[scenario]];
+        auto parameters=input.models[input.row_selectors[0].select(row)];
+        if constexpr (requires { parameters.risk_free_rate; })
+            parameters.risk_free_rate=0.0f;
+        if constexpr (Head::kBrownianDimension==2U)
+            parameters.rho=factor_correlation(
+                lower,AssetOffset,
+                RoughCount+MarkovAndRateFactors+SpotOffset);
         output.model=Head::prepare_model(parameters,dt);
-        output.nominal_rate_dt=Head::nominal_rate_step(parameters,dt);
-        Rest::prepare(output.tail,input.tail,scenario,dt);
+        Rest::template prepare_selected<
+            RoughCount,MarkovAndRateFactors,AssetOffset+1U,
+            SpotOffset+(Head::kBrownianDimension==2U ? 1U : 0U)>(
+                output.tail,input.tail,row,dt,lower);
     }
 
     template<std::size_t AssetOffset=0U>
@@ -118,7 +129,7 @@ struct MultiRoughPack<Head,Tail...> {
         float* log_spots,float rate_integral_step,unsigned lane=0U
     ) {
         static_assert(RateAdjustedRoughSpotPolicy<Head>,
-            "Rough spot policy must declare nominal_rate_step and "
+            "Rough spot policy must declare "
             "advance_spot_cell_with_rate for cross-asset pricing.");
         constexpr std::size_t factor=Head::kBrownianDimension==1U
             ? AssetOffset : RoughCount+MarkovAndRateFactors+SpotOffset;
@@ -126,11 +137,9 @@ struct MultiRoughPack<Head,Tail...> {
         if(AssetOffset%TeamSize==lane) {
             const float variance=volatility_path[
                 AssetOffset*path_count*steps+slot];
-            const float carry_shift =
-                rate_integral_step - prepared.nominal_rate_dt;
             Head::advance_spot_cell_with_rate(
                 prepared.model, variance, shock,
-                log_spots[AssetOffset], carry_shift);
+                log_spots[AssetOffset], rate_integral_step);
         }
         if constexpr (Rest::kAssetCount>0U)
             Rest::template advance_spots_with_rate<
@@ -172,21 +181,28 @@ struct HomogeneousRoughPack {
 
     struct Inputs {
         const typename RoughPolicy::Parameters* models;
-        const std::uint32_t* scenario_indices;
+        const RowIndexSelector* row_selectors;
     };
     struct Prepared {
         typename RoughPolicy::PreparedModel model[Count];
     };
 
-    __device__ static void prepare(
-        Prepared& output, const Inputs& input,
-        std::uint32_t scenario, float dt
+    template<std::size_t RoughCount,std::size_t MarkovAndRateFactors,
+             std::size_t AssetOffset=0U,std::size_t SpotOffset=0U>
+    __device__ static void prepare_selected(
+        Prepared& output,const Inputs& input,std::uint32_t row,
+        float dt,const float* lower
     ) {
-        for (std::size_t asset = 0U; asset < Count; ++asset) {
-            const auto index =
-                input.scenario_indices[scenario * Count + asset];
-            output.model[asset] =
-                RoughPolicy::prepare_model(input.models[index], dt);
+        static_assert(RoughCount==Count);
+        for(std::size_t asset=0U;asset<Count;++asset) {
+            auto parameters=input.models[
+                input.row_selectors[asset].select(row)];
+            if constexpr (requires { parameters.risk_free_rate; })
+                parameters.risk_free_rate=0.0f;
+            if constexpr (RoughPolicy::kBrownianDimension==2U)
+                parameters.rho=factor_correlation(
+                    lower,asset,Count+MarkovAndRateFactors+asset);
+            output.model[asset]=RoughPolicy::prepare_model(parameters,dt);
         }
     }
 

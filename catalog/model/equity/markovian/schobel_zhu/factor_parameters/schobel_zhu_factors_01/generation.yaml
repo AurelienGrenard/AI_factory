@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/markovian/schobel_zhu/parameters/schobel_zhu_01.json
-    sha256: ce5e1fcdf335209213a172753a9084ff198e041bac9768a9c60677d84691eb63
+    sha256: 661c88ef80a938cd9ddcddcbaa6f408cfa7f706b1580313cbf8636a0c8281e57
 output:
   path: datasets/model/equity/markovian/schobel_zhu/factor_parameters/schobel_zhu_factors_01.json
-  sha256: e809f2163146574ab677636583eeb61d44f207ec8cee960c8b0265eb5f242d1d
+  sha256: 80e4c33294a62ed37fc87913b4139f9f66def01542a94889cc3a68affe9936f6
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

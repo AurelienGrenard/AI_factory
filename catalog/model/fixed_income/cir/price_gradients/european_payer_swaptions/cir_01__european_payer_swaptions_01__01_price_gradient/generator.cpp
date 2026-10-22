@@ -22,6 +22,8 @@ int main() {
             }}, {1.0f / 504.0f, 2U}, true
         };
         recipe.option_side = "payer";
+        recipe.product_quote_mode = "additive_to_initial_par_swap_rate";
+        datasets::price_gradients::require_product_quote_convention(recipe);
         const auto models =
             model::fixed_income::cir::load_models(recipe.model_input);
         const auto product_dataset =

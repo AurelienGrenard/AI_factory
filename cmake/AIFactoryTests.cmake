@@ -17,6 +17,17 @@ if(BUILD_TESTING)
     )
 
 
+    add_executable(test_row_index_plan EXCLUDE_FROM_ALL
+        tests/common/row_index_plan_test.cpp)
+    target_include_directories(test_row_index_plan PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_link_libraries(test_row_index_plan PRIVATE ai_factory_runtime)
+    target_compile_features(test_row_index_plan PRIVATE cxx_std_20)
+    add_dependencies(ai_factory_host_tests test_row_index_plan)
+    add_test(NAME row_index_plan COMMAND test_row_index_plan)
+    set_tests_properties(row_index_plan PROPERTIES
+        LABELS "workbench;offline;mapping" TIMEOUT 30)
+
     add_executable(test_pricing_launch_plan EXCLUDE_FROM_ALL tests/cuda/pricing_launch_plan_test.cpp)
     target_include_directories(test_pricing_launch_plan PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(test_pricing_launch_plan PRIVATE ai_factory_cuda_tuning nlohmann_json::nlohmann_json)
@@ -282,64 +293,26 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         cross_asset_rates_cuda tests/simulation/cross_asset_rates_cuda_test.cu
-        "multi_asset;fixed_income;rough_heston;cross_asset" 180
+        "multi_asset;fixed_income;cross_asset" 180
     )
     target_link_libraries(test_cross_asset_rates_cuda PRIVATE
         ai_factory_causal_fft ai_factory_correlation_dataset
     )
     add_cuda_workbench_test(
         multi_asset_levy_cuda
-        tests/simulation/multi_asset_levy_cuda_test.cu
+        tests/simulation/multi_asset_levy_kernel_cuda_test.cu
         "multi_asset;normal_inverse_gaussian;variance_gamma" 60
     )
     target_link_libraries(test_multi_asset_levy_cuda PRIVATE
-        ai_factory_correlation_dataset ai_factory_causal_fft
+        ai_factory_correlation_dataset
     )
     add_cuda_workbench_test(
-        mixed_rough_cuda tests/simulation/mixed_rough_cuda_test.cu
-        "multi_asset;rough_heston;causal_fft" 120
+        mixed_rough_path_parity_cuda
+        tests/simulation/mixed_rough_path_parity_kernel_cuda_test.cu
+        "multi_asset;rough_heston;causal_fft;parity" 120
     )
-    target_link_libraries(test_mixed_rough_cuda PRIVATE
+    target_link_libraries(test_mixed_rough_path_parity_cuda PRIVATE
         ai_factory_causal_fft
-    )
-    add_cuda_workbench_test(
-        mixed_quadratic_rough_cuda
-        tests/simulation/mixed_quadratic_rough_cuda_test.cu
-        "multi_asset;quadratic_rough_heston;causal_fft" 120
-    )
-    target_link_libraries(test_mixed_quadratic_rough_cuda PRIVATE
-        ai_factory_causal_fft
-    )
-    add_cuda_workbench_test(
-        mixed_two_rough_cuda tests/simulation/mixed_two_rough_cuda_test.cu
-        "multi_asset;rough_heston;causal_fft" 120
-    )
-    target_link_libraries(test_mixed_two_rough_cuda PRIVATE
-        ai_factory_causal_fft ai_factory_correlation_dataset
-    )
-    add_cuda_workbench_test(
-        mixed_large_dimension_cuda
-        tests/simulation/mixed_large_dimension_cuda_test.cu
-        "multi_asset;rough_heston;causal_fft" 120
-    )
-    target_link_libraries(test_mixed_large_dimension_cuda PRIVATE
-        ai_factory_causal_fft
-    )
-    add_cuda_workbench_test(
-        mixed_basket_barrier_cuda
-        tests/simulation/mixed_basket_barrier_cuda_test.cu
-        "multi_asset;rough_heston;causal_fft" 120
-    )
-    target_link_libraries(test_mixed_basket_barrier_cuda PRIVATE
-        ai_factory_causal_fft ai_factory_correlation_dataset
-    )
-    add_cuda_workbench_test(
-        mixed_hybrid_rough_cuda
-        tests/simulation/mixed_hybrid_rough_cuda_test.cu
-        "multi_asset;hybrid_fft;rough" 180
-    )
-    target_link_libraries(test_mixed_hybrid_rough_cuda PRIVATE
-        ai_factory_causal_fft ai_factory_correlation_dataset
     )
     add_cuda_workbench_test(
         mixed_heterogeneous_rough_cuda
@@ -349,27 +322,19 @@ if(BUILD_TESTING)
     target_link_libraries(test_mixed_heterogeneous_rough_cuda PRIVATE
         ai_factory_causal_fft ai_factory_correlation_dataset
     )
-    add_cuda_workbench_test(
-        mixed_heston_rough_cuda
-        tests/simulation/mixed_heston_rough_cuda_test.cu
-        "multi_asset;heston;rough_heston;causal_fft" 120
-    )
-    target_link_libraries(test_mixed_heston_rough_cuda PRIVATE
-        ai_factory_causal_fft ai_factory_correlation_dataset
-    )
 
     add_cuda_workbench_test(
-        philox_cuda tests/numerical/philox_cuda_test.cu philox 30
+        philox_cuda tests/numerical/philox_kernel_cuda_test.cu philox 30
     )
     add_cuda_workbench_test(
         absorbing_lamperti_precision_cuda
-        tests/numerical/absorbing_lamperti_precision_cuda_test.cu
+        tests/numerical/absorbing_lamperti_precision_kernel_cuda_test.cu
         sabr_precision
         30
     )
     add_cuda_workbench_test(
         price_delta_rough_n_factor_cuda
-        tests/price_delta/monte_carlo/rough_n_factor_cuda_test.cu
+        tests/price_delta/monte_carlo/rough_n_factor_kernel_cuda_test.cu
         "price_delta;rough;n_factor" 120
     )
     add_cuda_workbench_test(
@@ -379,7 +344,7 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         price_delta_central_parity_cuda
-        tests/price_delta/monte_carlo/central_price_parity_cuda_test.cu
+        tests/price_delta/monte_carlo/central_price_parity_kernel_cuda_test.cu
         "price_delta;monte_carlo" 60
     )
     add_cuda_workbench_test(
@@ -394,63 +359,63 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         price_delta_frozen_path_replay_cuda
-        tests/price_delta/longstaff_schwartz/frozen_path_replay_cuda_test.cu
+        tests/price_delta/longstaff_schwartz/frozen_path_replay_kernel_cuda_test.cu
         "price_delta;longstaff_schwartz" 30
     )
     target_link_libraries(test_price_delta_frozen_path_replay_cuda PRIVATE ai_factory_longstaff_schwartz)
     add_cuda_workbench_test(
         numerical_robustness_cuda
-        tests/numerical/numerical_robustness_cuda_test.cu
+        tests/numerical/numerical_robustness_kernel_cuda_test.cu
         numerical_robustness
         30
     )
     add_cuda_workbench_test(
         monte_carlo_statistics_precision_cuda
-        tests/numerical/monte_carlo_statistics_precision_cuda_test.cu
+        tests/numerical/monte_carlo_statistics_precision_kernel_cuda_test.cu
         "numerical_robustness;performance"
         60
     )
     add_cuda_workbench_test(
         constant_payoff_moments_cuda
-        tests/numerical/constant_payoff_moments_cuda_test.cu
+        tests/numerical/constant_payoff_moments_kernel_cuda_test.cu
         "numerical_robustness;price_delta" 30
     )
     add_cuda_workbench_test(
         asian_mean_precision_cuda
-        tests/product/asian_mean_precision_cuda_test.cu
+        tests/product/asian_mean_precision_kernel_cuda_test.cu
         "numerical_robustness;performance;asian"
         60
     )
     add_cuda_workbench_test(
         geometric_asian_boundary_cuda
-        tests/product/geometric_asian_boundary_cuda_test.cu
+        tests/product/geometric_asian_boundary_kernel_cuda_test.cu
         "numerical_robustness;asian" 30
     )
     add_cuda_workbench_test(
-        volterra_hybrid_schedule_cuda tests/volterra/hybrid_schedule_cuda_test.cu
+        volterra_hybrid_schedule_cuda tests/volterra/hybrid_schedule_kernel_cuda_test.cu
         "volterra;schedule;numerical_robustness" 30
     )
     add_cuda_workbench_test(
         range_accrual_sum_precision_cuda
-        tests/product/range_accrual_sum_precision_cuda_test.cu
+        tests/product/range_accrual_sum_precision_kernel_cuda_test.cu
         "numerical_robustness;performance;range_accrual"
         60
     )
     add_cuda_workbench_test(
         fractional_resolvent_precision_cuda
-        tests/numerical/fractional_resolvent_precision_cuda_test.cu
+        tests/numerical/fractional_resolvent_precision_kernel_cuda_test.cu
         "numerical_robustness;performance;volterra;rough_stein_stein"
         120
     )
     add_cuda_workbench_test(
         cuda_pricing_runner
-        tests/cuda/cuda_pricing_runner_test.cu
+        tests/cuda/cuda_pricing_runner_test_kernel.cu
         "offline;pricing_runner"
         30
     )
     add_cuda_workbench_test(
         longstaff_schwartz_regressor_cuda
-        tests/longstaff_schwartz/basis_and_solver_cuda_test.cu
+        tests/longstaff_schwartz/basis_and_solver_kernel_cuda_test.cu
         longstaff_schwartz
         30
     )
@@ -460,7 +425,7 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         longstaff_schwartz_precision_cuda
-        tests/longstaff_schwartz/precision_cuda_test.cu
+        tests/longstaff_schwartz/precision_kernel_cuda_test.cu
         "longstaff_schwartz;numerical_robustness;performance"
         60
     )
@@ -470,7 +435,7 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         longstaff_schwartz_normal_residual_cuda
-        tests/longstaff_schwartz/normal_residual_cuda_test.cu
+        tests/longstaff_schwartz/normal_residual_kernel_cuda_test.cu
         "longstaff_schwartz;numerical_robustness"
         60
     )
@@ -494,7 +459,7 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         noncentral_chi_square_cuda
-        tests/numerical/noncentral_chi_square_cuda_test.cu
+        tests/numerical/noncentral_chi_square_kernel_cuda_test.cu
         distributions
         30
     )
@@ -505,27 +470,27 @@ if(BUILD_TESTING)
         180
     )
     add_cuda_workbench_test(
-        cir_cuda tests/model/fixed_income/cir_cuda_test.cu cir 30
+        cir_cuda tests/model/fixed_income/cir_kernel_cuda_test.cu cir 30
     )
     add_cuda_workbench_test(
-        cir_plus_plus_cuda tests/model/fixed_income/cir_plus_plus_cuda_test.cu
+        cir_plus_plus_cuda tests/model/fixed_income/cir_plus_plus_kernel_cuda_test.cu
         "cir_plus_plus;curve_fitting;longstaff_schwartz" 180
     )
     add_cuda_workbench_test(
         fixed_income_analytics_contract_cuda
-        tests/model/fixed_income/fixed_income_analytics_contract_cuda_test.cu
+        tests/model/fixed_income/fixed_income_analytics_contract_kernel_cuda_test.cu
         analytics_contract
         30
     )
     add_cuda_workbench_test(
         flat_curve_cuda
-        tests/model/fixed_income/flat_curve_cuda_test.cu
+        tests/model/fixed_income/flat_curve_kernel_cuda_test.cu
         "flat_curve;analytics_contract"
         30
     )
     add_cuda_workbench_test(
         fixed_income_dynamics_policy_cuda
-        tests/model/fixed_income/fixed_income_dynamics_policy_cuda_test.cu
+        tests/model/fixed_income/fixed_income_dynamics_policy_kernel_cuda_test.cu
         dynamics_policy
         30
     )
@@ -536,13 +501,13 @@ if(BUILD_TESTING)
         30
     )
     add_cuda_workbench_test(
-        hull_white_cuda tests/model/fixed_income/hull_white_cuda_test.cu hull_white 30
+        hull_white_cuda tests/model/fixed_income/hull_white_kernel_cuda_test.cu hull_white 30
     )
     add_cuda_workbench_test(
-        g2_cuda tests/model/fixed_income/g2_cuda_test.cu g2 30
+        g2_cuda tests/model/fixed_income/g2_kernel_cuda_test.cu g2 30
     )
     add_cuda_workbench_test(
-        g2_covariance_cuda tests/model/fixed_income/g2_covariance_cuda_test.cu
+        g2_covariance_cuda tests/model/fixed_income/g2_covariance_kernel_cuda_test.cu
         "g2;numerical_robustness" 60
     )
     add_cuda_workbench_test(
@@ -556,7 +521,7 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         g2_plus_plus_cuda
-        tests/model/fixed_income/g2_plus_plus_cuda_test.cu
+        tests/model/fixed_income/g2_plus_plus_kernel_cuda_test.cu
         g2_plus_plus
         30
     )
@@ -622,13 +587,13 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         one_factor_european_swaptions_cuda
-        tests/model/fixed_income/one_factor_european_swaptions_cuda_test.cu
+        tests/model/fixed_income/one_factor_european_swaptions_kernel_cuda_test.cu
         european_swaptions
         30
     )
     add_cuda_workbench_test(
         ornstein_uhlenbeck_cuda
-        tests/model/fixed_income/ornstein_uhlenbeck_cuda_test.cu
+        tests/model/fixed_income/ornstein_uhlenbeck_kernel_cuda_test.cu
         ornstein_uhlenbeck
         30
     )
@@ -639,7 +604,7 @@ if(BUILD_TESTING)
         120
     )
     add_cuda_workbench_test(
-        vasicek_cuda tests/model/fixed_income/vasicek_cuda_test.cu vasicek 30
+        vasicek_cuda tests/model/fixed_income/vasicek_kernel_cuda_test.cu vasicek 30
     )
     add_cuda_workbench_test(
         vasicek_caplet_cuda tests/model/fixed_income/vasicek_caplet_cuda_test.cu caplet 30
@@ -670,31 +635,31 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         bates_dynamics_cuda
-        tests/model/equity/bates_dynamics_cuda_test.cu
+        tests/model/equity/bates_dynamics_kernel_cuda_test.cu
         bates_dynamics
         30
     )
     add_cuda_workbench_test(
         equity_dynamics_policy_cuda
-        tests/model/equity/equity_dynamics_policy_cuda_test.cu
+        tests/model/equity/equity_dynamics_policy_kernel_cuda_test.cu
         dynamics_policy
         30
     )
     add_cuda_workbench_test(
         levy_dynamics_cuda
-        tests/model/equity/levy_dynamics_cuda_test.cu
+        tests/model/equity/levy_dynamics_kernel_cuda_test.cu
         levy_dynamics
         30
     )
     add_cuda_workbench_test(
         merton_kou_cev_schobel_zhu_dynamics_cuda
-        tests/model/equity/jump_and_diffusion_dynamics_cuda_test.cu
+        tests/model/equity/jump_and_diffusion_dynamics_kernel_cuda_test.cu
         equity_dynamics
         30
     )
     add_cuda_workbench_test(
         rough_bergomi_dynamics_cuda
-        tests/model/equity/rough/gaussian_volterra_dynamics_cuda_test.cu
+        tests/model/equity/rough/gaussian_volterra_dynamics_kernel_cuda_test.cu
         rough_bergomi_dynamics
         30
     )
@@ -734,6 +699,14 @@ if(BUILD_TESTING)
             120
         )
         add_cuda_workbench_test(
+            volterra_fft_scan_parity_cuda
+            tests/sampling/volterra_fft_scan_parity_cuda_test.cu
+            "samples;volterra;rough_bergomi;replay" 120
+        )
+        target_link_libraries(
+            test_volterra_fft_scan_parity_cuda PRIVATE ai_factory_cufftdx
+        )
+        add_cuda_workbench_test(
             sample_recipe_replay_cuda tests/sampling/recipe_replay_cuda_test.cpp
             "samples;codegen;replay" 120
         )
@@ -744,7 +717,7 @@ if(BUILD_TESTING)
         )
         add_cuda_workbench_test(
             causal_fft_pricing_cuda
-            tests/volterra/causal_fft_pricing_cuda_test.cu
+            tests/volterra/causal_fft_pricing_kernel_cuda_test.cu
             "volterra;rough_heston;quadratic_rough_heston;product_policy"
             120
         )
@@ -753,7 +726,7 @@ if(BUILD_TESTING)
         )
         add_cuda_workbench_test(
             causal_fft_volatility_cuda
-            tests/volterra/causal_fft_volatility_cuda_test.cu
+            tests/volterra/causal_fft_volatility_kernel_cuda_test.cu
             "volterra;rough_heston;quadratic_rough_heston;multi_asset"
             120
         )
@@ -843,7 +816,7 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         rough_path_schedule_node_graph_cuda
-        tests/price_gradients/rough_path_schedule_node_graph_cuda_test.cu
+        tests/price_gradients/rough_path_schedule_node_graph_kernel_cuda_test.cu
         "price_gradients;rough_bergomi;path_node_graph;volterra"
         120
     )
@@ -916,13 +889,13 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         volterra_fft_workspace_bounds_cuda
-        tests/volterra/volterra_fft_workspace_bounds_cuda_test.cu
+        tests/volterra/volterra_fft_workspace_bounds_kernel_cuda_test.cu
         "volterra;workspace"
         30
     )
     add_cuda_workbench_test(
         exact_rough_lift_cuda
-        tests/sampling/exact_rough_lift_cuda_test.cu
+        tests/sampling/exact_rough_lift_kernel_cuda_test.cu
         "samples;rough_heston;quadratic_rough_heston;preparation"
         120
     )
@@ -940,7 +913,7 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         black_scholes_cuda
-        tests/model/equity/black_scholes_cuda_test.cu
+        tests/model/equity/black_scholes_kernel_cuda_test.cu
         black_scholes
         30
     )
@@ -994,19 +967,11 @@ if(BUILD_TESTING)
     )
     add_cuda_workbench_test(
         policy_size_budgets_cuda
-        tests/cuda/policy_size_budgets_cuda_test.cu
+        tests/cuda/policy_size_budgets_kernel_cuda_test.cu
         "kernel_diagnostics;policy_budgets"
         30
     )
 
-    add_cuda_workbench_test(
-        factorized_cross_asset_cuda
-        tests/simulation/factorized_cross_asset_cuda_test.cu
-        "multi_asset;fixed_income;factorized" 90
-    )
-    target_link_libraries(test_factorized_cross_asset_cuda PRIVATE
-        ai_factory_causal_fft ai_factory_correlation_dataset
-    )
 
     # Mark the complete main test inventory before the separately owned
     # validation module is included. The standard preset selects this exact

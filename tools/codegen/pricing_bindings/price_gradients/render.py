@@ -15,6 +15,7 @@ from .manifest import (
     path_product_metadata,
 )
 from manifest import PRICE_VARIANTS
+from fixed_income_quote import quote_convention
 from capability_manifest import CURVE_ASSIGNMENT
 
 
@@ -1297,6 +1298,15 @@ def render_recipes(
             "option_side_assignment": (
                 f'\n        recipe.option_side = "{option_side}";'
                 if option_side is not None else ""
+            ) + (
+                '\n        recipe.product_quote_mode = "' + {
+                    "zero_coupon_bond_option": "ratio_to_initial_forward_bond_price",
+                    "zero_coupon_bond_up_and_out": "ratio_to_initial_forward_bond_price",
+                    "rate_option": "additive_to_initial_simple_forward_rate",
+                    "european_swaption": "additive_to_initial_par_swap_rate",
+                    "bermudan_swaption": "additive_to_initial_first_exercise_par_swap_rate",
+                }[spec.product] + '";\n        datasets::price_gradients::require_product_quote_convention(recipe);'
+                if spec.asset_class == "fixed_income" else ""
             ) + reconstructible_assignment,
             "price_template_arguments": (
                 f"<OptionSide::{side}>" if variant.side is not None else ""
@@ -1386,7 +1396,6 @@ def render_recipes(
             "generator": spec.generator_path,
             "inputs": inputs,
             "output": {"path": spec.dataset_path, "format": "json"},
-            "generation_details": spec.generation_yaml_path,
             "row_count": spec.row_count,
             "paths_per_price": 1048576 if stochastic else 0,
             "sensitivity": {
@@ -1403,6 +1412,8 @@ def render_recipes(
                 "source_price_recipe": source.recipe_yaml_path,
             },
         }
+        if spec.asset_class == "fixed_income":
+            metadata["quote_convention"] = quote_convention(spec.product)
         if reconstructed:
             metadata["sensitivity"]["reconstructible_from_price"] = reconstructed
         if option_side is not None:

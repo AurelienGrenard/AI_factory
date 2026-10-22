@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/markovian/cev/parameters/cev_01.json
-    sha256: 5b7da83275dcc111b394543b8cff5a92b131b81b54f9c5aaea4531c464ca64a7
+    sha256: eb601cf70e94d2484c5e63fb8579cb5766943c79384454c40bea7d0d8006f3c9
 output:
   path: datasets/model/equity/markovian/cev/factor_parameters/cev_factors_01.json
-  sha256: ffaad3b5b5e041fdd67cda56f7de3bdb3eda0db9bd6df027b07341b01b4a0043
+  sha256: 42e1dcb443d7dba60c6056cec398833df7220bff9c5d03f6f8d76ef63f9eb0db
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

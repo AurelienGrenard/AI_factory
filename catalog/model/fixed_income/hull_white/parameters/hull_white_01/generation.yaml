@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/model/fixed_income/hull_white/parameters/hull_white_01.json
-  sha256: 78ed492b72e86be6c2b99241ca4153335adaa3eb00991ea2961f24f427d31da7
-hardware:
-  device: cpu

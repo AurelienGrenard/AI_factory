@@ -13,6 +13,9 @@ namespace ai_factory::workbench::product {
 std::vector<ZeroCouponBondOptionParameters> load_zero_coupon_bond_options(
     const std::filesystem::path& dataset_path
 ) {
+    const bool quoted = datasets::read_parameter_dataset(
+        dataset_path, datasets::ParameterDatasetFamily::Product,
+        "Fixed-income product").contains("quote_convention");
     return datasets::load_parameter_rows<ZeroCouponBondOptionParameters>(
         dataset_path,
         datasets::ParameterDatasetFamily::Product,
@@ -23,6 +26,7 @@ std::vector<ZeroCouponBondOptionParameters> load_zero_coupon_bond_options(
                 parameters.at("strike").get<float>(),
                 parameters.at("option_expiry").get<std::uint32_t>(),
                 parameters.at("bond_maturity").get<std::uint32_t>(),
+                quoted,
             };
             if (!std::isfinite(product.notional) || !(product.notional > 0.0f))
                 throw std::invalid_argument(prefix + "notional must be finite and positive.");

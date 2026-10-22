@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json
-    sha256: 6b489663f2ed147604fd648ddbf9d96f4faea8551819d131e8e1445691cc5527
+    sha256: afa7eeb075673353fe28b27aa447f917777f4c83bae12d51e59a2bef841d7631
 output:
   path: datasets/model/equity/rough/rough_heston/factor_parameters/rough_heston_factors_01.json
-  sha256: 8f5447b6b12e66f969c5f9ad5036b982ab9dcfb61b11b49f8fea77fe7808b165
+  sha256: 02fde3ba52180f3994500c0d6ece030fa6251268641e878b8d20072f74b3b8c5
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

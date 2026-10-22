@@ -28,6 +28,8 @@ int main() {
             }}, {1.0f / 504.0f, 2U}, true
         };
         recipe.option_side = "receiver";
+        recipe.product_quote_mode = "additive_to_initial_first_exercise_par_swap_rate";
+        datasets::price_gradients::require_product_quote_convention(recipe);
         constexpr auto exercise_replay =
             lspg::ExerciseReplayStrategy::frozen_regression_policy;
         recipe.exercise_replay = exercise_replay;

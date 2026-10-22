@@ -84,7 +84,9 @@ typename Plan::Preparation::Scenario central_scenario(
     require(
         Plan::Preparation::make_central(
             plan.models[indices.model],
-            plan.products[indices.product],
+            equity::spot_relative::selected_central_product(
+                plan.models[indices.model], plan.products[indices.product],
+                plan.relative_quotes),
             plan.time,
             central
         ),

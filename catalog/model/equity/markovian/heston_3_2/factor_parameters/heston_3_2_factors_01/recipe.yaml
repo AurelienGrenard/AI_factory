@@ -5,7 +5,6 @@ generator: "catalog/model/equity/markovian/heston_3_2/factor_parameters/heston_3
 output:
   path: "datasets/model/equity/markovian/heston_3_2/factor_parameters/heston_3_2_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/markovian/heston_3_2/factor_parameters/heston_3_2_factors_01/generation.yaml"
 model_family: "Heston 3/2"
 row_count: 1000
 parameterization: "factorized"

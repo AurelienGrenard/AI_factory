@@ -76,11 +76,6 @@ struct DynamicsPolicy {
     );
     // The model owns the point at which a shared short-rate integral enters
     // its numerical transition.
-    __device__ __forceinline__ static float nominal_rate_step(
-        const Parameters& parameters, float delta_t
-    ) {
-        return parameters.risk_free_rate * delta_t;
-    }
     template<typename AuxiliaryRandom>
     __device__ __forceinline__ static void one_step_transition_with_rate(
         const PreparedDynamics& dynamics, BrownianStep brownian,

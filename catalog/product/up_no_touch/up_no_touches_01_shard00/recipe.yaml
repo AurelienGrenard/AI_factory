@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: up_no_touches_01_shard00
+generator: catalog/product/up_no_touch/up_no_touches_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/up_no_touch/up_no_touches_01.json
+output:
+  path: datasets/product/up_no_touch/up_no_touches_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 8903953f7f9a088efaffeceb8315a1952cd10daff3ff07981ee9c46d6b0d0b5e
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 4
+  - 11
+  - 22
+  - 39
+  - 45
+  - 54
+  - 61
+  - 77
+  - 88
+  - 91
+  - 108
+  - 114
+  - 124
+  - 131
+  - 140
+  - 155
+  - 167
+  - 175
+  - 187
+  - 192
+  - 200
+  - 219
+  - 229
+  - 238
+  - 245
+  - 256
+  - 268
+  - 276
+  - 285
+  - 295
+  - 306
+  - 314
+  - 327
+  - 339
+  - 348
+  - 355
+  - 366
+  - 378
+  - 380
+  - 397
+  - 409
+  - 415
+  - 429
+  - 435
+  - 442
+  - 457
+  - 469
+  - 475
+  - 482
+  - 494
+  - 502
+  - 516
+  - 522
+  - 533
+  - 548
+  - 552
+  - 569
+  - 571
+  - 586
+  - 598
+  - 603
+  - 610
+  - 622
+  - 633
+  - 645
+  - 652
+  - 666
+  - 673
+  - 685
+  - 693
+  - 709
+  - 716
+  - 720
+  - 732
+  - 744
+  - 750
+  - 761
+  - 772
+  - 781
+  - 792
+  - 809
+  - 813
+  - 825
+  - 834
+  - 841
+  - 855
+  - 866
+  - 871
+  - 888
+  - 891
+  - 903
+  - 918
+  - 921
+  - 934
+  - 949
+  - 955
+  - 964
+  - 973
+  - 989
+  - 990
+quote_convention:
+  barrier:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: barrier * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

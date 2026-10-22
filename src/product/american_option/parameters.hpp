@@ -10,6 +10,7 @@ struct AmericanOptionParameters {
     float strike;
     std::uint32_t maturity_days;
     std::uint32_t exercise_interval_days;
+    bool quote_is_ratio = false;
 };
 
 static_assert(std::is_trivially_copyable_v<AmericanOptionParameters>);

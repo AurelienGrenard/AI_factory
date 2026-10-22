@@ -124,8 +124,10 @@ evaluate_jamshidian_boundary(
             fmaf(-bond.B, state_correction, fmaf(-bond.B, state, bond.log_A))
         );
         coupon_bond.add(term);
-        // All coupons are non-negative. Preserve +infinity as the sign of
-        // an overflowing trial bond instead of feeding it back through Kahan.
+        // Intermediate coupons may be negative for a negative fixed rate.
+        // With a positive final redemption coefficient, any level-one
+        // crossing is downward because the final bond has the largest B.
+        // Preserve overflow as a failed trial rather than feeding it to Kahan.
         if (!isfinite(coupon_bond.value())) {
             return {coupon_bond.value(), -INFINITY};
         }
@@ -165,7 +167,8 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     if (!schedule.valid()
         || !isfinite(exercise_time)
         || !isfinite(fixed_rate)
-        || fixed_rate < 0.0f) {
+        || fmaf(fixed_rate, schedule.accrual_fraction(
+            schedule.payment_count() - 1U), 1.0f) <= 0.0f) {
         return nanf("");
     }
 
@@ -175,6 +178,37 @@ __device__ __forceinline__ float jamshidian_state_boundary(
     );
     float lower_state = FLT_MAX;
     float upper_state = -FLT_MAX;
+    if (fixed_rate < 0.0f) {
+        // The final redemption still dominates the negative coupons as
+        // the state tends to -infinity. Its unit term bounds the root above.
+        const std::uint32_t last = payment_count - 1U;
+        const float payment_time = schedule.payment_time(last);
+        const float coefficient = jamshidian_cashflow_coefficient(
+            fixed_rate, schedule.accrual_fraction(last), last, payment_count
+        );
+        if (!(payment_time > exercise_time) || !(coefficient > 0.0f))
+            return nanf("");
+        const OneFactorAffineBondCoefficients bond =
+            provider.affine_bond_coefficients(
+                parameters, exercise_time, payment_time
+            );
+        if (!(bond.B > 0.0f) || !isfinite(bond.B)
+            || !isfinite(bond.log_A)) return nanf("");
+        upper_state = (logf(coefficient) + bond.log_A) / bond.B;
+        float width = 1.0f;
+        bool bracketed = false;
+        for (unsigned int attempt = 0U; attempt < 32U; ++attempt) {
+            lower_state = upper_state - width;
+            const float residual = evaluate_jamshidian_boundary(
+                provider, parameters, exercise_time, fixed_rate,
+                schedule, lower_state
+            ).residual;
+            if (residual > 0.0f) { bracketed = true; break; }
+            if (!isfinite(residual)) return nanf("");
+            width *= 2.0f;
+        }
+        if (!bracketed) return nanf("");
+    } else {
     for (std::uint32_t payment = 0U;
          payment < payment_count;
          ++payment) {
@@ -213,6 +247,7 @@ __device__ __forceinline__ float jamshidian_state_boundary(
             upper_state,
             (log_weight + log_payment_count) / bond.B
         );
+    }
     }
     if (!isfinite(lower_state)
         || !isfinite(upper_state)

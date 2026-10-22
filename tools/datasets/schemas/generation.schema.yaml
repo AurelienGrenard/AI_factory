@@ -88,7 +88,7 @@ allOf:
         schema_version:
           const: 1
     then:
-      required: [recipe, artifact, execution, timing, record_sha256]
+      required: [recipe, artifact, execution, record_sha256]
   - if:
       properties:
         schema_version:
@@ -144,12 +144,10 @@ allOf:
           additionalProperties: false
         hardware:
           type: object
-          required: [device, host, cpu_model]
+          required: [device, cpu_model]
           properties:
             device:
               enum: [cpu, gpu]
-            host:
-              type: string
             cpu_model:
               type: string
           additionalProperties: true
@@ -207,6 +205,9 @@ allOf:
           properties:
             device:
               enum: [cpu, gpu]
+            host: false
+            index: false
+            cuda_visible_devices: false
           additionalProperties:
             type: string
         software:
@@ -214,6 +215,17 @@ allOf:
           minProperties: 1
           additionalProperties:
             type: string
+        timing:
+          type: object
+          required: [wall_seconds, duration]
+          properties:
+            wall_seconds:
+              type: number
+              minimum: 0
+            duration:
+              type: string
+              pattern: '^(?:[0-9]+ j )?(?:[0-9]+ h )?(?:[0-9]+ min )?(?:[0-9]+ s(?: [0-9]+ ms)?|[0-9]+(?:\.[0-9]{1,3})? ms)$'
+          additionalProperties: false
       additionalProperties: false
   - not:
       anyOf:

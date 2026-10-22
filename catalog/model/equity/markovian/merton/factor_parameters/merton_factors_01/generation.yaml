@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/markovian/merton/parameters/merton_01.json
-    sha256: 3d7f847d82dc2776ef225daa1270b3300a152d5839aaffc9a79d45cc3de0d312
+    sha256: 2966ece633b6b03463b0f87c98b77301cd8cdc3c496bf8255d90dd6936a10f67
 output:
   path: datasets/model/equity/markovian/merton/factor_parameters/merton_factors_01.json
-  sha256: 77a35ccade441dcc1cc17c6674d79af8393cfd252098b1be1388ab01ef3dfbe3
+  sha256: a30edadee194378c70b45a09928aa904e3ad9fe146a92024b3e3e4bba06716f0
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

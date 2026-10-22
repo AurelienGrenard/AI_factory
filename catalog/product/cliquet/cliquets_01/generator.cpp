@@ -67,7 +67,14 @@ int main() {
             },
             {"intermediate_payments", "None."},
         },
-        rows
+        rows,
+        {
+            {"periodic_return", {{"mode", "S(t_i)/S(t_{i-1}) - 1"}, {"unit", "dimensionless"}}},
+            {"local_floor", {{"mode", "periodic_return_bound"}, {"unit", "dimensionless"}}},
+            {"local_cap", {{"mode", "periodic_return_bound"}, {"unit", "dimensionless"}}},
+            {"global_floor", {{"mode", "cumulative_return_bound"}, {"unit", "dimensionless"}}},
+            {"global_cap", {{"mode", "cumulative_return_bound"}, {"unit", "dimensionless"}}}
+        }
     );
     validate_product_dataset_file(dataset_path);
 }

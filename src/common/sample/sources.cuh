@@ -205,6 +205,28 @@ struct DeviceCalendarSource {
     }
 };
 
+// A compact prepared batch keeps global parameter IDs for Philox unchanged.
+template<typename Prepared>
+struct PreparedInputWindowSource {
+    const Prepared* inputs;
+    std::size_t first_parameter;
+    std::size_t parameter_count;
+
+    void validate(std::size_t total_parameters) const {
+        if (first_parameter >= total_parameters
+            || parameter_count == 0U
+            || parameter_count > total_parameters - first_parameter)
+            throw std::invalid_argument("Invalid prepared sample window.");
+        validate_device_pointer(inputs, "device prepared sample window");
+    }
+
+    __device__ __forceinline__ Prepared load(
+        std::size_t parameter_index, std::uint64_t
+    ) const {
+        return inputs[parameter_index - first_parameter];
+    }
+};
+
 // Generate one unbiased integer maturity per logical sample. The optional
 // output stores the canonical contractual day used to prepare the schedule.
 struct UniformMaturityCalendarSource {

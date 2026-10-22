@@ -25,6 +25,8 @@ int main() {
             }}, {1.0f / 504.0f, 2U}, true
         };
         recipe.option_side = "put";
+        recipe.product_quote_mode = "additive_to_initial_simple_forward_rate";
+        datasets::price_gradients::require_product_quote_convention(recipe);
         recipe.curve_input = "datasets/curve/nelson_siegel/nelson_siegel_01.json";
         const auto models =
             model::fixed_income::hull_white::load_models(recipe.model_input);

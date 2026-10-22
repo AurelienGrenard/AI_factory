@@ -1,7 +1,7 @@
 // Product payoff policy shared by terminal rough lift and Gaussian FFT graphs.
 #pragma once
 
-#include "common/monte_carlo/price_gradients/terminal_node_graph/reconstruction.cuh"
+#include "common/monte_carlo/price_gradients/terminal_node_graph/reconstruction_kernel.cuh"
 #include "common/price_gradients/time_configuration.hpp"
 
 #include <cuda_runtime.h>

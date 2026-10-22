@@ -1,0 +1,48 @@
+schema_version: 1
+kind: "correlation_parameters"
+dataset_id: "five_equity_cir_01"
+generator: "catalog/correlation/five_equity_cir_01/generator.cpp"
+output:
+  path: "datasets/correlation/five_equity_cir_01.json"
+  format: "json"
+row_count: 10
+factor_order:
+  - "heston.spot"
+  - "heston.variance"
+  - "bates.spot"
+  - "bates.variance"
+  - "sabr.spot"
+  - "sabr.volatility"
+  - "rough_heston.spot"
+  - "rough_heston.variance"
+  - "rough_bergomi.spot"
+  - "rough_bergomi.variance"
+  - "cir.rate"
+construction:
+  method: "latent common spot driver and independent residuals"
+  spot_common_variance_shares:
+    - 0.0
+    - 0.05
+    - 0.12
+    - 0.2
+    - 0.3
+    - 0.42
+    - 0.55
+    - 0.68
+    - 0.78
+    - 0.85
+  rate_common_driver_loadings:
+    - -0.35
+    - -0.25
+    - -0.15
+    - -0.05
+    - 0.0
+    - 0.05
+    - 0.15
+    - 0.25
+    - 0.35
+    - 0.45
+  own_spot_volatility_correlation_range:
+    - -0.95
+    - -0.55
+  positive_definite: "verified by Cholesky per matrix"

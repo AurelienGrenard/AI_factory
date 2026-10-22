@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/cuda_kernel_diagnostics.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_reconstruction.cuh"
+#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_reconstruction_kernel.cuh"
 
 #include <cuda_runtime.h>
 

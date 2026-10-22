@@ -1,75 +1,58 @@
-{
-  "schema_version": 1,
-  "kind": "samples",
-  "dataset_id": "samples_02",
-  "generator": "catalog/model/equity/markovian/cev/samples/samples_02/generator.cpp",
-  "model": "cev",
-  "output": {
-    "path": "datasets/model/equity/markovian/cev/samples/samples_02.json",
-    "format": "json"
-  },
-  "generation_details": "catalog/model/equity/markovian/cev/samples/samples_02/generation.yaml",
-  "row_count": 3000000,
-  "shape": {
-    "parameter_count": 3000000,
-    "paths_per_parameter": 1,
-    "row_order": "parameter-major, then path-major"
-  },
-  "parameter_sampling": {
-    "regime": "plausible core only",
-    "distribution": "independent Philox uniform proposals with counter-local rejection per parameter row",
-    "proposal_draw_order": [
-      "spot",
-      "sigma",
-      "beta"
-    ],
-    "latent_uniform_bounds": {
-      "spot": [
-        0.8,
-        1.2
-      ],
-      "sigma": [
-        0.08,
-        0.45
-      ],
-      "beta": [
-        0.55,
-        0.95
-      ]
-    },
-    "acceptance": "true",
-    "derived_parameters": {},
-    "fixed_model_inputs": {
-      "risk_free_rate": 0.0,
-      "dividend_yield": 0.0
-    }
-  },
-  "maturity_sampling": {
-    "distribution": "discrete uniform without modulo bias",
-    "support": "integer business days",
-    "minimum_days": 63,
-    "maximum_days": 504,
-    "year_fraction": "maturity_days / 252"
-  },
-  "seeds": {
-    "parameters": 11668826986704273408,
-    "schedule": 11668826987778015232,
-    "dynamics": 11668826988851757056
-  },
-  "random_number_generator": "philox",
-  "numerical_method": {
-    "engine": "sample_markovian",
-    "description": "absorbed Milstein"
-  },
-  "outputs": {
-    "spot": {
-      "description": "Terminal spot.",
-      "layout": "sample-major"
-    }
-  },
-  "time_grid": {
-    "transition": "fixed-step",
-    "delta_t": "1 / 504",
-    "simulation_steps_per_day": 2
-  }
-}
+schema_version: 1
+kind: samples
+dataset_id: samples_02
+generator: catalog/model/equity/markovian/cev/samples/samples_02/generator.cpp
+model: cev
+output:
+  path: datasets/model/equity/markovian/cev/samples/samples_02.json
+  format: json
+row_count: 3000000
+shape:
+  parameter_count: 3000000
+  paths_per_parameter: 1
+  row_order: parameter-major, then path-major
+parameter_sampling:
+  regime: plausible core only
+  distribution: independent Philox uniform proposals with counter-local rejection
+    per parameter row
+  proposal_draw_order:
+  - spot
+  - sigma
+  - beta
+  latent_uniform_bounds:
+    spot:
+    - 0.25
+    - 4.0
+    sigma:
+    - 0.08
+    - 0.45
+    beta:
+    - 0.55
+    - 0.95
+  acceptance: 'true'
+  derived_parameters: {}
+  fixed_model_inputs:
+    risk_free_rate: 0.0
+    dividend_yield: 0.0
+maturity_sampling:
+  distribution: discrete uniform without modulo bias
+  support: integer business days
+  minimum_days: 63
+  maximum_days: 504
+  year_fraction: maturity_days / 252
+seeds:
+  parameters: 11668826986704273408
+  schedule: 11668826987778015232
+  dynamics: 11668826988851757056
+random_number_generator: philox
+numerical_method:
+  engine: sample_markovian
+  description: absorbed Milstein
+outputs:
+  spot:
+    description: Terminal spot.
+    layout: sample-major
+time_grid:
+  transition: fixed-step
+  delta_t: 1 / 504
+  simulation_steps_per_day: 2

@@ -5,7 +5,6 @@ generator: catalog/curve/svensson/svensson_01/generator.cpp
 output:
   path: datasets/curve/svensson/svensson_01.json
   format: json
-generation_details: catalog/curve/svensson/svensson_01/generation.yaml
 curve_family: Svensson
 row_count: 1000
 parameters:
@@ -15,13 +14,6 @@ parameters:
   beta3: Second medium-term curvature loading.
   tau1: Positive first decay time in years.
   tau2: Positive second decay time in years.
-curve:
-  zero_rate: z(0,T) = beta0 + beta1 L(T/tau1) + beta2 C(T/tau1) + beta3 C(T/tau2)
-  loading: L(x) = (1 - exp(-x)) / x, C(x) = L(x) - exp(-x)
-  discount_factor: P(0,T) = exp(-T z(0,T))
-  instantaneous_forward: f(0,T) = beta0 + exp(-x1)(beta1 + beta2 x1) + beta3 x2 exp(-x2)
-  time_unit: years
-  rate_convention: continuously compounded
 construction:
   method: forward-level reconstruction with rejection
   sampled_factors:

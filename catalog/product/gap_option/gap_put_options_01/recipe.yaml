@@ -5,22 +5,27 @@ generator: "catalog/product/gap_option/gap_put_options_01/generator.cpp"
 output:
   path: "datasets/product/gap_option/gap_put_options_01.json"
   format: "json"
-generation_details: "catalog/product/gap_option/gap_put_options_01/generation.yaml"
 product_family: "Gap Puts"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  trigger_strike:
+    mode: "ratio_to_central_spot"
+    unit: "dimensionless"
+    effective_level: "trigger_strike * S0"
+  payoff_strike:
+    mode: "ratio_to_central_spot"
+    unit: "dimensionless"
+    effective_level: "payoff_strike * S0"
+  reference_policy: "Resolved at the unbumped model spot S0 for each model-product pair; absolute contract levels remain fixed for model bumps."
 parameters:
   trigger_strike: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   payoff_strike: "Dimensionless ratio of the quoted spot level to the central model spot S0; 1.0 means 100% of S0."
   maturity: "Maturity in business days."
 payoff:
   expression: "(payoff_strike - S_T) * 1{S_T < trigger_strike}"
-  spot_level_quote:
-    unit: "ratio_to_central_spot"
-    resolution: "Each quoted strike/barrier is multiplied by the unbumped model S0 once for each model-product pair."
-    sensitivity: "S0 reference and resolved contract levels remain fixed when model.spot is bumped; product-level derivatives are with respect to the quoted ratio."
 construction:
   method: "ordered 90/10 core-stress construction"
   row_order:

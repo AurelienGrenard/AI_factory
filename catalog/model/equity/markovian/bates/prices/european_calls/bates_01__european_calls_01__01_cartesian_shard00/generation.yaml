@@ -1,0 +1,28 @@
+schema_version: 4
+status: complete
+inputs:
+  model:
+    path: datasets/model/equity/markovian/bates/parameters/bates_01.json
+    sha256: 84eeb1797d0f77b4c56baac0d8f1eedf35130bc91bdfcbcdf2877fea02b991d5
+  product:
+    path: datasets/product/european_option/european_options_01_shard00.json
+    sha256: 257b714d294fb76a2731f481ee8fc9275804258d4d5e7175aaed6229ff44dc59
+output:
+  path: datasets/model/equity/markovian/bates/prices/european_calls/bates_01__european_calls_01__01_cartesian_shard00.json
+  sha256: e52901c962d9f4a5bac5666ef90cf54afa9ebd839159a3bedb5e72e535b3f415
+hardware:
+  cpu_model: Intel(R) Xeon(R) Gold 5218 CPU @ 2.30GHz
+  device: gpu
+  name: NVIDIA A100 80GB PCIe
+  uuid: GPU-5102f6b2-92ef-1ca5-849f-649cb3851bf6
+  compute_capability: '8.0'
+  driver_version: 590.48.01
+software:
+  cmake: cmake version 3.31.6
+  cxx_compiler: g++-14 (Debian 14.2.0-19) 14.2.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  mathdx: 25.12.1
+  nlohmann_json: 3.10.5
+timing:
+  wall_seconds: 2387.608030020958
+  duration: 39 min 47 s 608 ms

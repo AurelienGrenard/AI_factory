@@ -50,7 +50,7 @@ def _selected_names(sensitivity, key, names, requested):
 
 def _check_compact_outputs(document, first_names, diagonal_names,
                            mixed_names, paths, has_curve, option_side):
-    header = {"database_id", "model_family", "product_family", "catalog", "row_count"}
+    header = {"database_id", "model_family", "product_family", "row_count"}
     if option_side is not None:
         if option_side not in {"call", "put", "payer", "receiver"}:
             raise ValueError("Invalid frozen option side")
@@ -59,9 +59,16 @@ def _check_compact_outputs(document, first_names, diagonal_names,
     if has_curve:
         header.add("curve_family")
         references.add("curve_dataset")
+    # Product quote conventions can be copied into the compact result header.
+    # They describe the contract and do not add fields to individual price rows.
+    quote_fields = ({"quote_convention"} if isinstance(document, dict)
+                    and "quote_convention" in document else set())
     if (not isinstance(document, dict)
-            or set(document) != header | references | {"results"}):
-        raise ValueError("Gradient JSON must contain identity, input references and results only")
+            or not header | references | {"results"} <= set(document)):
+        raise ValueError("Gradient JSON lacks identity, input references or results")
+    if quote_fields and (not isinstance(document["quote_convention"], dict)
+                         or not document["quote_convention"]):
+        raise ValueError("Invalid gradient product quote convention")
     if any(not isinstance(document[key], str) or not document[key]
            for key in header - {"row_count"}):
         raise ValueError("Invalid gradient dataset identity")
@@ -70,9 +77,8 @@ def _check_compact_outputs(document, first_names, diagonal_names,
     for key in references:
         reference = document[key]
         if (not isinstance(reference, dict)
-                or set(reference) != {"id", "catalog"}
-                or any(not isinstance(value, str) or not value
-                       for value in reference.values())):
+                or not isinstance(reference.get("id"), str)
+                or not reference["id"]):
             raise ValueError(f"Invalid gradient {key} reference")
     if (type(document["row_count"]) is not int
             or document["row_count"] < 1
@@ -97,7 +103,7 @@ def _check_compact_outputs(document, first_names, diagonal_names,
         expected.add("standard_error")
         expected.update(key for key, names in errors.items() if names)
     for index, row in enumerate(document["results"], 1):
-        if not isinstance(row, dict) or set(row) != expected:
+        if not isinstance(row, dict) or not expected <= set(row):
             raise ValueError(f"Invalid compact gradient columns at row {index}")
         for key in ("model_id", "product_id", "curve_id"):
             if key in expected and (not isinstance(row[key], str) or not row[key]):

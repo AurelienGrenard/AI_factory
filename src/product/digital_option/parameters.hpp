@@ -10,6 +10,7 @@ struct DigitalOptionParameters {
     float strike;
     std::uint32_t maturity_days;
     float cash_payoff;
+    bool quote_is_ratio = false;
 };
 
 static_assert(std::is_trivially_copyable_v<DigitalOptionParameters>);

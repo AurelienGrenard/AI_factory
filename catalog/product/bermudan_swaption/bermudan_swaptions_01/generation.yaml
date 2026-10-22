@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/product/bermudan_swaption/bermudan_swaptions_01.json
-  sha256: 68c88a774deeaff3740ad90eada3487184c71dd421f07fd004393582ba48e5c5
-hardware:
-  device: cpu

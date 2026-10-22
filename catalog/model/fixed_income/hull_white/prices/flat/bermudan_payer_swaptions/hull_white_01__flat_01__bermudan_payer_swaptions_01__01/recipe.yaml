@@ -12,7 +12,6 @@
     "path": "datasets/model/fixed_income/hull_white/prices/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/fixed_income/hull_white/prices/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01/generation.yaml",
   "row_count": 1000,
   "numerical_method": {
     "engine": "fixed_income_lsm"
@@ -27,5 +26,13 @@
   "seeds": {
     "dynamics": 11668829237267136512
   },
-  "random_number_generator": "philox"
+  "random_number_generator": "philox",
+  "quote_convention": {
+    "strike": {
+      "mode": "additive_to_initial_first_exercise_par_swap_rate",
+      "unit": "annualized_decimal_rate",
+      "effective_level": "strike = initial_first_exercise_par_swap_rate + strike_spread"
+    },
+    "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
+  }
 }

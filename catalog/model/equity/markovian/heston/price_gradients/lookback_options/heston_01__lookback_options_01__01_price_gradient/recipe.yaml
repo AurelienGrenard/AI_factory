@@ -11,7 +11,6 @@
     "path": "datasets/model/equity/markovian/heston/price_gradients/lookback_options/heston_01__lookback_options_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/equity/markovian/heston/price_gradients/lookback_options/heston_01__lookback_options_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {

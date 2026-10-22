@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/model/fixed_income/g2/parameters/g2_01.json
-  sha256: eafbe3fca21bfdd36a2006f8c33724ca68ad8e8d876abbcffb82b54d6cf1416a
-hardware:
-  device: cpu

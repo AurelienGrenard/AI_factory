@@ -28,9 +28,11 @@ class ProvenanceTests(unittest.TestCase):
         self.dataset.parent.mkdir()
         self.document = {
             "database_id": "prices", "row_count": 1,
-            "url": "https://datasets.example/prices.json",
-            "results": [{"id": "000001", "outputs": {"price": 1.25,
-                                                    "standard_error": 0.01}}],
+            "model_family": "test", "product_family": "test",
+            "model_dataset": {"id": "model"},
+            "product_dataset": {"id": "product"},
+            "results": [{"model_id": "m1", "product_id": "p1",
+                         "price": 1.25, "standard_error": 0.01}],
         }
         self.save_dataset()
         self.recipe_rel = "catalog/example/recipe.yaml"
@@ -40,7 +42,6 @@ class ProvenanceTests(unittest.TestCase):
             "schema_version": 1, "kind": "prices", "dataset_id": "prices",
             "generator": "catalog/example/generator.cpp", "row_count": 1,
             "output": {"path": self.dataset_rel, "format": "json"},
-            "generation_details": "catalog/example/generation.yaml",
             "paths_per_price": 1_048_576, "seeds": {"dynamics": 123},
         }
         self.save_recipe()
@@ -80,7 +81,7 @@ class ProvenanceTests(unittest.TestCase):
         self.assertEqual(self.assess()["status"], "compatible")
 
     def test_json_edit_needs_only_current_output_sha(self):
-        self.document["results"][0]["outputs"]["price"] = 1.5
+        self.document["results"][0]["price"] = 1.5
         self.save_dataset()
         self.assertEqual(self.assess()["status"], "invalid")
         self.generation["output"]["sha256"] = digest(self.dataset)
@@ -97,16 +98,16 @@ class ProvenanceTests(unittest.TestCase):
         relative = "datasets/model/example.json"
         parameter = self.root / relative
         parameter.parent.mkdir(parents=True)
-        parameter.write_text('{"database_id":"example","catalog":"catalog/model/example",'
-                             '"row_count":1,"models":[]}')
-        self.document["model_dataset"] = {"id": "example", "catalog": "catalog/model/example"}
+        parameter.write_text('{"database_id":"example","row_count":1,'
+                             '"models":[{"id":"000001","parameters":{"x":1}}]}')
+        self.document["model_dataset"] = {"id": "example"}
         self.save_dataset()
         self.generation["output"]["sha256"] = digest(self.dataset)
         self.recipe["inputs"] = {"model": relative}
         self.generation["inputs"] = {"model": {"path": relative, "sha256": digest(parameter)}}
         self.assertEqual(self.assess()["status"], "compatible")
-        parameter.write_text('{"database_id":"example","catalog":"catalog/model/example",'
-                             '"row_count":1,"models":[1]}')
+        parameter.write_text('{"database_id":"example","row_count":1,'
+                             '"models":[{"id":"000001","parameters":{"x":2}}]}')
         self.assertEqual(self.assess()["status"], "review_required")
         self.generation["inputs"]["model"]["sha256"] = digest(parameter)
         self.assertEqual(self.assess()["status"], "compatible")
@@ -115,18 +116,18 @@ class ProvenanceTests(unittest.TestCase):
         relative = "datasets/model/example.json"
         parameter = self.root / relative
         parameter.parent.mkdir(parents=True)
-        parameter.write_text('{"database_id":"example","catalog":"catalog/model/example",'
-                             '"row_count":1,"models":[]}')
+        parameter.write_text('{"database_id":"example","row_count":1,'
+                             '"models":[{"id":"000001","parameters":{"x":1}}]}')
         old_hash = digest(parameter)
         self.recipe["inputs"] = {"model": relative}
         self.generation["inputs"] = {"model": {"path": relative, "sha256": old_hash}}
         self.document["model_dataset"] = {
-            "id": "example", "catalog": "catalog/model/example"
+            "id": "example"
         }
         self.save_dataset()
         self.generation["output"]["sha256"] = digest(self.dataset)
-        parameter.write_text('{"database_id":"example","catalog":"catalog/model/example",'
-                             '"row_count":1,"models":[1]}')
+        parameter.write_text('{"database_id":"example","row_count":1,'
+                             '"models":[{"id":"000001","parameters":{"x":2}}]}')
         refreshed = refresh_generation.refresh(
             self.recipe, self.generation, self.dataset, self.root, []
         )
@@ -142,10 +143,10 @@ class ProvenanceTests(unittest.TestCase):
             {"parameter": "model.spot"}, {"parameter": "model.risk_free_rate"}]}
         self.document = {
             "database_id": "prices", "model_family": "test",
-            "product_family": "european_option", "catalog": "catalog/example",
+            "product_family": "european_option",
             "row_count": 1,
-            "model_dataset": {"id": "model", "catalog": "catalog/model"},
-            "product_dataset": {"id": "product", "catalog": "catalog/product"},
+            "model_dataset": {"id": "model"},
+            "product_dataset": {"id": "product"},
             "results": [{"model_id": "m1", "product_id": "p1", "price": 1.25,
                          "standard_error": .01,
                          "gradients": {"model.spot": .4,
@@ -198,7 +199,7 @@ class ProvenanceTests(unittest.TestCase):
         self.assertEqual(record["output"]["sha256"], digest(self.dataset))
 
     def test_refresh_accepts_a_coherent_json_edit_without_special_permission(self):
-        self.document["results"][0]["outputs"]["price"] = 1.5
+        self.document["results"][0]["price"] = 1.5
         self.save_dataset()
         record = refresh_generation.refresh(
             self.recipe, self.generation, self.dataset, self.root, [])
@@ -213,8 +214,6 @@ class ProvenanceTests(unittest.TestCase):
         self.dataset.write_text("""{
 "database_id": "prices",
 "model_family": "test",
-"catalog": "catalog/example",
-"url": "https://datasets.example/prices.json",
 "row_count": 2,
 "parameters": [
 {"id":"000001","values":{"spot":1.0}}

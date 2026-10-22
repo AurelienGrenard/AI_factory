@@ -5,15 +5,20 @@ generator: "catalog/product/bermudan_swaption/bermudan_swaptions_01/generator.cp
 output:
   path: "datasets/product/bermudan_swaption/bermudan_swaptions_01.json"
   format: "json"
-generation_details: "catalog/product/bermudan_swaption/bermudan_swaptions_01/generation.yaml"
 product_family: "Bermudan Swaptions"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  strike:
+    mode: "additive_to_initial_first_exercise_par_swap_rate"
+    unit: "annualized_decimal_rate"
+    effective_level: "strike = initial_first_exercise_par_swap_rate + strike_spread"
+  reference_policy: "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
 parameters:
   notional: "Contract notional N."
-  strike: "Fixed swap rate K."
+  strike: "Annualized decimal spread from the initial par swap rate; 0.005 means +50 bp."
   accrual_fraction: "Constant contractual coupon year fraction delta."
   first_exercise_time: "First exercise and initial swap-start date in business days."
   payment_interval: "Business days between payments and exercise opportunities."
@@ -37,7 +42,7 @@ construction:
     generation:
       method: "Cartesian grid"
       rule: "Every first exercise time, co-terminal regular schedule, and strike combination."
-      description: "Six-month to fifteen-year first exercise dates; two-to-twenty-year co-terminal swaps; annual or semiannual fixed legs; and two-to-ten exercise opportunities at ordinary fixed rates."
+      description: "Six-month to fifteen-year first exercise dates; two-to-twenty-year co-terminal swaps; annual or semiannual fixed legs; and two-to-ten exercise opportunities with strike spreads around ATM."
       first_exercise_times:
         - 126
         - 252
@@ -101,22 +106,22 @@ construction:
           exercise_count: 10
           accrual_fraction: 0.5
       strikes:
-        - 0.004999999888241291
-        - 0.012500000186264515
-        - 0.019999999552965164
-        - 0.027499999850988388
-        - 0.03500000014901161
-        - 0.042500000447034836
-        - 0.05000000074505806
-        - 0.06499999761581421
-        - 0.07999999821186066
+        - -0.006000000052154064
+        - -0.004000000189989805
+        - -0.0020000000949949026
+        - -0.0010000000474974513
+        - 0.0
+        - 0.0010000000474974513
+        - 0.0020000000949949026
+        - 0.004000000189989805
+        - 0.006000000052154064
       notional: 1.0
   stress:
     row_count: 100
     generation:
       method: "Cartesian grid"
       rule: "Every first exercise time, co-terminal regular schedule, and strike combination."
-      description: "One-month to twenty-year first exercises, monthly through annual fixed legs, one-to-thirty-year co-terminal swaps, and moderate low/high fixed-rate tails."
+      description: "One-month to twenty-year first exercises, monthly through annual fixed legs, one-to-thirty-year co-terminal swaps, and moderate ATM spread tails."
       first_exercise_times:
         - 21
         - 63
@@ -150,8 +155,8 @@ construction:
           exercise_count: 10
           accrual_fraction: 1.0
       strikes:
-        - 0.0
-        - 0.004999999888241291
-        - 0.07999999821186066
-        - 0.15000000596046448
+        - -0.014999999664723873
+        - -0.00800000037997961
+        - 0.00800000037997961
+        - 0.014999999664723873
       notional: 1.0

@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/curve/flat/flat_01.json
-  sha256: c8f5a89941a327179d46322063c0d75da60e10a11da5c1d4894553163065f4e7
-hardware:
-  device: cpu

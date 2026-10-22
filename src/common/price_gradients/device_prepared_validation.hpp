@@ -25,9 +25,19 @@ DevicePreparedPlan make_device_prepared_plan(const HostPlan& host) {
         host.sensitivity_count(),
         0U,
         host.has_maturity_sensitivity(),
+        host.relative_quotes,
     };
+    result.model_product_rows = make_model_product_row_plan(
+        static_cast<std::uint32_t>(host.models.size()),
+        static_cast<std::uint32_t>(host.products.size()), host.construction);
     if constexpr (requires { host.curves.size(); }) {
         result.curve_count = host.curves.size();
+        result.model_curve_product_rows =
+            make_model_curve_product_row_plan(
+                static_cast<std::uint32_t>(host.models.size()),
+                static_cast<std::uint32_t>(host.curves.size()),
+                static_cast<std::uint32_t>(host.products.size()),
+                host.construction);
     }
     return result;
 }

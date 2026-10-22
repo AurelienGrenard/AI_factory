@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common/equity/price_gradients/terminal_device_prepared_plan.hpp"
-#include "common/volterra/price_gradients/prepared_lift_node_graph.cuh"
+#include "common/volterra/price_gradients/prepared_lift_node_graph_kernel.cuh"
 
 #include <cstddef>
 #include <span>

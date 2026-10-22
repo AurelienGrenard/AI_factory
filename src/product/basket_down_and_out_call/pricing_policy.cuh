@@ -77,9 +77,9 @@ struct BasketDownAndOutCallPathPolicy {
         const typename Pack::States& states,
         const typename Pack::Prepared& prepared, unsigned int lane
     ) {
-        return equity::team_sum_spot_ratio<Pack, TeamSize>(
-            states, prepared, lane
-        ) / static_cast<float>(Pack::kAssetCount);
+        return equity::team_basket_spot_ratio<
+            equity::BasketSpotAggregation::ArithmeticMean,
+            Pack, TeamSize>(states, prepared, lane);
     }
 
     template<typename MarkovPack, typename RoughPolicy,
@@ -91,11 +91,11 @@ struct BasketDownAndOutCallPathPolicy {
         const float (&rough_initial_logs)[RoughCount],
         unsigned lane=0U
     ) {
-        return equity::team_joint_sum_spot_ratio<
-            MarkovPack,RoughCount,TeamSize>(
-                markov_states,markov_prepared,
-                rough_log_spots,rough_initial_logs,lane)
-            /static_cast<float>(MarkovPack::kAssetCount+RoughCount);
+        return equity::team_joint_basket_spot_ratio<
+            equity::BasketSpotAggregation::ArithmeticMean,
+            MarkovPack, RoughCount, TeamSize>(
+                markov_states, markov_prepared,
+                rough_log_spots, rough_initial_logs, lane);
     }
 
     __device__ __forceinline__ static float finalize(

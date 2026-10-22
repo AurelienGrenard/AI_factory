@@ -11,7 +11,6 @@
     "path": "datasets/model/equity/rough/rough_stein_stein/price_gradients/up_no_touches/rough_stein_stein_01__up_no_touches_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/equity/rough/rough_stein_stein/price_gradients/up_no_touches/rough_stein_stein_01__up_no_touches_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {

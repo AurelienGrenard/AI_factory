@@ -5,18 +5,10 @@ generator: catalog/curve/flat/flat_01/generator.cpp
 output:
   path: datasets/curve/flat/flat_01.json
   format: json
-generation_details: catalog/curve/flat/flat_01/generation.yaml
 curve_family: Flat
 row_count: 1000
 parameters:
   rate: Constant continuously compounded zero and forward rate.
-curve:
-  zero_rate: z(0,T) = rate
-  discount_factor: P(0,T) = exp(-rate T)
-  instantaneous_forward: f(0,T) = rate
-  forward_derivative: d_T f(0,T) = 0
-  time_unit: years
-  rate_convention: continuously compounded
 construction:
   method: ordered 90/10 core-stress construction
   core:

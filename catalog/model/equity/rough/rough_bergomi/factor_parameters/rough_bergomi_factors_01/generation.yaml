@@ -3,13 +3,12 @@ status: complete
 inputs:
   source_model:
     path: datasets/model/equity/rough/rough_bergomi/parameters/rough_bergomi_01.json
-    sha256: 1373cded62a27bcda490d91b34f4ef11cc1bd6c23767ab50a2c2609cf3566143
+    sha256: dc8640a9dd704a06dfcc4c4c2cb134d423220f41744c363959daeeb840d48372
 output:
   path: datasets/model/equity/rough/rough_bergomi/factor_parameters/rough_bergomi_factors_01.json
-  sha256: f3377d189561e960adb4a350346b9f02910937f7031fa8537c124b63bac967e2
+  sha256: 1f1e334fc09456eb5eb32a8312c53c82bae1e8b14e707d37d7247a3f402ebb8d
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

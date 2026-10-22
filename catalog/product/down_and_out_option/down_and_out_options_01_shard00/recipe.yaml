@@ -1,0 +1,130 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: down_and_out_options_01_shard00
+generator: catalog/product/down_and_out_option/down_and_out_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/down_and_out_option/down_and_out_options_01.json
+output:
+  path: datasets/product/down_and_out_option/down_and_out_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 58a573ebf889108bde761d189afbb9b1c6ba1eab28c2981f2fb4f385a5012a0c
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 5
+  - 14
+  - 25
+  - 36
+  - 44
+  - 51
+  - 67
+  - 74
+  - 83
+  - 91
+  - 105
+  - 114
+  - 126
+  - 135
+  - 141
+  - 156
+  - 162
+  - 172
+  - 185
+  - 191
+  - 206
+  - 213
+  - 228
+  - 238
+  - 242
+  - 254
+  - 261
+  - 273
+  - 280
+  - 296
+  - 303
+  - 311
+  - 329
+  - 334
+  - 347
+  - 357
+  - 363
+  - 376
+  - 385
+  - 397
+  - 408
+  - 411
+  - 424
+  - 438
+  - 440
+  - 458
+  - 469
+  - 478
+  - 482
+  - 497
+  - 505
+  - 513
+  - 524
+  - 532
+  - 547
+  - 556
+  - 569
+  - 578
+  - 584
+  - 594
+  - 600
+  - 612
+  - 628
+  - 631
+  - 649
+  - 653
+  - 662
+  - 674
+  - 682
+  - 696
+  - 704
+  - 716
+  - 727
+  - 732
+  - 743
+  - 757
+  - 765
+  - 774
+  - 785
+  - 792
+  - 805
+  - 817
+  - 823
+  - 837
+  - 841
+  - 856
+  - 867
+  - 879
+  - 889
+  - 896
+  - 906
+  - 917
+  - 921
+  - 934
+  - 945
+  - 950
+  - 968
+  - 971
+  - 981
+  - 995
+quote_convention:
+  strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: strike * S0
+  barrier:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: barrier * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

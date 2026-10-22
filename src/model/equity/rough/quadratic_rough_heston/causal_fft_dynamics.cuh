@@ -53,12 +53,6 @@ struct CausalFftPathPolicy {
         };
     }
 
-    __device__ __forceinline__ static float nominal_rate_step(
-        const Parameters& parameters, float dt
-    ) {
-        return parameters.risk_free_rate * dt;
-    }
-
     __device__ __forceinline__ static State initial_state(
         const PreparedModel& model
     ) { return {model.initial_log_spot, model.initial_feedback}; }

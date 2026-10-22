@@ -55,7 +55,7 @@ inline datasets::ModelSampleRecipe recipe(
             {"proposal_draw_order", {"spot", "xi_0", "eta", "hurst_exponent", "rho"}},
             {"latent_uniform_bounds", {
                 {"spot", {1.0f, 1.0f}},
-                {"xi_0", {0.04f, 0.04f}},
+                {"xi_0", {0.01f, 0.09f}},
                 {"eta", {0.5f, 3.0f}},
                 {"hurst_exponent", {0.03f, 0.25f}},
                 {"rho", {-0.95f, -0.3f}}
@@ -71,7 +71,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
-    const auto native_block = model_binding::rough_bergomi_sample_block_dimensions(value.maximum_maturity_days);    const model_binding::SampleParameterSampler::Configuration bounds{{{1.0f, 1.0f}, {0.04f, 0.04f}, {0.5f, 3.0f}, {0.03f, 0.25f}, {-0.95f, -0.3f}}};
+    const auto native_block = model_binding::rough_bergomi_sample_block_dimensions(value.maximum_maturity_days);    const model_binding::SampleParameterSampler::Configuration bounds{{{1.0f, 1.0f}, {0.01f, 0.09f}, {0.5f, 3.0f}, {0.03f, 0.25f}, {-0.95f, -0.3f}}};
     const std::uint64_t parameter_seed = value.seeds.parameters;
 
     return generate_device_model_sample_dataset<ModelParameters>(

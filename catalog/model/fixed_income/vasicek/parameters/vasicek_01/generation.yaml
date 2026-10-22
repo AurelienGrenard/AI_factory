@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/model/fixed_income/vasicek/parameters/vasicek_01.json
-  sha256: 229dc48a8d8d698a366b624d1dab7521487dda6a81ceb874609e36de2eb751d9
-hardware:
-  device: cpu

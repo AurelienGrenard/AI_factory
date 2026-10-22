@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: rate_options_01_shard00
+generator: catalog/product/rate_option/rate_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/rate_option/rate_options_01.json
+output:
+  path: datasets/product/rate_option/rate_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: f62468ce286b1a5b684a4ef551aa63cd6375517861af2952925ad76ebb1b6caf
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 0
+  - 18
+  - 27
+  - 31
+  - 47
+  - 52
+  - 65
+  - 76
+  - 88
+  - 95
+  - 108
+  - 117
+  - 121
+  - 136
+  - 147
+  - 154
+  - 167
+  - 171
+  - 183
+  - 198
+  - 203
+  - 210
+  - 222
+  - 231
+  - 246
+  - 252
+  - 269
+  - 274
+  - 285
+  - 290
+  - 307
+  - 311
+  - 326
+  - 338
+  - 347
+  - 357
+  - 369
+  - 374
+  - 381
+  - 396
+  - 405
+  - 412
+  - 420
+  - 437
+  - 445
+  - 459
+  - 468
+  - 474
+  - 484
+  - 495
+  - 509
+  - 517
+  - 527
+  - 536
+  - 543
+  - 555
+  - 565
+  - 578
+  - 583
+  - 599
+  - 602
+  - 614
+  - 626
+  - 633
+  - 647
+  - 658
+  - 666
+  - 676
+  - 682
+  - 698
+  - 704
+  - 712
+  - 721
+  - 731
+  - 744
+  - 757
+  - 767
+  - 778
+  - 789
+  - 791
+  - 809
+  - 816
+  - 824
+  - 837
+  - 840
+  - 854
+  - 861
+  - 873
+  - 884
+  - 896
+  - 900
+  - 910
+  - 923
+  - 937
+  - 946
+  - 954
+  - 964
+  - 976
+  - 980
+  - 994
+quote_convention:
+  strike:
+    mode: additive_to_initial_simple_forward_rate
+    unit: annualized_decimal_rate
+    effective_level: strike = initial_simple_forward_rate + strike_spread
+  reference_policy: Resolved at the unbumped model and initial curve; absolute contract
+    levels stay fixed for model and curve bumps.

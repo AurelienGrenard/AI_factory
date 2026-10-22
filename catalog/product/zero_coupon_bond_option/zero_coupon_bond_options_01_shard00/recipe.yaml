@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: zero_coupon_bond_options_01_shard00
+generator: catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json
+output:
+  path: datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: f5e7d2e4d34d3cfab6cd2ed2662751c77efef9b0431bdcaadf8c32be5b4763a9
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 5
+  - 13
+  - 24
+  - 36
+  - 45
+  - 50
+  - 64
+  - 77
+  - 85
+  - 96
+  - 104
+  - 114
+  - 124
+  - 139
+  - 147
+  - 158
+  - 162
+  - 173
+  - 185
+  - 195
+  - 204
+  - 211
+  - 227
+  - 239
+  - 243
+  - 256
+  - 269
+  - 274
+  - 289
+  - 293
+  - 304
+  - 310
+  - 328
+  - 337
+  - 347
+  - 354
+  - 361
+  - 377
+  - 386
+  - 392
+  - 405
+  - 418
+  - 420
+  - 438
+  - 448
+  - 456
+  - 469
+  - 472
+  - 483
+  - 490
+  - 509
+  - 514
+  - 520
+  - 532
+  - 544
+  - 558
+  - 568
+  - 573
+  - 586
+  - 595
+  - 601
+  - 611
+  - 623
+  - 632
+  - 641
+  - 653
+  - 661
+  - 671
+  - 685
+  - 692
+  - 705
+  - 718
+  - 720
+  - 730
+  - 740
+  - 753
+  - 763
+  - 777
+  - 780
+  - 797
+  - 807
+  - 810
+  - 825
+  - 834
+  - 843
+  - 858
+  - 861
+  - 877
+  - 885
+  - 890
+  - 903
+  - 916
+  - 922
+  - 933
+  - 942
+  - 959
+  - 964
+  - 973
+  - 986
+  - 995
+quote_convention:
+  strike:
+    mode: ratio_to_initial_forward_bond_price
+    unit: dimensionless
+    effective_level: strike = strike_ratio * P(0,U)/P(0,T)
+  reference_policy: Resolved at the unbumped model and initial curve; absolute contract
+    levels stay fixed for model and curve bumps.

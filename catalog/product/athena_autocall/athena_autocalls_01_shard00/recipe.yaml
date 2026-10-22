@@ -1,0 +1,130 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: athena_autocalls_01_shard00
+generator: catalog/product/athena_autocall/athena_autocalls_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/athena_autocall/athena_autocalls_01.json
+output:
+  path: datasets/product/athena_autocall/athena_autocalls_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: ef9ac9c8f8ecf693a27ca512c35275b33b8daf39d81ddd1d488f8dcdedb784a6
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 3
+  - 12
+  - 21
+  - 34
+  - 42
+  - 51
+  - 64
+  - 79
+  - 85
+  - 98
+  - 101
+  - 116
+  - 126
+  - 137
+  - 146
+  - 151
+  - 160
+  - 171
+  - 183
+  - 199
+  - 203
+  - 219
+  - 227
+  - 230
+  - 245
+  - 253
+  - 260
+  - 278
+  - 284
+  - 294
+  - 306
+  - 317
+  - 325
+  - 330
+  - 347
+  - 356
+  - 364
+  - 376
+  - 383
+  - 393
+  - 404
+  - 416
+  - 421
+  - 430
+  - 440
+  - 450
+  - 461
+  - 472
+  - 482
+  - 497
+  - 507
+  - 515
+  - 524
+  - 535
+  - 547
+  - 553
+  - 568
+  - 579
+  - 581
+  - 597
+  - 606
+  - 610
+  - 626
+  - 633
+  - 641
+  - 655
+  - 662
+  - 671
+  - 687
+  - 690
+  - 704
+  - 719
+  - 723
+  - 734
+  - 746
+  - 750
+  - 766
+  - 774
+  - 783
+  - 798
+  - 808
+  - 818
+  - 829
+  - 836
+  - 840
+  - 854
+  - 866
+  - 870
+  - 880
+  - 893
+  - 904
+  - 919
+  - 925
+  - 933
+  - 940
+  - 958
+  - 969
+  - 978
+  - 988
+  - 995
+quote_convention:
+  autocall_barrier:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: autocall_barrier * S0
+  protection_barrier:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: protection_barrier * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

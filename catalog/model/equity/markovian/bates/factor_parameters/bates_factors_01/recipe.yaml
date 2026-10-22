@@ -5,7 +5,6 @@ generator: "catalog/model/equity/markovian/bates/factor_parameters/bates_factors
 output:
   path: "datasets/model/equity/markovian/bates/factor_parameters/bates_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/markovian/bates/factor_parameters/bates_factors_01/generation.yaml"
 model_family: "Bates"
 row_count: 1000
 parameterization: "factorized"

@@ -1,0 +1,32 @@
+schema_version: 1
+kind: prices
+dataset_id: heston_3_2_01__european_calls_01__01_cartesian_shard00
+generator: catalog/model/equity/markovian/heston_3_2/prices/european_calls/heston_3_2_01__european_calls_01__01_cartesian_shard00/generator.cpp
+inputs:
+  model: datasets/model/equity/markovian/heston_3_2/parameters/heston_3_2_01.json
+  product: datasets/product/european_option/european_options_01_shard00.json
+output:
+  path: datasets/model/equity/markovian/heston_3_2/prices/european_calls/heston_3_2_01__european_calls_01__01_cartesian_shard00.json
+  format: json
+row_count: 100000
+numerical_method:
+  engine: equity_markovian
+outputs:
+- price
+- standard_error
+paths_per_price: 1048576
+seeds:
+  dynamics: 11668827184272769024
+random_number_generator: philox
+time_grid:
+  steps_per_year: 504
+  simulation_steps_per_day: 2
+  delta_t: 1 / 504
+product_shard:
+  index: 0
+  total_shards: 10
+  source_dataset: datasets/product/european_option/european_options_01.json
+  selection: one seeded permutation position per contiguous ten-row block
+  core_products: 90
+  stress_products: 10
+option_side: call

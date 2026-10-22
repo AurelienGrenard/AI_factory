@@ -3,6 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/model/equity/rough/rough_heston/parameters/rough_heston_01.json
-  sha256: 6b489663f2ed147604fd648ddbf9d96f4faea8551819d131e8e1445691cc5527
+  sha256: afa7eeb075673353fe28b27aa447f917777f4c83bae12d51e59a2bef841d7631
 hardware:
   device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

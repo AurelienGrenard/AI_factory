@@ -14,9 +14,10 @@ struct BermudanSwaptionParameters {
     std::uint32_t payment_interval_days;
     std::uint32_t payment_count;
     std::uint32_t exercise_count;
+    bool quote_is_relative = false;
 };
 
 static_assert(std::is_trivially_copyable_v<BermudanSwaptionParameters>);
-static_assert(sizeof(BermudanSwaptionParameters) == 28U);
+static_assert(sizeof(BermudanSwaptionParameters) == 32U);
 
 }  // namespace ai_factory::workbench::product

@@ -1,8 +1,0 @@
-schema_version: 4
-status: complete
-inputs: {}
-output:
-  path: datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json
-  sha256: e84a4e11ff314eadf918fac9037804192107eb392e111704f5fda706961ac83d
-hardware:
-  device: cpu

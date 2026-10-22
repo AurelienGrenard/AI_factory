@@ -3,14 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/european_option/european_options_01.json
-  sha256: 83b6d0ee6c251360f59bd8469fc2515951b350e3a20959ddb297aca9e86759bc
+  sha256: 8c783998fa40b0857db03000289b6db564b61d5ef3077ec28b1412126e3b4107
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
+  cmake: cmake version 3.22.1
   cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
   cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
-  cmake: cmake version 3.22.1
   nlohmann_json: 3.10.5
   mathdx: 25.12.1

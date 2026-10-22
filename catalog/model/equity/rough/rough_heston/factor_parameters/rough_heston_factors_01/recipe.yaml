@@ -5,7 +5,6 @@ generator: "catalog/model/equity/rough/rough_heston/factor_parameters/rough_hest
 output:
   path: "datasets/model/equity/rough/rough_heston/factor_parameters/rough_heston_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/rough/rough_heston/factor_parameters/rough_heston_factors_01/generation.yaml"
 model_family: "rough Heston"
 row_count: 1000
 parameterization: "factorized"

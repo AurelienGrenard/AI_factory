@@ -3,6 +3,9 @@
 #include "tools/datasets/artifact_io.hpp"
 #include "common/dataset_validation.hpp"
 
+#include <algorithm>
+#include <numeric>
+#include <random>
 #include <stdexcept>
 
 namespace ai_factory::workbench::datasets {
@@ -42,8 +45,6 @@ void write_parameter_dataset(
     nlohmann::ordered_json dataset = {
         {"database_id", database_id},
         {family_key, family},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
         {"row_count", generated.rows.size()},
     };
     for (const auto& [key, value] : metadata.items()) dataset[key] = value;
@@ -61,7 +62,6 @@ void write_parameter_dataset(
             {"path", dataset_path.generic_string()},
             {"format", "json"},
         }},
-        {"generation_details", catalog_path.generic_string()},
         {family_key, family},
         {"row_count", generated.rows.size()},
     };
@@ -76,8 +76,18 @@ void write_parameter_dataset(
     if (metadata.contains("time_convention")) {
         recipe["time_convention"] = metadata.at("time_convention");
     }
+    if (metadata.contains("quote_convention")) {
+        recipe["quote_convention"] = metadata.at("quote_convention");
+    }
     recipe["parameters"] = parameter_descriptions;
-    recipe[definition_key] = definition;
+    if (row_key == "products") {
+        auto compact_payoff = definition;
+        compact_payoff.erase("payoff_homogeneity");
+        compact_payoff.erase("spot_level_quote");
+        recipe[definition_key] = compact_payoff;
+    } else if (row_key != "curves") {
+        recipe[definition_key] = definition;
+    }
     recipe["construction"] = generated.construction;
     write_yaml_document(catalog_path.parent_path() / "recipe.yaml", recipe);
 
@@ -150,6 +160,61 @@ void write_factorized_model_dataset(
     validate_model_dataset_file(dataset_path);
 }
 
+void write_core_factorized_model_dataset(
+    const std::filesystem::path& source_dataset_path,
+    const std::string& database_id,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    std::size_t core_prefix_count,
+    std::size_t row_count,
+    std::uint64_t seed
+) {
+    const auto source = read_json_file(source_dataset_path);
+    validate_model_dataset(source);
+    const auto& source_rows = source.at("models");
+    if (row_count == 0U || core_prefix_count < row_count
+        || core_prefix_count > source_rows.size())
+        throw std::invalid_argument("Invalid core factor sample size");
+    std::vector<std::size_t> indices(core_prefix_count);
+    std::iota(indices.begin(), indices.end(), 0U);
+    std::mt19937_64 random(seed);
+    std::shuffle(indices.begin(), indices.end(), random);
+    indices.resize(row_count);
+    GeneratedRows generated;
+    nlohmann::ordered_json descriptions =
+        nlohmann::ordered_json::object();
+    for (const auto index : indices) {
+        auto parameters = source_rows.at(index).at("parameters");
+        parameters.erase("risk_free_rate");
+        parameters.erase("rho");
+        parameters.erase("correlation");
+        if (parameters.empty())
+            throw std::invalid_argument("Empty factorized core row");
+        for (const auto& [name, value] : parameters.items())
+            descriptions[name] = "Model factor parameter.";
+        generated.rows.push_back(std::move(parameters));
+    }
+    generated.construction = {
+        {"method", "seeded sample without replacement from core prefix"},
+        {"source_model_dataset", source_dataset_path.generic_string()},
+        {"source_core_prefix_rows", core_prefix_count},
+        {"sample_seed", seed},
+        {"source_row_indices", indices},
+        {"excluded", {"risk_free_rate", "rho", "correlation"}}
+    };
+    write_parameter_dataset(
+        database_id, source.at("model_family").get<std::string>(),
+        "model_family", "models", "dynamics", dataset_path, catalog_path,
+        url, descriptions,
+        {{"source_model_dataset", source_dataset_path.generic_string()}},
+        generated,
+        {{"parameterization", "factorized"},
+         {"source_model_dataset", source_dataset_path.generic_string()}}
+    );
+    validate_model_dataset_file(dataset_path);
+}
+
 void write_curve_dataset(
     const std::string& database_id,
     const std::string& curve_family,
@@ -176,7 +241,34 @@ void write_product_dataset(
     const std::string& url,
     const nlohmann::ordered_json& parameter_descriptions,
     const nlohmann::ordered_json& payoff,
-    const GeneratedRows& generated
+    const GeneratedRows& generated,
+    const nlohmann::ordered_json& quote_convention
+) {
+    nlohmann::ordered_json metadata = {{"time_convention", {
+        {"unit", "business_day"},
+        {"days_per_year", kBusinessDaysPerYear},
+    }}};
+    if (!quote_convention.empty()) {
+        metadata["quote_convention"] = quote_convention;
+    }
+    write_parameter_dataset(
+        database_id, product_family, "product_family", "products", "payoff",
+        dataset_path, catalog_path, url, parameter_descriptions, payoff,
+        generated, metadata
+    );
+}
+
+
+void write_fixed_income_product_dataset(
+    const std::string& database_id,
+    const std::string& product_family,
+    const std::filesystem::path& dataset_path,
+    const std::filesystem::path& catalog_path,
+    const std::string& url,
+    const nlohmann::ordered_json& parameter_descriptions,
+    const nlohmann::ordered_json& payoff,
+    const GeneratedRows& generated,
+    const nlohmann::ordered_json& quote_convention
 ) {
     write_parameter_dataset(
         database_id, product_family, "product_family", "products", "payoff",
@@ -185,10 +277,9 @@ void write_product_dataset(
         {{"time_convention", {
             {"unit", "business_day"},
             {"days_per_year", kBusinessDaysPerYear},
-        }}}
+        }}, {"quote_convention", quote_convention}}
     );
 }
-
 
 void write_spot_relative_equity_product_dataset(
     const std::string& database_id,
@@ -221,9 +312,26 @@ void write_spot_relative_equity_product_dataset(
             "fixed when model.spot is bumped; product-level derivatives "
             "are with respect to the quoted ratio."},
     };
+    nlohmann::ordered_json quote_convention = nlohmann::ordered_json::object();
+    for (const char* name : {
+            "strike", "trigger_strike", "payoff_strike", "barrier",
+            "lower_barrier", "upper_barrier", "autocall_barrier",
+            "coupon_barrier", "protection_barrier"
+        }) {
+        if (descriptions.contains(name)) {
+            quote_convention[name] = {
+                {"mode", "ratio_to_central_spot"},
+                {"unit", "dimensionless"},
+                {"effective_level", std::string(name) + " * S0"},
+            };
+        }
+    }
+    quote_convention["reference_policy"] =
+        "Resolved at the unbumped model spot S0 for each model-product pair; "
+        "absolute contract levels remain fixed for model bumps.";
     write_product_dataset(
         database_id, product_family, dataset_path, catalog_path, url,
-        descriptions, resolved_payoff, generated
+        descriptions, resolved_payoff, generated, quote_convention
     );
 }
 

@@ -104,6 +104,30 @@ jamshidian_state_boundary_from_coefficients(
     );
     float lower_state = FLT_MAX;
     float upper_state = -FLT_MAX;
+    if (fixed_rate < 0.0f) {
+        const std::uint32_t last = payment_count - 1U;
+        const float coefficient = jamshidian_cashflow_coefficient(
+            fixed_rate, schedule.accrual_fraction(last), last, payment_count
+        );
+        const float B = workspace.B[last];
+        const float log_A = workspace.log_A[last];
+        if (!(coefficient > 0.0f) || !(B > 0.0f)
+            || !isfinite(B) || !isfinite(log_A)) return nanf("");
+        upper_state = (logf(coefficient) + log_A) / B;
+        float width = 1.0f;
+        bool bracketed = false;
+        for (unsigned int attempt = 0U; attempt < 32U; ++attempt) {
+            lower_state = upper_state - width;
+            const float residual =
+                evaluate_jamshidian_boundary_from_coefficients(
+                    fixed_rate, schedule, workspace, lower_state
+                ).residual;
+            if (residual > 0.0f) { bracketed = true; break; }
+            if (!isfinite(residual)) return nanf("");
+            width *= 2.0f;
+        }
+        if (!bracketed) return nanf("");
+    } else {
     for (std::uint32_t payment = 0U;
          payment < payment_count;
          ++payment) {
@@ -132,6 +156,7 @@ jamshidian_state_boundary_from_coefficients(
             upper_state,
             (log_weight + log_payment_count) / B
         );
+    }
     }
     if (!isfinite(lower_state)
         || !isfinite(upper_state)
@@ -264,7 +289,8 @@ __device__ __forceinline__ float cooperative_european_swaption_price(
         || workspace_storage == nullptr
         || !isfinite(exercise_time)
         || !isfinite(fixed_rate)
-        || fixed_rate < 0.0f) {
+        || fmaf(fixed_rate, schedule.accrual_fraction(
+            schedule.payment_count() - 1U), 1.0f) <= 0.0f) {
         return threadIdx.x == 0U ? nanf("") : 0.0f;
     }
     const CooperativeJamshidianWorkspace workspace =

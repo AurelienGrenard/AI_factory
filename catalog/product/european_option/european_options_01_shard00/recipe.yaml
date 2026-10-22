@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: european_options_01_shard00
+generator: catalog/product/european_option/european_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/european_option/european_options_01.json
+output:
+  path: datasets/product/european_option/european_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 8c783998fa40b0857db03000289b6db564b61d5ef3077ec28b1412126e3b4107
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 2
+  - 15
+  - 22
+  - 30
+  - 43
+  - 50
+  - 67
+  - 76
+  - 85
+  - 96
+  - 107
+  - 118
+  - 121
+  - 138
+  - 148
+  - 156
+  - 169
+  - 171
+  - 182
+  - 195
+  - 200
+  - 215
+  - 226
+  - 239
+  - 247
+  - 257
+  - 264
+  - 271
+  - 280
+  - 292
+  - 304
+  - 317
+  - 328
+  - 333
+  - 347
+  - 352
+  - 368
+  - 374
+  - 389
+  - 397
+  - 407
+  - 414
+  - 429
+  - 433
+  - 446
+  - 456
+  - 468
+  - 475
+  - 486
+  - 494
+  - 504
+  - 519
+  - 529
+  - 530
+  - 540
+  - 559
+  - 568
+  - 572
+  - 587
+  - 592
+  - 603
+  - 613
+  - 629
+  - 639
+  - 643
+  - 659
+  - 669
+  - 672
+  - 683
+  - 695
+  - 706
+  - 712
+  - 727
+  - 736
+  - 741
+  - 758
+  - 764
+  - 771
+  - 782
+  - 792
+  - 806
+  - 814
+  - 820
+  - 836
+  - 847
+  - 852
+  - 869
+  - 871
+  - 884
+  - 897
+  - 902
+  - 917
+  - 926
+  - 935
+  - 948
+  - 957
+  - 966
+  - 974
+  - 986
+  - 992
+quote_convention:
+  strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: strike * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

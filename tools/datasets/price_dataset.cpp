@@ -5,10 +5,39 @@
 #include "common/result_index.cuh"
 
 #include <cmath>
+#include <optional>
 #include <stdexcept>
 
 namespace ai_factory::workbench::datasets {
 namespace {
+std::optional<std::string> option_side_from_path(
+    const std::filesystem::path& dataset_path
+) {
+    const auto family = dataset_path.parent_path().filename().string();
+    if (family.find("payer") != std::string::npos) return "payer";
+    if (family.find("receiver") != std::string::npos) return "receiver";
+    if (family.find("calls") != std::string::npos
+        || family == "caplets") return "call";
+    if (family.find("puts") != std::string::npos
+        || family == "floorlets") return "put";
+    return std::nullopt;
+}
+
+nlohmann::ordered_json dataset_reference(
+    const nlohmann::ordered_json& document
+) {
+    return {{"id", document.at("database_id")}};
+}
+
+void add_option_side(
+    nlohmann::ordered_json& document,
+    const std::filesystem::path& dataset_path
+) {
+    if (const auto side = option_side_from_path(dataset_path)) {
+        document["option_side"] = *side;
+    }
+}
+
 void write_analytical_price_dataset_impl(
     const std::filesystem::path& model_dataset_path,
     const std::filesystem::path& curve_dataset_path,
@@ -70,50 +99,28 @@ void write_analytical_price_dataset_impl(
         const auto curve_index = indices.curve_index;
         const auto product_index = indices.product_index;
         rows.push_back({
-            {"id", format_row_id(index)},
             {"model_id", model_rows.at(model_index).at("id")},
-            {"curve_id", curve_rows.at(curve_index).at("id")},
             {"product_id", product_rows.at(product_index).at("id")},
-            {"outputs", {{"price", prices[index]}}},
+            {"curve_id", curve_rows.at(curve_index).at("id")},
+            {"price", prices[index]},
         });
     }
 
-    const auto dataset_reference = [](
-        const nlohmann::ordered_json& document
-    ) {
-        return nlohmann::ordered_json{
-            {"id", document.at("database_id")},
-            {"catalog", document.at("catalog")},
-            {"url", document.at("url")},
-        };
-    };
     nlohmann::ordered_json json_document = {
         {"database_id", database_id},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
-        {"row_count", row_count},
-        {"time_convention", product_document.at("time_convention")},
-        {"model_dataset", dataset_reference(model_document)},
-        {"curve_dataset", dataset_reference(curve_document)},
-        {"product_dataset", dataset_reference(product_document)},
-        {"timing", {
-            {"wall_seconds", wall_seconds},
-            {"kernel_seconds", kernel_seconds},
-        }},
-        {"results", rows},
+        {"model_family", model_document.at("model_family")},
+        {"product_family", product_document.at("product_family")},
+        {"curve_family", curve_document.at("curve_family")},
     };
-    if (construction == PriceConstruction::SampledCurveCartesianProduct) {
-        json_document["price_construction"] = {
-            {"method", "Cartesian product"},
-            {"order", "model, product"},
-            {"curve_assignment", {
-                {"method", "splitmix64_modulo"},
-                {"seed", kSampledCurveSeed},
-                {"sampling", "with_replacement"},
-                {"key", "zero_based_result_index"},
-            }},
-        };
+    if (product_document.contains("quote_convention")) {
+        json_document["quote_convention"] = product_document.at("quote_convention");
     }
+    add_option_side(json_document, dataset_path);
+    json_document["row_count"] = row_count;
+    json_document["model_dataset"] = dataset_reference(model_document);
+    json_document["curve_dataset"] = dataset_reference(curve_document);
+    json_document["product_dataset"] = dataset_reference(product_document);
+    json_document["results"] = std::move(rows);
     write_json_file(dataset_path, json_document);
 
     if (!cuda_execution.is_object() || cuda_execution.empty()) {
@@ -171,16 +178,6 @@ void write_analytical_price_dataset_impl(
             "The price dataset must have a non-empty basename."
         );
     }
-    const auto dataset_reference = [](
-        const nlohmann::ordered_json& document
-    ) {
-        return nlohmann::ordered_json{
-            {"id", document.at("database_id")},
-            {"catalog", document.at("catalog")},
-            {"url", document.at("url")},
-        };
-    };
-
     nlohmann::ordered_json rows = nlohmann::ordered_json::array();
     for (std::size_t index = 0U; index < row_count; ++index) {
         const std::size_t model_index =
@@ -192,27 +189,26 @@ void write_analytical_price_dataset_impl(
             ? index % product_rows.size()
             : index;
         rows.push_back({
-            {"id", format_row_id(index)},
             {"model_id", model_rows.at(model_index).at("id")},
             {"product_id", product_rows.at(product_index).at("id")},
-            {"outputs", {{"price", prices[index]}}},
+            {"price", prices[index]},
         });
     }
 
-    write_json_file(dataset_path, {
+    nlohmann::ordered_json json_document = {
         {"database_id", database_id},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
-        {"row_count", row_count},
-        {"time_convention", product_document.at("time_convention")},
-        {"model_dataset", dataset_reference(model_document)},
-        {"product_dataset", dataset_reference(product_document)},
-        {"timing", {
-            {"wall_seconds", wall_seconds},
-            {"kernel_seconds", kernel_seconds},
-        }},
-        {"results", rows},
-    });
+        {"model_family", model_document.at("model_family")},
+        {"product_family", product_document.at("product_family")},
+    };
+    if (product_document.contains("quote_convention")) {
+        json_document["quote_convention"] = product_document.at("quote_convention");
+    }
+    add_option_side(json_document, dataset_path);
+    json_document["row_count"] = row_count;
+    json_document["model_dataset"] = dataset_reference(model_document);
+    json_document["product_dataset"] = dataset_reference(product_document);
+    json_document["results"] = std::move(rows);
+    write_json_file(dataset_path, json_document);
 
     if (!cuda_execution.is_object() || cuda_execution.empty()) {
         throw std::invalid_argument(
@@ -293,26 +289,8 @@ void write_monte_carlo_price_dataset_impl(
             "The price dataset must have a non-empty basename."
         );
     }
-    nlohmann::ordered_json price_construction = {{"method", "Aligned"}};
-    if (construction == PriceConstruction::SampledCurveCartesianProduct) {
-        price_construction = {
-            {"method", "Cartesian product"},
-            {"order", "model, product"},
-            {"curve_assignment", {
-                {"method", "splitmix64_modulo"},
-                {"seed", kSampledCurveSeed},
-                {"sampling", "with_replacement"},
-                {"key", "zero_based_result_index"},
-            }},
-        };
-    } else if (is_cartesian(construction)) {
-        price_construction = {
-            {"method", "Cartesian product"},
-            {"order", has_curve ? "model, curve, product" : "model, product"},
-        };
-    }
-
-    // Reference source rows instead of duplicating their parameters.
+    // Keep only input identifiers and pricing results in the JSON. The
+    // sampling plan, seed, methodology and measured time live in YAML.
     nlohmann::ordered_json rows = nlohmann::ordered_json::array();
     for (std::size_t index = 0; index < row_count; ++index) {
         std::size_t model_index = index;
@@ -334,54 +312,37 @@ void write_monte_carlo_price_dataset_impl(
             product_index = source.product_index;
         }
         nlohmann::ordered_json row = {
-            {"id", format_row_id(index)},
-            {"model_id", model_rows.at(model_index).at("id").get<std::string>()},
-            {
-                "product_id",
-                product_rows.at(product_index).at("id").get<std::string>()
-            },
-            {"seed", first_seed + index},
+            {"model_id", model_rows.at(model_index).at("id")},
+            {"product_id", product_rows.at(product_index).at("id")},
         };
         if (has_curve) {
             row["curve_id"] = curve_document.at("curves")
-                .at(curve_index).at("id").get<std::string>();
+                .at(curve_index).at("id");
         }
-        row["outputs"] = {
-            {"price", prices[index]},
-            {"standard_error", standard_errors[index]},
-        };
+        row["price"] = prices[index];
+        row["standard_error"] = standard_errors[index];
         rows.push_back(std::move(row));
     }
 
-    const auto dataset_reference = [](
-        const nlohmann::ordered_json& document
-    ) {
-        return nlohmann::ordered_json{
-            {"id", document.at("database_id")},
-            {"catalog", document.at("catalog")},
-            {"url", document.at("url")},
-        };
-    };
     nlohmann::ordered_json json_document = {
         {"database_id", database_id},
-        {"catalog", catalog_path.parent_path().generic_string()},
-        {"url", url},
-        {"row_count", row_count},
-        {"time_convention", product_document.at("time_convention")},
-        {"model_dataset", dataset_reference(model_document)},
-        {"product_dataset", dataset_reference(product_document)},
-        {"timing", {
-            {"wall_seconds", wall_seconds},
-            {"kernel_seconds", kernel_seconds},
-        }},
-        {"results", rows},
+        {"model_family", model_document.at("model_family")},
+        {"product_family", product_document.at("product_family")},
     };
+    if (has_curve) {
+        json_document["curve_family"] = curve_document.at("curve_family");
+    }
+    if (product_document.contains("quote_convention")) {
+        json_document["quote_convention"] = product_document.at("quote_convention");
+    }
+    add_option_side(json_document, dataset_path);
+    json_document["row_count"] = row_count;
+    json_document["model_dataset"] = dataset_reference(model_document);
     if (has_curve) {
         json_document["curve_dataset"] = dataset_reference(curve_document);
     }
-    if (!catalog_sections.empty()) {
-        json_document["methodology"] = catalog_sections;
-    }
+    json_document["product_dataset"] = dataset_reference(product_document);
+    json_document["results"] = std::move(rows);
     write_json_file(dataset_path, json_document);
 
     if (!cuda_execution.is_object() || cuda_execution.empty()) {

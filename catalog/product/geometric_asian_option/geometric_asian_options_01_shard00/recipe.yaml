@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: geometric_asian_options_01_shard00
+generator: catalog/product/geometric_asian_option/geometric_asian_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/geometric_asian_option/geometric_asian_options_01.json
+output:
+  path: datasets/product/geometric_asian_option/geometric_asian_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: bcb1ecca8fefb524f28ee39927ba88a5521ee81405da0b6a11bcd38afd8ec0a0
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 0
+  - 12
+  - 29
+  - 32
+  - 42
+  - 57
+  - 60
+  - 74
+  - 84
+  - 98
+  - 105
+  - 113
+  - 128
+  - 131
+  - 148
+  - 152
+  - 169
+  - 176
+  - 183
+  - 196
+  - 200
+  - 213
+  - 227
+  - 232
+  - 249
+  - 252
+  - 264
+  - 276
+  - 283
+  - 299
+  - 304
+  - 313
+  - 329
+  - 336
+  - 344
+  - 351
+  - 361
+  - 372
+  - 381
+  - 391
+  - 402
+  - 418
+  - 428
+  - 430
+  - 443
+  - 456
+  - 466
+  - 475
+  - 488
+  - 498
+  - 505
+  - 511
+  - 523
+  - 536
+  - 548
+  - 559
+  - 564
+  - 573
+  - 585
+  - 592
+  - 602
+  - 618
+  - 625
+  - 632
+  - 647
+  - 656
+  - 667
+  - 673
+  - 689
+  - 698
+  - 701
+  - 717
+  - 724
+  - 739
+  - 748
+  - 757
+  - 768
+  - 777
+  - 784
+  - 799
+  - 806
+  - 810
+  - 821
+  - 833
+  - 843
+  - 856
+  - 863
+  - 879
+  - 889
+  - 899
+  - 901
+  - 915
+  - 920
+  - 931
+  - 946
+  - 954
+  - 961
+  - 978
+  - 980
+  - 990
+quote_convention:
+  strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: strike * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

@@ -16,8 +16,6 @@ int main() {
     const auto reference = [](const char* id) {
         return nlohmann::ordered_json{
             {"database_id", id},
-            {"catalog", "catalog/test"},
-            {"url", "https://datasets.ai-factory.example/test.json"},
         };
     };
     auto model = reference("model_01");
@@ -48,7 +46,8 @@ int main() {
     );
     const auto result = read_json_file(directory / "price.json");
     if (result.at("row_count") != 1U
-        || result.at("results").at(0).at("outputs").at("price") != 1.25f) {
+        || result.at("model_dataset").at("id") != "model_01"
+        || result.at("results").at(0).at("price") != 1.25f) {
         throw std::runtime_error("price artifact assembly failed");
     }
     std::ifstream yaml(directory / "generation.yaml");
@@ -84,9 +83,10 @@ int main() {
         "https://datasets.ai-factory.example/test/price.json", "test MC",
         32U, "", {{"block_count", 1U}}, methodology, 1U, 0.01, 0.001
     );
-    if (read_json_file(directory / "price.json").at("methodology")
-            != methodology) {
-        throw std::runtime_error("Monte Carlo methodology was not serialized");
+    const auto compact = read_json_file(directory / "price.json");
+    if (compact.contains("methodology") || compact.contains("timing")
+        || compact.at("results").at(0).at("standard_error") != 0.01f) {
+        throw std::runtime_error("Monte Carlo price data are not compact");
     }
     std::filesystem::remove_all(directory);
 }

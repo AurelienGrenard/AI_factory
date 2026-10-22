@@ -5,7 +5,6 @@ generator: "catalog/model/equity/markovian/cev/factor_parameters/cev_factors_01/
 output:
   path: "datasets/model/equity/markovian/cev/factor_parameters/cev_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/markovian/cev/factor_parameters/cev_factors_01/generation.yaml"
 model_family: "CEV"
 row_count: 1000
 parameterization: "factorized"

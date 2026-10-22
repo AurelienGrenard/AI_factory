@@ -1,0 +1,134 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: phoenix_autocalls_01_shard00
+generator: catalog/product/phoenix_autocall/phoenix_autocalls_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/phoenix_autocall/phoenix_autocalls_01.json
+output:
+  path: datasets/product/phoenix_autocall/phoenix_autocalls_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 176a58c5c3faa70121a545f9fac997087d2b2e91dfd8a851c7cdd3b31df94d3f
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 5
+  - 19
+  - 24
+  - 36
+  - 44
+  - 53
+  - 69
+  - 74
+  - 86
+  - 97
+  - 105
+  - 116
+  - 126
+  - 132
+  - 145
+  - 157
+  - 162
+  - 176
+  - 180
+  - 194
+  - 200
+  - 214
+  - 221
+  - 236
+  - 243
+  - 259
+  - 263
+  - 279
+  - 284
+  - 298
+  - 307
+  - 313
+  - 324
+  - 334
+  - 340
+  - 354
+  - 368
+  - 379
+  - 384
+  - 390
+  - 409
+  - 411
+  - 427
+  - 433
+  - 440
+  - 452
+  - 462
+  - 472
+  - 488
+  - 493
+  - 506
+  - 514
+  - 529
+  - 537
+  - 545
+  - 553
+  - 563
+  - 578
+  - 586
+  - 590
+  - 606
+  - 614
+  - 626
+  - 630
+  - 648
+  - 653
+  - 665
+  - 676
+  - 681
+  - 691
+  - 704
+  - 711
+  - 720
+  - 738
+  - 746
+  - 751
+  - 768
+  - 775
+  - 783
+  - 799
+  - 805
+  - 810
+  - 827
+  - 839
+  - 848
+  - 857
+  - 860
+  - 873
+  - 888
+  - 899
+  - 904
+  - 913
+  - 923
+  - 939
+  - 940
+  - 959
+  - 962
+  - 970
+  - 989
+  - 991
+quote_convention:
+  autocall_barrier:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: autocall_barrier * S0
+  coupon_barrier:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: coupon_barrier * S0
+  protection_barrier:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: protection_barrier * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

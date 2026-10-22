@@ -108,10 +108,44 @@ public:
     Event(const Event&) = delete;
     Event& operator=(const Event&) = delete;
 
+    Event(Event&& other) noexcept
+        :event_(std::exchange(other.event_,nullptr)) {}
+    Event& operator=(Event&& other) noexcept {
+        if(this!=&other) {
+            if(event_!=nullptr) cudaEventDestroy(event_);
+            event_=std::exchange(other.event_,nullptr);
+        }
+        return *this;
+    }
+
     cudaEvent_t get() const noexcept { return event_; }
 
 private:
     cudaEvent_t event_ = nullptr;
+};
+
+// Independent CUDA work queues for pricing several rough rows together.
+class Stream {
+public:
+    Stream() {
+        check_cuda(cudaStreamCreateWithFlags(
+            &stream_,cudaStreamNonBlocking),"offline CUDA stream creation");
+    }
+    ~Stream() { if(stream_!=nullptr) cudaStreamDestroy(stream_); }
+    Stream(const Stream&)=delete;
+    Stream& operator=(const Stream&)=delete;
+    Stream(Stream&& other) noexcept
+        :stream_(std::exchange(other.stream_,nullptr)) {}
+    Stream& operator=(Stream&& other) noexcept {
+        if(this!=&other) {
+            if(stream_!=nullptr) cudaStreamDestroy(stream_);
+            stream_=std::exchange(other.stream_,nullptr);
+        }
+        return *this;
+    }
+    cudaStream_t get() const noexcept { return stream_; }
+private:
+    cudaStream_t stream_=nullptr;
 };
 
 class KernelDurationAccumulator {

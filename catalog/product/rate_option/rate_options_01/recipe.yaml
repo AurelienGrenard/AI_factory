@@ -5,15 +5,20 @@ generator: "catalog/product/rate_option/rate_options_01/generator.cpp"
 output:
   path: "datasets/product/rate_option/rate_options_01.json"
   format: "json"
-generation_details: "catalog/product/rate_option/rate_options_01/generation.yaml"
 product_family: "Forward Rate Options"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  strike:
+    mode: "additive_to_initial_simple_forward_rate"
+    unit: "annualized_decimal_rate"
+    effective_level: "strike = initial_simple_forward_rate + strike_spread"
+  reference_policy: "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
 parameters:
   notional: "Normalized contract notional."
-  strike: "Simple annualized forward rate option strike."
+  strike: "Annualized decimal spread from the initial simple forward rate; 0.005 means +50 bp."
   fixing_time: "Forward-rate fixing time T1 in business days."
   payment_time: "Cashflow payment time T2 in business days."
   accrual_period: "Business days in the interval [T1, T2]."
@@ -33,7 +38,7 @@ construction:
     generation:
       method: "Cartesian grid"
       rule: "Every fixing, accrual period, and strike combination."
-      description: "Representative fixing dates and strikes concentrated around 4%."
+      description: "Representative fixing dates and strike spreads concentrated around ATM."
       fixing_times:
         - 63
         - 133
@@ -57,31 +62,31 @@ construction:
         - 63
         - 126
       strikes:
+        - -0.009999999776482582
+        - -0.007702546659857035
+        - -0.005787036381661892
+        - -0.004218749701976776
+        - -0.002962962258607149
+        - -0.0019849538803100586
+        - -0.0012499999720603228
+        - -0.0007233797805383801
+        - -0.00037037028232589364
+        - -0.00015624999650754035
+        - -4.6296310756588355e-05
+        - -5.787032932857983e-06
         - 0.0
-        - 0.00918981246650219
-        - 0.01685185357928276
-        - 0.023125000298023224
-        - 0.028148150071501732
-        - 0.032060183584690094
-        - 0.03500000014901161
-        - 0.037106480449438095
-        - 0.0385185182094574
-        - 0.039374999701976776
-        - 0.03981481492519379
-        - 0.039976850152015686
-        - 0.03999999910593033
-        - 0.04003472253680229
-        - 0.04027777537703514
-        - 0.04093749821186066
-        - 0.042222220450639725
-        - 0.04434027522802353
-        - 0.04749999940395355
-        - 0.05190972238779068
-        - 0.0577777735888958
-        - 0.06531249731779099
-        - 0.07472223043441772
-        - 0.08621527254581451
-        - 0.09999999403953552
+        - 5.787045211036457e-06
+        - 4.629626346286386e-05
+        - 0.00015624999650754035
+        - 0.00037037048605270684
+        - 0.0007233793730847538
+        - 0.0012499999720603228
+        - 0.0019849538803100586
+        - 0.002962962258607149
+        - 0.004218749701976776
+        - 0.005787038244307041
+        - 0.007702545262873173
+        - 0.009999999776482582
       notional: 1.0
   stress:
     row_count: 100
@@ -104,9 +109,9 @@ construction:
         - 21
         - 252
       strikes:
-        - -0.029999999329447746
+        - -0.02500000037252903
+        - -0.012500000186264515
         - 0.0
-        - 0.03999999910593033
-        - 0.09000000357627869
-        - 0.15000000596046448
+        - 0.012500000186264515
+        - 0.02500000037252903
       notional: 1.0

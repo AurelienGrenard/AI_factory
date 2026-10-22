@@ -123,8 +123,8 @@ void validate_parameter_dataset(
     const std::string id = database_id(document);
     require_string(document, "database_id", family, id);
     require_string(document, family_field, family, id);
-    require_string(document, "catalog", family, id);
-    require_url(document, "url", family, id);
+    if (document.contains("catalog")) require_string(document, "catalog", family, id);
+    if (document.contains("url")) require_url(document, "url", family, id);
     require_rows(document, row_field, family, id);
 }
 
@@ -213,15 +213,18 @@ void validate_business_day_fields(
 void validate_dataset_reference(
     const nlohmann::json& document,
     const char* field,
-    const std::string& price_id
+    const std::string& price_id,
+    bool allow_missing_url = false
 ) {
     if (!document.contains(field) || !document.at(field).is_object()) {
         reject("Price", price_id, std::string(field) + " must be an object.");
     }
     const auto& reference = document.at(field);
     require_string(reference, "id", "Price", price_id);
-    require_string(reference, "catalog", "Price", price_id);
-    require_url(reference, "url", "Price", price_id);
+    if (reference.contains("catalog"))
+        require_string(reference, "catalog", "Price", price_id);
+    if (reference.contains("url"))
+        require_url(reference, "url", "Price", price_id);
 }
 
 // Require one finite non-negative timing value.
@@ -349,16 +352,67 @@ void validate_product_dataset(const nlohmann::json& document) {
     validate_business_day_fields(document, database_id(document));
 }
 
+// Validate compact single-asset prices. Technical provenance belongs to the
+// generation receipt; row data contains identifiers and numeric estimates.
+void validate_compact_price_dataset(const nlohmann::json& document) {
+    const std::string id = database_id(document);
+    require_string(document, "database_id", "Price", id);
+    require_string(document, "model_family", "Price", id);
+    require_string(document, "product_family", "Price", id);
+    if (document.contains("catalog")) require_string(document, "catalog", "Price", id);
+    validate_dataset_reference(document, "model_dataset", id, true);
+    validate_dataset_reference(document, "product_dataset", id, true);
+    const bool has_curve = document.contains("curve_dataset");
+    if (has_curve) {
+        require_string(document, "curve_family", "Price", id);
+        validate_dataset_reference(document, "curve_dataset", id, true);
+    }
+    if (!document.contains("row_count")
+        || !document.at("row_count").is_number_unsigned()
+        || !document.contains("results")
+        || !document.at("results").is_array()) {
+        reject("Price", id, "row_count and results must describe the rows.");
+    }
+    const auto& results = document.at("results");
+    if (results.empty()
+        || results.size() != document.at("row_count").get<std::size_t>()) {
+        reject("Price", id, "row_count must match results.size().");
+    }
+    for (const auto& row : results) {
+        if (!row.is_object()) reject("Price", id, "results rows must be objects.");
+        require_string(row, "model_id", "Price", id);
+        require_string(row, "product_id", "Price", id);
+        if (has_curve) require_string(row, "curve_id", "Price", id);
+        for (const auto& [name, value] : row.items()) {
+            if (name == "model_id" || name == "product_id" || name == "curve_id")
+                continue;
+            if (!value.is_number() || !std::isfinite(value.get<double>())) {
+                reject("Price", id, "result " + name + " must be finite numeric.");
+            }
+        }
+        if (!row.contains("price") || !row.at("price").is_number()) {
+            reject("Price", id, "every result must contain a numeric price.");
+        }
+    }
+}
+
 // Validate one price dataset with an optional curve reference.
 void validate_price_dataset(const nlohmann::json& document) {
     if (!document.is_object())
         reject("Price", "<unknown>", "the JSON root must be an object.");
+    if (!document.contains("time_convention")) {
+        validate_compact_price_dataset(document);
+        return;
+    }
+    if (!document.is_object())
+        reject("Price", "<unknown>", "the JSON root must be an object.");
     const std::string id = database_id(document);
     require_string(document, "database_id", "Price", id);
-    require_string(document, "catalog", "Price", id);
-    require_url(document, "url", "Price", id);
+    if (document.contains("catalog")) require_string(document, "catalog", "Price", id);
     validate_time_convention(document, "Price", id);
     const bool multi_asset = document.contains("model_datasets");
+    if (document.contains("url"))
+        require_url(document, "url", "Price", id);
     if (multi_asset) {
         const auto& references = document.at("model_datasets");
         if (!references.is_array() || references.empty()) {
@@ -366,20 +420,21 @@ void validate_price_dataset(const nlohmann::json& document) {
         }
         for (const auto& reference : references) {
             const nlohmann::json wrapper = {{"model_dataset", reference}};
-            validate_dataset_reference(wrapper, "model_dataset", id);
+            validate_dataset_reference(wrapper, "model_dataset", id, true);
         }
-        validate_dataset_reference(document, "correlation_dataset", id);
+        validate_dataset_reference(document, "correlation_dataset", id, true);
     } else {
         validate_dataset_reference(document, "model_dataset", id);
     }
-    validate_dataset_reference(document, "product_dataset", id);
+    validate_dataset_reference(document, "product_dataset", id, multi_asset);
     const bool has_curve = document.contains("curve_dataset");
-    if (has_curve) validate_dataset_reference(document, "curve_dataset", id);
+    if (has_curve)
+        validate_dataset_reference(document, "curve_dataset", id, multi_asset);
     const bool has_rate_model = document.contains("rate_model_dataset");
     if (has_rate_model) {
         if (!multi_asset)
             reject("Price", id, "rate_model_dataset requires model_datasets.");
-        validate_dataset_reference(document, "rate_model_dataset", id);
+        validate_dataset_reference(document, "rate_model_dataset", id, true);
     }
 
     if (!document.contains("timing") || !document.at("timing").is_object())

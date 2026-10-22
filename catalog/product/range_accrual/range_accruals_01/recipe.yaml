@@ -5,12 +5,20 @@ generator: "catalog/product/range_accrual/range_accruals_01/generator.cpp"
 output:
   path: "datasets/product/range_accrual/range_accruals_01.json"
   format: "json"
-generation_details: "catalog/product/range_accrual/range_accruals_01/generation.yaml"
 product_family: "Range Accruals"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  lower_barrier:
+    mode: "ratio_to_initial_spot"
+    unit: "dimensionless"
+    observation: "S(t_i)/S(0)"
+  upper_barrier:
+    mode: "ratio_to_initial_spot"
+    unit: "dimensionless"
+    observation: "S(t_i)/S(0)"
 parameters:
   maturity: "Time from issuance to final payment in business days."
   observation_interval: "Business days between consecutive spot observations."

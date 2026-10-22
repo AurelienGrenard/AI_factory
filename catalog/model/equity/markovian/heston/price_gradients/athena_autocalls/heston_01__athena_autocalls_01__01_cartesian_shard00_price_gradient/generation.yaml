@@ -1,0 +1,28 @@
+schema_version: 4
+status: complete
+inputs:
+  model:
+    path: datasets/model/equity/markovian/heston/parameters/heston_01.json
+    sha256: 8255401c973dbf12f75d08788a68ae1aed4a95ac6329bfa313f233e51621e730
+  product:
+    path: datasets/product/athena_autocall/athena_autocalls_01_shard00.json
+    sha256: 12dc50020aa82fc258d4cb66791b51154dc227f878898b56239dfd611aad40f8
+output:
+  path: datasets/model/equity/markovian/heston/price_gradients/athena_autocalls/heston_01__athena_autocalls_01__01_cartesian_shard00_price_gradient.json
+  sha256: 044b9b4640a3df475127be9fec0bde00536ccf80ccfff0778cc4de63cbc79e52
+hardware:
+  device: gpu
+  name: Tesla V100-SXM2-32GB
+  uuid: GPU-ffb1fd41-c0b7-008f-20de-9d7a92b52a3d
+  compute_capability: '7.0'
+  driver_version: 580.178.04
+  cpu_model: Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz
+software:
+  cmake: cmake version 3.31.6
+  cxx_compiler: g++-14 (Debian 14.2.0-19) 14.2.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  mathdx: 25.12.1
+  nlohmann_json: 3.10.5
+timing:
+  wall_seconds: 184573.67989544407
+  duration: 2 j 3 h 16 min 13 s 680 ms

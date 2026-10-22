@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: straddles_01_shard00
+generator: catalog/product/straddle/straddles_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/straddle/straddles_01.json
+output:
+  path: datasets/product/straddle/straddles_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: bf27f26a8edf391734545834f5e219bafecf1d4384f3e2775ec47a6aa0f72ba3
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 7
+  - 13
+  - 29
+  - 35
+  - 42
+  - 52
+  - 61
+  - 79
+  - 82
+  - 90
+  - 104
+  - 111
+  - 125
+  - 131
+  - 144
+  - 151
+  - 166
+  - 171
+  - 181
+  - 192
+  - 204
+  - 217
+  - 225
+  - 236
+  - 249
+  - 252
+  - 268
+  - 274
+  - 282
+  - 291
+  - 306
+  - 310
+  - 321
+  - 333
+  - 348
+  - 355
+  - 368
+  - 374
+  - 388
+  - 394
+  - 405
+  - 416
+  - 423
+  - 438
+  - 445
+  - 457
+  - 461
+  - 476
+  - 486
+  - 491
+  - 500
+  - 512
+  - 525
+  - 538
+  - 545
+  - 555
+  - 562
+  - 575
+  - 580
+  - 596
+  - 603
+  - 611
+  - 625
+  - 639
+  - 648
+  - 651
+  - 666
+  - 672
+  - 685
+  - 698
+  - 706
+  - 711
+  - 720
+  - 736
+  - 743
+  - 750
+  - 761
+  - 778
+  - 787
+  - 794
+  - 806
+  - 815
+  - 820
+  - 836
+  - 842
+  - 852
+  - 860
+  - 870
+  - 880
+  - 891
+  - 907
+  - 910
+  - 926
+  - 931
+  - 945
+  - 959
+  - 964
+  - 976
+  - 982
+  - 990
+quote_convention:
+  strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: strike * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

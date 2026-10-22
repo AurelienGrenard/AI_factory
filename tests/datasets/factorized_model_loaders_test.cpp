@@ -19,6 +19,7 @@
 #include "model/equity/rough/rough_stein_stein/dataset.hpp"
 #include "model/fixed_income/g2/dataset.hpp"
 #include "model/fixed_income/g2_plus_plus/dataset.hpp"
+#include "model/fixed_income/cir/dataset.hpp"
 #include "model/fixed_income/constant_rate/dataset.hpp"
 #include "common/dataset_validation.hpp"
 
@@ -32,13 +33,14 @@
 
 int main() {
     using namespace ai_factory::workbench;
-    const auto check = [](auto load, const std::filesystem::path& path) {
+    const auto check = [](auto load, const std::filesystem::path& path,
+                          std::size_t expected_rows = 1000U) {
         std::ifstream stream(path);
         if (!stream) throw std::runtime_error("Missing factor dataset: " + path.string());
         nlohmann::json document;
         stream >> document;
         if (document.at("parameterization") != "factorized"
-            || document.at("models").size() != 1000U)
+            || document.at("models").size() != expected_rows)
             throw std::runtime_error("Invalid factor dataset: " + path.string());
         for (const auto& row : document.at("models")) {
             const auto& p = row.at("parameters");
@@ -47,7 +49,7 @@ int main() {
                 throw std::runtime_error("Exogenous field in " + path.string());
         }
         const auto models = load(path);
-        if (models.size() != 1000U)
+        if (models.size() != expected_rows)
             throw std::runtime_error("Wrong factor count: " + path.string());
         for (const auto& model : models) {
             if constexpr (requires { model.risk_free_rate; })
@@ -84,6 +86,12 @@ int main() {
     check(model::equity::rough_stein_stein::load_models, "datasets/model/equity/rough/rough_stein_stein/factor_parameters/rough_stein_stein_factors_01.json");
     check(model::fixed_income::g2::load_models, "datasets/model/fixed_income/g2/factor_parameters/g2_factors_01.json");
     check(model::fixed_income::g2_plus_plus::load_models, "datasets/model/fixed_income/g2_plus_plus/factor_parameters/g2_plus_plus_factors_01.json");
+    check(model::equity::bates::load_models, "datasets/model/equity/markovian/bates/factor_parameters/bates_multi_core_01.json", 100U);
+    check(model::equity::heston::load_models, "datasets/model/equity/markovian/heston/factor_parameters/heston_multi_core_01.json", 100U);
+    check(model::equity::sabr::load_models, "datasets/model/equity/markovian/sabr/factor_parameters/sabr_multi_core_01.json", 100U);
+    check(model::equity::rough_heston::load_models, "datasets/model/equity/rough/rough_heston/factor_parameters/rough_heston_multi_core_01.json", 100U);
+    check(model::equity::rough_bergomi::load_models, "datasets/model/equity/rough/rough_bergomi/factor_parameters/rough_bergomi_multi_core_01.json", 100U);
+    check(model::fixed_income::cir::load_models, "datasets/model/fixed_income/cir/factor_parameters/cir_multi_core_01.json", 100U);
     std::ifstream invalid_source(
         "datasets/model/equity/markovian/heston/factor_parameters/heston_factors_01.json");
     nlohmann::json invalid;

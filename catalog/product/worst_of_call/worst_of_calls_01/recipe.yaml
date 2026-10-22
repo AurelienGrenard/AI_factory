@@ -5,12 +5,16 @@ generator: "catalog/product/worst_of_call/worst_of_calls_01/generator.cpp"
 output:
   path: "datasets/product/worst_of_call/worst_of_calls_01.json"
   format: "json"
-generation_details: "catalog/product/worst_of_call/worst_of_calls_01/generation.yaml"
 product_family: "Worst-of calls"
 row_count: 1
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  strike:
+    mode: "strike_on_minimum_normalized_spot"
+    unit: "dimensionless"
+    underlying: "min_i(S_i(T)/S_i(0))"
 parameters:
   strike: "Strike on the minimum terminal spot divided by its own initial spot."
   maturity: "Maturity in business days."

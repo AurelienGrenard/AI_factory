@@ -3,6 +3,8 @@
 
 #include "common/check_cuda.cuh"
 #include "common/result_index.cuh"
+#include "common/equity/spot_relative_product.hpp"
+#include "common/fixed_income/quote_resolution.cuh"
 
 #include <cuda_runtime.h>
 
@@ -22,15 +24,12 @@ struct ModelProductDeviceInputs {
     const Product* products;
     std::size_t product_count;
     PriceConstruction construction;
+    ModelProductRowPlan row_plan;
 
     __device__ __forceinline__ ModelProductIndices indices(
         std::size_t result_index
     ) const {
-        return decode_model_product_result_index_32(
-            static_cast<std::uint32_t>(result_index),
-            static_cast<std::uint32_t>(product_count),
-            construction
-        );
+        return row_plan.select(static_cast<std::uint32_t>(result_index));
     }
 
     inline void validate(std::size_t result_count) const {
@@ -55,12 +54,30 @@ struct ModelProductDeviceInputs {
         const AdditionalInputs&... additional_inputs
     ) const {
         const ModelProductIndices row = indices(result_index);
-        return PricingPolicy::prepare_row(
-            models[row.model_index],
-            products[row.product_index],
-            additional_inputs...,
-            time_configuration
-        );
+        if constexpr (requires(const Model& model, const Product& product) { model.spot; product.quote_is_ratio; }) {
+            const Product resolved =
+                products[row.product_index].quote_is_ratio
+                ? equity::spot_relative::resolve_product_unchecked(
+                    products[row.product_index],
+                    models[row.model_index].spot)
+                : products[row.product_index];
+            return PricingPolicy::prepare_row(
+                models[row.model_index], resolved, additional_inputs...,
+                time_configuration);
+        } else if constexpr (requires(const Product& product) {
+                product.quote_is_relative;
+            }) {
+            const Product absolute = fixed_income::quotes::resolve(
+                models[row.model_index], products[row.product_index],
+                time_configuration).absolute;
+            return PricingPolicy::prepare_row(
+                models[row.model_index], absolute,
+                additional_inputs..., time_configuration);
+        } else {
+            return PricingPolicy::prepare_row(
+                models[row.model_index], products[row.product_index],
+                additional_inputs..., time_configuration);
+        }
     }
 };
 
@@ -95,13 +112,35 @@ struct PreparedModelProductDeviceInputs {
         const Context&... context
     ) const {
         const ModelProductIndices row = primary.indices(result_index);
-        return PricingPolicy::prepare_row(
-            primary.models[row.model_index],
-            primary.products[row.product_index],
-            prepared_models[row.model_index],
-            context...,
-            time_configuration
-        );
+        if constexpr (requires(const Model& model, const Product& product) { model.spot; product.quote_is_ratio; }) {
+            const Product resolved =
+                primary.products[row.product_index].quote_is_ratio
+                ? equity::spot_relative::resolve_product_unchecked(
+                    primary.products[row.product_index],
+                    primary.models[row.model_index].spot)
+                : primary.products[row.product_index];
+            return PricingPolicy::prepare_row(
+                primary.models[row.model_index], resolved,
+                prepared_models[row.model_index], context...,
+                time_configuration);
+        } else if constexpr (requires(const Product& product) {
+                product.quote_is_relative;
+            }) {
+            const Product absolute = fixed_income::quotes::resolve(
+                primary.models[row.model_index],
+                primary.products[row.product_index],
+                time_configuration).absolute;
+            return PricingPolicy::prepare_row(
+                primary.models[row.model_index], absolute,
+                prepared_models[row.model_index], context...,
+                time_configuration);
+        } else {
+            return PricingPolicy::prepare_row(
+                primary.models[row.model_index],
+                primary.products[row.product_index],
+                prepared_models[row.model_index], context...,
+                time_configuration);
+        }
     }
 };
 
@@ -118,16 +157,12 @@ struct ModelCurveProductDeviceInputs {
     const Product* products;
     std::size_t product_count;
     PriceConstruction construction;
+    ModelCurveProductRowPlan row_plan;
 
     __device__ __forceinline__ ModelCurveProductIndices indices(
         std::size_t result_index
     ) const {
-        return decode_model_curve_product_result_index_32(
-            static_cast<std::uint32_t>(result_index),
-            static_cast<std::uint32_t>(curve_count),
-            static_cast<std::uint32_t>(product_count),
-            construction
-        );
+        return row_plan.select(static_cast<std::uint32_t>(result_index));
     }
 
     inline void validate(std::size_t result_count) const {
@@ -154,13 +189,21 @@ struct ModelCurveProductDeviceInputs {
         const AdditionalInputs&... additional_inputs
     ) const {
         const ModelCurveProductIndices row = indices(result_index);
-        return PricingPolicy::prepare_row(
-            models[row.model_index],
-            curves[row.curve_index],
-            products[row.product_index],
-            additional_inputs...,
-            time_configuration
-        );
+        if constexpr (requires(const Product& product) {
+                product.quote_is_relative;
+            }) {
+            const Product absolute = fixed_income::quotes::resolve(
+                models[row.model_index], curves[row.curve_index],
+                products[row.product_index], time_configuration).absolute;
+            return PricingPolicy::prepare_row(
+                models[row.model_index], curves[row.curve_index], absolute,
+                additional_inputs..., time_configuration);
+        } else {
+            return PricingPolicy::prepare_row(
+                models[row.model_index], curves[row.curve_index],
+                products[row.product_index], additional_inputs...,
+                time_configuration);
+        }
     }
 };
 
@@ -202,6 +245,9 @@ make_model_product_device_inputs(
         products,
         product_count,
         construction,
+        make_model_product_row_plan(
+            static_cast<std::uint32_t>(model_count),
+            static_cast<std::uint32_t>(product_count), construction),
     };
 }
 
@@ -249,6 +295,10 @@ make_model_curve_product_device_inputs(
         products,
         product_count,
         construction,
+        make_model_curve_product_row_plan(
+            static_cast<std::uint32_t>(model_count),
+            static_cast<std::uint32_t>(curve_count),
+            static_cast<std::uint32_t>(product_count), construction),
     };
 }
 

@@ -3,6 +3,7 @@
 
 #include "common/price_gradients/device_preparation.cuh"
 #include "common/price_gradients/sensitivity_parameter.cuh"
+#include "common/fixed_income/quote_resolution.cuh"
 
 #include <cuda_runtime.h>
 
@@ -80,6 +81,9 @@ struct Scenario {
     std::uint32_t central_step_count = 1U;
     const float* normal_weights = nullptr;
     bool reuse_central = false;
+    float strike_reference = 0.0f;
+    float barrier_reference = 0.0f;
+    bool quote_enabled = false;
 };
 
 template<typename ModelPreparation, typename ProductPreparation>
@@ -186,7 +190,12 @@ struct ScenarioDevicePreparation {
             nullptr,
             false,
         };
-        return true;
+        const auto resolved = fixed_income::quotes::resolve(model, product, time);
+        central.product = resolved.absolute;
+        central.strike_reference = resolved.strike_reference;
+        central.barrier_reference = resolved.barrier_reference;
+        central.quote_enabled = resolved.quoted;
+        return ProductPreparation::valid(central.product);
     }
 
     __host__ __device__ static bool is_maturity(Parameter parameter) {
@@ -217,10 +226,14 @@ struct ScenarioDevicePreparation {
         }
         if (parameter.code
             < model_parameter_count + product_parameter_count) {
-            return ProductPreparation::read(
-                parameter.code - model_parameter_count,
-                scenario.product
-            );
+            const auto index = static_cast<std::uint8_t>(
+                parameter.code - model_parameter_count);
+            if (index == 1U || (index == 2U && requires { scenario.product.barrier; })) {
+                return fixed_income::quotes::quoted_coordinate(
+                    scenario.product, index, scenario.strike_reference,
+                    scenario.barrier_reference, scenario.quote_enabled);
+            }
+            return ProductPreparation::read(index, scenario.product);
         }
         return is_maturity(parameter)
             ? scenario.maturity_years
@@ -236,11 +249,14 @@ struct ScenarioDevicePreparation {
             ModelPreparation::write(parameter.code, scenario.model, value);
         } else if (parameter.code
                    < model_parameter_count + product_parameter_count) {
-            ProductPreparation::write(
-                parameter.code - model_parameter_count,
-                scenario.product,
-                value
-            );
+            const auto index = static_cast<std::uint8_t>(
+                parameter.code - model_parameter_count);
+            if (index == 1U || (index == 2U && requires { scenario.product.barrier; })) {
+                value = fixed_income::quotes::absolute_coordinate<Product>(
+                    value, index, scenario.strike_reference,
+                    scenario.barrier_reference, scenario.quote_enabled);
+            }
+            ProductPreparation::write(index, scenario.product, value);
         }
     }
 
@@ -341,6 +357,9 @@ struct CurveScenario {
     std::uint32_t central_step_count = 1U;
     const float* normal_weights = nullptr;
     bool reuse_central = false;
+    float strike_reference = 0.0f;
+    float barrier_reference = 0.0f;
+    bool quote_enabled = false;
 };
 
 template<
@@ -459,7 +478,12 @@ struct CurveScenarioDevicePreparation {
             nullptr,
             false,
         };
-        return true;
+        const auto resolved = fixed_income::quotes::resolve(model, curve, product, time);
+        central.product = resolved.absolute;
+        central.strike_reference = resolved.strike_reference;
+        central.barrier_reference = resolved.barrier_reference;
+        central.quote_enabled = resolved.quoted;
+        return ProductPreparation::valid(central.product);
     }
 
     __host__ __device__ static bool is_maturity(Parameter parameter) {
@@ -506,11 +530,14 @@ struct CurveScenarioDevicePreparation {
             < model_parameter_count
                 + curve_parameter_count
                 + product_parameter_count) {
-            return ProductPreparation::read(
-                parameter.code - model_parameter_count
-                    - curve_parameter_count,
-                scenario.product
-            );
+            const auto index = static_cast<std::uint8_t>(
+                parameter.code - model_parameter_count - curve_parameter_count);
+            if (index == 1U || (index == 2U && requires { scenario.product.barrier; })) {
+                return fixed_income::quotes::quoted_coordinate(
+                    scenario.product, index, scenario.strike_reference,
+                    scenario.barrier_reference, scenario.quote_enabled);
+            }
+            return ProductPreparation::read(index, scenario.product);
         }
         return is_maturity(parameter)
             ? scenario.maturity_years
@@ -535,12 +562,14 @@ struct CurveScenarioDevicePreparation {
                    < model_parameter_count
                        + curve_parameter_count
                        + product_parameter_count) {
-            ProductPreparation::write(
-                parameter.code - model_parameter_count
-                    - curve_parameter_count,
-                scenario.product,
-                value
-            );
+            const auto index = static_cast<std::uint8_t>(
+                parameter.code - model_parameter_count - curve_parameter_count);
+            if (index == 1U || (index == 2U && requires { scenario.product.barrier; })) {
+                value = fixed_income::quotes::absolute_coordinate<Product>(
+                    value, index, scenario.strike_reference,
+                    scenario.barrier_reference, scenario.quote_enabled);
+            }
+            ProductPreparation::write(index, scenario.product, value);
         }
     }
 

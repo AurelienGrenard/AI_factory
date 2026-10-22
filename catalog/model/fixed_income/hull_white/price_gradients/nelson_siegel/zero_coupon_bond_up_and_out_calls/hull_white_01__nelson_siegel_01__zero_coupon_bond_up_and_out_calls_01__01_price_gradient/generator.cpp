@@ -26,6 +26,8 @@ int main() {
             }}, {1.0f / 504.0f, 2U}, true
         };
         recipe.option_side = "call";
+        recipe.product_quote_mode = "ratio_to_initial_forward_bond_price";
+        datasets::price_gradients::require_product_quote_convention(recipe);
         recipe.barrier_grid_monitoring = true;
         recipe.curve_input = "datasets/curve/nelson_siegel/nelson_siegel_01.json";
         const auto models =

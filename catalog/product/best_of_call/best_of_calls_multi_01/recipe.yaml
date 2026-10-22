@@ -1,0 +1,40 @@
+schema_version: 1
+kind: "product_parameters"
+dataset_id: "best_of_calls_multi_01"
+generator: "catalog/product/best_of_call/best_of_calls_multi_01/generator.cpp"
+output:
+  path: "datasets/product/best_of_call/best_of_calls_multi_01.json"
+  format: "json"
+product_family: "Best-of call"
+row_count: 100
+time_convention:
+  unit: "business_day"
+  days_per_year: 252
+quote_convention:
+  strike:
+    mode: "strike_on_max_normalized_spot"
+    unit: "dimensionless"
+    underlying: "max_i(S_i(T)/S_i(0))"
+parameters:
+  strike: "Dimensionless strike on the terminal basket of initial-spot-normalized assets."
+  maturity: "Business days from valuation; 252 days per year."
+payoff:
+  expression: "max(max_i(S_i(T)/S_i(0)) - strike, 0)"
+  notional: "one normalized basket unit"
+  discounting: "stochastic CIR short-rate integral"
+construction:
+  method: "ten maturities times ten exponential strikes"
+  maturities_business_days:
+    - 21
+    - 63
+    - 126
+    - 189
+    - 252
+    - 315
+    - 378
+    - 441
+    - 504
+    - 756
+  log_moneyness_slope_min: -0.05999999865889549
+  log_moneyness_slope_max: 0.25
+  core_only: true

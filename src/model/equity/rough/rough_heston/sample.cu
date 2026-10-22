@@ -6,6 +6,9 @@
 #include "model/equity/rough/rough_heston/dynamics_impl.cuh"
 #include "model/equity/rough/rough_heston/sample_device_preparation.cuh"
 
+#include <algorithm>
+#include <memory>
+
 namespace ai_factory::workbench::model::equity::rough_heston {
 namespace {
 template<std::size_t FactorCount>
@@ -73,23 +76,60 @@ void launch_rough_heston_generated_random_terminal_samples_cuda(
     std::uint32_t* device_maturity_days,
     float* device_spots
 ) {
+    using Prepared=PreparedDynamics<FactorCount>;
+    const sample::GeneratedPreparedInputSource<
+        SampleParameterSampler,SampleDevicePreparer<FactorCount>> source{
+            bounds,{2.0f,sample::kSampleFixedStepDt},
+            device_generated_parameters};
+    const sample::UniformMaturityCalendarSource calendar{
+        {minimum_maturity_days,maximum_maturity_days},
+        device_maturity_days};
+    const sample::SampleRange range{
+        parameter_count,paths_per_parameter,sample_offset,
+        launch_sample_count};
+    const sample::SampleLaunchConfiguration configuration{
+        threads_per_block,block_count};
+    const sample::SamplingSeeds seeds{
+        parameter_seed,schedule_seed,dynamics_seed};
+    const typename TerminalPolicy<FactorCount>::Output output{
+        device_spots};
+    const auto strategy=sample::resolve_execution_strategy(
+        sample::SampleExecutionStrategy::automatic,paths_per_parameter);
+    if(strategy==sample::SampleExecutionStrategy::thread_grid_stride) {
+        sample::launch_prepared_samples_cuda<TerminalPolicy<FactorCount>>(
+            source,calendar,range,
+            sample::kFixedStepSampleTimeConfiguration,configuration,seeds,
+            output,"rough_heston.samples",
+            "random_terminal.generated_prepared_parameters",
+            "Rough-Heston generated terminal sample kernel");
+        return;
+    }
+    sample::validate_sample_launch_common<TerminalPolicy<FactorCount>>(
+        source,calendar,range,sample::kFixedStepSampleTimeConfiguration,
+        configuration,seeds,output,strategy);
+    const std::size_t first=sample_offset/paths_per_parameter;
+    const std::size_t last=(sample_offset+launch_sample_count-1U)
+        /paths_per_parameter;
+    const std::size_t count=last-first+1U;
+    Prepared* allocation=nullptr;
+    check_cuda(cudaMalloc(&allocation,count*sizeof(Prepared)),
+        "rough-Heston prepared sample allocation");
+    std::unique_ptr<Prepared,decltype(&cudaFree)> prepared(
+        allocation,&cudaFree);
+    const unsigned prep_blocks=static_cast<unsigned>(
+        std::min(block_count,count));
+    sample::prepare_sample_input_rows_kernel<Prepared,decltype(source)>
+        <<<prep_blocks,32U>>>(
+            source,first,count,parameter_seed,prepared.get());
+    check_cuda(cudaGetLastError(),
+        "rough-Heston generated parameter and lift preparation");
     sample::launch_prepared_samples_cuda<TerminalPolicy<FactorCount>>(
-        sample::GeneratedPreparedInputSource<
-            SampleParameterSampler, SampleDevicePreparer<FactorCount>>{
-            bounds,
-            {2.0f, sample::kSampleFixedStepDt},
-            device_generated_parameters},
-        sample::UniformMaturityCalendarSource{
-            {minimum_maturity_days, maximum_maturity_days},
-            device_maturity_days},
-        {parameter_count, paths_per_parameter, sample_offset,
-         launch_sample_count},
-        sample::kFixedStepSampleTimeConfiguration,
-        {threads_per_block, block_count},
-        {parameter_seed, schedule_seed, dynamics_seed},
-        {device_spots}, "rough_heston.samples",
-        "random_terminal.generated_prepared_parameters",
-        "Rough-Heston generated and prepared random terminal sample kernel");
+        sample::PreparedInputWindowSource<Prepared>{
+            prepared.get(),first,count},calendar,range,
+        sample::kFixedStepSampleTimeConfiguration,configuration,seeds,
+        output,"rough_heston.samples",
+        "random_terminal.separate_preparation",
+        "Rough-Heston random terminal sample kernel");
 }
 
 template<std::size_t FactorCount>

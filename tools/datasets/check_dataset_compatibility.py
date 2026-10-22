@@ -39,8 +39,9 @@ def main() -> int:
         relative_generation = args.generation.resolve().relative_to(root).as_posix()
         if generation.get("schema_version") in (1, 2) and generation.get("recipe", {}).get("path") != relative_recipe:
             raise ValueError("generation.yaml names a different recipe")
-        if recipe.get("generation_details") != relative_generation:
-            raise ValueError("recipe.yaml names a different generation.yaml")
+        if relative_generation != (args.recipe.resolve().with_name("generation.yaml")
+                                   .relative_to(root).as_posix()):
+            raise ValueError("generation.yaml must share the recipe directory")
         relative_generator = (
             args.recipe.resolve().with_name("generator.cpp")
             .relative_to(root).as_posix()

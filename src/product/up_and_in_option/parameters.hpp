@@ -10,6 +10,7 @@ struct UpAndInOptionParameters {
     float strike;
     float barrier;
     std::uint32_t maturity_days;
+    bool quote_is_ratio = false;
 };
 
 static_assert(std::is_trivially_copyable_v<UpAndInOptionParameters>);

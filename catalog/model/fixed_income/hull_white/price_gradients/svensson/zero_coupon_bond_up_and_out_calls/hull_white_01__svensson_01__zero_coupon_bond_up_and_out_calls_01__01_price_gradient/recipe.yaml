@@ -12,7 +12,6 @@
     "path": "datasets/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {
@@ -99,5 +98,18 @@
     "simulation_steps_per_day": 2,
     "delta_t": "1 / 504",
     "monitoring": "grid points including t=0 and T; continuous barrier approximate"
+  },
+  "quote_convention": {
+    "strike": {
+      "mode": "ratio_to_initial_forward_bond_price",
+      "unit": "dimensionless",
+      "effective_level": "strike = strike_ratio * P(0,U)/P(0,T)"
+    },
+    "barrier": {
+      "mode": "ratio_to_initial_bond_price",
+      "unit": "dimensionless",
+      "effective_level": "barrier = barrier_ratio * P(0,U)"
+    },
+    "reference_policy": "Resolved at the unbumped model and initial curve; absolute K and B stay fixed for model and curve bumps."
   }
 }

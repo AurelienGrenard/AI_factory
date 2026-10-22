@@ -5,7 +5,6 @@ generator: "catalog/model/equity/markovian/kou/factor_parameters/kou_factors_01/
 output:
   path: "datasets/model/equity/markovian/kou/factor_parameters/kou_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/markovian/kou/factor_parameters/kou_factors_01/generation.yaml"
 model_family: "Kou double-exponential jump diffusion"
 row_count: 1000
 parameterization: "factorized"

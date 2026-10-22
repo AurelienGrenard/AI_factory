@@ -3,14 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/phoenix_memory_autocall/phoenix_memory_autocalls_01.json
-  sha256: ae25558206a866109259ede09adafe2d9004b6902ef4fffd4b07d0d491fbcddc
+  sha256: a4974ccd349c2be93686c097ca6cf162216b43878168d3368ae2c411f98ddbab
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
+  cmake: cmake version 3.22.1
   cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
   cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
-  cmake: cmake version 3.22.1
   nlohmann_json: 3.10.5
   mathdx: 25.12.1

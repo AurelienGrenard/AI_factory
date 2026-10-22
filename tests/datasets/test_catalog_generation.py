@@ -30,14 +30,16 @@ class GenerationTests(unittest.TestCase):
         self.recipe = {"schema_version": 1, "kind": "prices", "dataset_id": "test",
                        "generator": self.job["generator"],
                        "output": {"path": self.job["dataset"], "format": "json"},
-                       "generation_details": self.job["generation"],
                        "row_count": 2}
         self.receipt = {"schema_version": 1, "status": "complete",
                         "artifact": {"row_count": 2},
                         "execution": {"paths_per_price": 32},
                         "timing": {"wall_seconds": .1, "kernel_seconds": .05}}
-        self.document = {"database_id": "test", "url": self.job["url"], "row_count": 2, "results": [
-            {"id": f"{i:06d}", "outputs": {"price": 0.1, "standard_error": 0.01}} for i in (1, 2)]}
+        self.document = {"database_id": "test",
+                         "row_count": 2, "results": [
+            {"model_id": f"{i:06d}", "product_id": f"{i:06d}",
+             "price": 0.1, "standard_error": 0.01} for i in (1, 2)]}
+        self.recipe["inputs"] = {}
         for key in ("dataset", "generation"):
             self.job["previous"][self.job[key]] = None
         binary = self.run / "bin" / self.job["target"]
@@ -89,9 +91,7 @@ class GenerationTests(unittest.TestCase):
                                        (gradient_work, "gradients", 0.1)):
             output = directory / "datasets" / f"{name}.json"
             output.parent.mkdir(parents=True)
-            row = ({"id": "000001", "model_id": "000001", "product_id": "000001",
-                    "outputs": {"price": value}} if name == "prices" else
-                   {"model_id": "000001", "product_id": "000001", "price": value})
+            row = {"model_id": "000001", "product_id": "000001", "price": value}
             output.write_text(json.dumps({"results": [row]}))
         source = {"kind": "prices", "recipe": "catalog/prices/recipe.yaml",
                   "target": "generate_prices", "state": "complete", "inputs": ["models.json"],
@@ -194,7 +194,7 @@ class GenerationTests(unittest.TestCase):
             sum(job["kind"] == "price_gradients"
                 and "/equity/rough/" in job["recipe"]
                 for job in stochastic),
-            174,
+            188,
         )
         self.assertTrue(any("/fixed_income/" in job["recipe"] for job in stochastic))
         for kind in ("prices", "price_gradients"):
@@ -202,7 +202,7 @@ class GenerationTests(unittest.TestCase):
                 sum(job["kind"] == kind
                     and "zero_coupon_bond_up_and_out_calls" in job["target"]
                     for job in stochastic),
-                13,
+                26 if kind == "price_gradients" else 13,
             )
 
     def test_price_plan_uses_recipe_path_count(self):
@@ -406,13 +406,6 @@ class GenerationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Completed output changed"):
             campaign.execute(self.run, self.state)
 
-    def test_publication_rejects_a_dataset_url_different_from_the_recipe(self):
-        work = self.root / "wrong-url"
-        self.document["url"] = "https://datasets.example/wrong.json"
-        self.generator(None, work, None)
-        with self.assertRaisesRegex(ValueError, "Dataset URL"):
-            campaign.check_outputs(work, self.job)
-
     def test_native_launch_profile_must_match_inspector(self):
         work = self.root / "wrong-profile"
         self.job["launch_plan"]["profile_id"] = "sm89"
@@ -463,7 +456,7 @@ class GenerationTests(unittest.TestCase):
 
     def test_missing_standard_error_does_not_publish(self):
         self.state["publish"] = True
-        del self.document["results"][0]["outputs"]["standard_error"]
+        del self.document["results"][0]["standard_error"]
         with patch.object(campaign, "run_generator", side_effect=self.generator):
             with self.assertRaisesRegex(ValueError, "standard error"):
                 campaign.execute(self.run, self.state)
@@ -517,7 +510,6 @@ class GenerationTests(unittest.TestCase):
         contents = '{\n'
         contents += '  "database_id": "samples",\n'
         contents += '  "model_family": "Test model",\n'
-        contents += '  "catalog": "catalog/samples",\n'
         contents += '  "row_count": 2,\n'
         contents += '  "parameters": [\n'
         contents += json.dumps({"id": "000001", "values": {"x": 1.0}})

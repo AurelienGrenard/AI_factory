@@ -1,28 +1,27 @@
 schema_version: 1
-kind: "model_parameters"
-dataset_id: "constant_rates_01"
-generator: "catalog/model/fixed_income/constant_rate/parameters/constant_rates_01/generator.cpp"
+kind: model_parameters
+dataset_id: constant_rates_01
+generator: catalog/model/fixed_income/constant_rate/parameters/constant_rates_01/generator.cpp
 output:
-  path: "datasets/model/fixed_income/constant_rate/parameters/constant_rates_01.json"
-  format: "json"
-generation_details: "catalog/model/fixed_income/constant_rate/parameters/constant_rates_01/generation.yaml"
-model_family: "Constant short rate"
+  path: datasets/model/fixed_income/constant_rate/parameters/constant_rates_01.json
+  format: json
+model_family: Constant short rate
 row_count: 7
 parameters:
-  rate: "Continuously compounded short rate."
+  rate: Continuously compounded short rate.
 dynamics:
-  short_rate: "r(t) = rate"
+  short_rate: r(t) = rate
 construction:
-  method: "aligned grid"
-  rule: "values with the same index form one row"
+  method: aligned grid
+  rule: values with the same index form one row
   parameter_counts:
     rate: 7
   values:
     rate:
-      - -0.029999999329447746
-      - -0.009999999776482582
-      - 0.0
-      - 0.009999999776482582
-      - 0.029999999329447746
-      - 0.05000000074505806
-      - 0.07999999821186066
+    - -0.029999999329447746
+    - -0.009999999776482582
+    - 0.0
+    - 0.009999999776482582
+    - 0.029999999329447746
+    - 0.05000000074505806
+    - 0.07999999821186066

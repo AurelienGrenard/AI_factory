@@ -58,7 +58,7 @@ inline datasets::ModelSampleRecipe recipe(
                 {"initial_volatility", {0.1f, 0.35f}},
                 {"mean_reversion", {0.5f, 8.0f}},
                 {"volatility_of_volatility", {0.05f, 0.5f}},
-                {"rho", {0.0f, 0.0f}}
+                {"rho", {-0.75f, -0.1f}}
             }},
             {"acceptance", "true"},
             {"fixed_model_inputs", {{"risk_free_rate", 0.0f}, {"dividend_yield", 0.0f}}}
@@ -72,7 +72,7 @@ inline datasets::ModelSampleRecipe recipe(
 }
 
 inline int generate(int argc, char** argv, datasets::ModelSampleRecipe value) {
-    const model_binding::SampleParameterSampler::Configuration bounds{{{1.0f, 1.0f}, {0.1f, 0.35f}, {0.5f, 8.0f}, {0.05f, 0.5f}, {0.0f, 0.0f}}};
+    const model_binding::SampleParameterSampler::Configuration bounds{{{1.0f, 1.0f}, {0.1f, 0.35f}, {0.5f, 8.0f}, {0.05f, 0.5f}, {-0.75f, -0.1f}}};
     const std::uint64_t parameter_seed = value.seeds.parameters;
 
     return generate_device_model_sample_dataset<ModelParameters>(

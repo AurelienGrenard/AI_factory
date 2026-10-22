@@ -14,6 +14,7 @@ struct PhoenixMemoryAutocallParameters {
     float protection_barrier;
     float annual_coupon_rate;
     float reference_spot; // Frozen S0 for unit-notional loss redemption.
+    bool quote_is_ratio = false;
 };
 
 static_assert(std::is_trivially_copyable_v<PhoenixMemoryAutocallParameters>);

@@ -12,7 +12,6 @@
     "path": "datasets/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {
@@ -98,5 +97,13 @@
     "steps_per_year": 504,
     "simulation_steps_per_day": 2,
     "delta_t": "1 / 504"
+  },
+  "quote_convention": {
+    "strike": {
+      "mode": "additive_to_initial_first_exercise_par_swap_rate",
+      "unit": "annualized_decimal_rate",
+      "effective_level": "strike = initial_first_exercise_par_swap_rate + strike_spread"
+    },
+    "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
   }
 }

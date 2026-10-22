@@ -1,0 +1,130 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: gap_put_options_01_shard00
+generator: catalog/product/gap_option/gap_put_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/gap_option/gap_put_options_01.json
+output:
+  path: datasets/product/gap_option/gap_put_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 6755e0e9ac1efd01d044675ca6b8e264e90870194d0d067571af9a72bf467b47
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 7
+  - 15
+  - 21
+  - 32
+  - 48
+  - 54
+  - 67
+  - 75
+  - 80
+  - 98
+  - 106
+  - 110
+  - 129
+  - 133
+  - 146
+  - 159
+  - 162
+  - 176
+  - 181
+  - 190
+  - 202
+  - 216
+  - 225
+  - 234
+  - 244
+  - 253
+  - 268
+  - 274
+  - 286
+  - 293
+  - 307
+  - 312
+  - 322
+  - 335
+  - 342
+  - 353
+  - 363
+  - 373
+  - 381
+  - 398
+  - 409
+  - 417
+  - 421
+  - 434
+  - 447
+  - 455
+  - 460
+  - 476
+  - 487
+  - 493
+  - 505
+  - 517
+  - 523
+  - 530
+  - 540
+  - 551
+  - 567
+  - 579
+  - 588
+  - 591
+  - 603
+  - 610
+  - 626
+  - 631
+  - 649
+  - 656
+  - 668
+  - 672
+  - 686
+  - 695
+  - 709
+  - 712
+  - 724
+  - 735
+  - 745
+  - 753
+  - 763
+  - 775
+  - 781
+  - 798
+  - 804
+  - 812
+  - 829
+  - 838
+  - 843
+  - 859
+  - 861
+  - 876
+  - 886
+  - 898
+  - 905
+  - 919
+  - 925
+  - 931
+  - 941
+  - 952
+  - 964
+  - 970
+  - 980
+  - 998
+quote_convention:
+  trigger_strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: trigger_strike * S0
+  payoff_strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: payoff_strike * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common/simulation/concepts.cuh"
+#include "common/row_index_plan.cuh"
 #include "common/simulation/correlated_brownian.cuh"
 
 #include <cuda_runtime.h>
@@ -29,7 +30,7 @@ struct ModelGroup {
 
     struct Inputs {
         const Parameters* models;
-        const std::uint32_t* scenario_indices; // [scenario][Count]
+        const RowIndexSelector* row_selectors; // [Count]
     };
     struct Prepared {
         PreparedDynamics model[Count];
@@ -39,15 +40,26 @@ struct ModelGroup {
         State model[Count];
     };
 
-    __device__ __forceinline__ static void prepare(
-        Prepared& output, const Inputs& input,
-        std::uint32_t scenario, float dt
+    template<std::size_t FactorOffset>
+    __device__ __forceinline__ static void prepare_selected(
+        Prepared& output, const Inputs& input, std::uint32_t row,
+        float dt, const float* packed_lower
     ) {
-        for (std::size_t i = 0; i < Count; ++i) {
-            const auto index = input.scenario_indices[scenario * Count + i];
-            output.model[i] = Dynamics::prepare_dynamics(
-                input.models[index], dt
-            );
+        for (std::size_t i = 0U; i < Count; ++i) {
+            auto model = input.models[input.row_selectors[i].select(row)];
+            if constexpr (requires { model.risk_free_rate; })
+                model.risk_free_rate = 0.0f;
+            if constexpr (Dynamics::kBrownianDimension == 2U) {
+                const float rho = factor_correlation(
+                    packed_lower, FactorOffset + 2U * i,
+                    FactorOffset + 2U * i + 1U);
+                if constexpr (requires { model.rho; }) model.rho = rho;
+                else if constexpr (requires { model.correlation; })
+                    model.correlation = rho;
+                else static_assert(Dynamics::kBrownianDimension != 2U,
+                                   "Two-factor model needs rho.");
+            }
+            output.model[i] = Dynamics::prepare_dynamics(model, dt);
             output.initial_spot[i] =
                 Dynamics::spot(Dynamics::initial_state(output.model[i]));
         }
@@ -187,6 +199,23 @@ struct ModelGroup {
         }
         return sum;
     }
+
+    template<std::size_t AssetOffset, unsigned int TeamSize>
+    __device__ __forceinline__ static float maximum_ratio(
+        const States& states, const Prepared& prepared, unsigned int lane
+    ) {
+        float maximum = -__int_as_float(0x7f800000);
+        constexpr std::size_t lane_shift = AssetOffset % TeamSize;
+        constexpr std::size_t local_count = (Count + TeamSize - 1U) / TeamSize;
+        for (std::size_t local = 0U; local < local_count; ++local) {
+            const std::size_t i = local * TeamSize
+                + (lane + TeamSize - lane_shift) % TeamSize;
+            if (i < Count)
+                maximum = fmaxf(maximum, Dynamics::spot(states.model[i])
+                    / prepared.initial_spot[i]);
+        }
+        return maximum;
+    }
 };
 
 template<typename... Groups>
@@ -200,8 +229,8 @@ struct MultiAssetPack<> {
     struct Prepared {};
     struct States {};
     template<std::size_t = 0U, std::size_t = 0U>
-    __device__ __forceinline__ static void prepare(
-        Prepared&, const Inputs&, std::uint32_t, float
+    __device__ __forceinline__ static void prepare_selected(
+        Prepared&, const Inputs&, std::uint32_t, float, const float*
     ) {}
     template<std::size_t, unsigned int>
     __device__ __forceinline__ static void initial_states(
@@ -230,6 +259,10 @@ struct MultiAssetPack<> {
     __device__ __forceinline__ static float sum_ratio(
         const States&, const Prepared&, unsigned int
     ) { return 0.0f; }
+    template<std::size_t, unsigned int>
+    __device__ __forceinline__ static float maximum_ratio(
+        const States&, const Prepared&, unsigned int
+    ) { return -__int_as_float(0x7f800000); }
 };
 
 template<typename Head, typename... Tail>
@@ -253,16 +286,18 @@ struct MultiAssetPack<Head, Tail...> {
         typename Rest::States tail;
     };
 
-    template<std::size_t AssetOffset = 0U, std::size_t FactorOffset = 0U>
-    __device__ __forceinline__ static void prepare(
-        Prepared& output, const Inputs& input,
-        std::uint32_t scenario, float dt
+    template<std::size_t AssetOffset = 0U,
+             std::size_t FactorOffset = 0U>
+    __device__ __forceinline__ static void prepare_selected(
+        Prepared& output, const Inputs& input, std::uint32_t row,
+        float dt, const float* packed_lower
     ) {
-        Head::prepare(output.head, input.head, scenario, dt);
-        Rest::template prepare<
+        Head::template prepare_selected<FactorOffset>(
+            output.head, input.head, row, dt, packed_lower);
+        Rest::template prepare_selected<
             AssetOffset + Head::kAssetCount,
             FactorOffset + Head::kFactorCount
-        >(output.tail, input.tail, scenario, dt);
+        >(output.tail, input.tail, row, dt, packed_lower);
     }
 
     template<std::size_t AssetOffset = 0U, unsigned int TeamSize = 1U>
@@ -364,6 +399,18 @@ struct MultiAssetPack<Head, Tail...> {
         else return head + Rest::template sum_ratio<
             AssetOffset + Head::kAssetCount, TeamSize
         >(states.tail, prepared.tail, lane);
+    }
+
+    template<std::size_t AssetOffset = 0U, unsigned int TeamSize = 1U>
+    __device__ __forceinline__ static float maximum_ratio(
+        const States& states, const Prepared& prepared, unsigned int lane
+    ) {
+        const float head = Head::template maximum_ratio<AssetOffset, TeamSize>(
+            states.head, prepared.head, lane);
+        if constexpr (sizeof...(Tail) == 0U) return head;
+        else return fmaxf(head, Rest::template maximum_ratio<
+            AssetOffset + Head::kAssetCount, TeamSize
+        >(states.tail, prepared.tail, lane));
     }
 };
 

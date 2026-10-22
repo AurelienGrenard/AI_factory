@@ -34,11 +34,13 @@ struct DevicePreparedInputs {
         const Plan& plan,
         typename Preparation::Scenario& central
     ) const {
-        const auto indices = pg::price_row_indices(
-            row, plan.construction, plan.product_count
-        );
+        const auto indices = plan.model_product_rows.select(
+            static_cast<std::uint32_t>(row));
+        const auto product = equity::spot_relative::selected_central_product(
+            models[indices.model_index], products[indices.product_index],
+            plan.relative_quotes);
         return Preparation::make_central(
-            models[indices.model], products[indices.product], plan.time, central
+            models[indices.model_index], product, plan.time, central
         );
     }
 };
@@ -61,12 +63,8 @@ struct CurveDevicePreparedInputs {
         const Plan& plan,
         typename Preparation::Scenario& central
     ) const {
-        const auto indices = decode_model_curve_product_result_index_32(
-            static_cast<std::uint32_t>(row),
-            static_cast<std::uint32_t>(plan.curve_count),
-            static_cast<std::uint32_t>(plan.product_count),
-            plan.construction
-        );
+        const auto indices = plan.model_curve_product_rows.select(
+            static_cast<std::uint32_t>(row));
         return Preparation::make_central(
             models[indices.model_index],
             curves[indices.curve_index],
@@ -93,6 +91,9 @@ struct DevicePreparedPlan {
     std::size_t sensitivity_count;
     std::size_t curve_count = 0U;
     bool has_maturity_sensitivity = false;
+    bool relative_quotes = false;
+    ModelProductRowPlan model_product_rows{};
+    ModelCurveProductRowPlan model_curve_product_rows{};
 };
 
 static_assert(std::is_trivially_copyable_v<DevicePreparedPlan>);

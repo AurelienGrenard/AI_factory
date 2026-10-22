@@ -1,0 +1,18 @@
+schema_version: 4
+status: complete
+inputs:
+  source_product:
+    path: datasets/product/straddle/straddles_01.json
+    sha256: bf27f26a8edf391734545834f5e219bafecf1d4384f3e2775ec47a6aa0f72ba3
+output:
+  path: datasets/product/straddle/straddles_01_shard00.json
+  sha256: 3c8781e3cbf1b7feb747e913c56f118ab87e09a0a22e25841b60c2991b3d31a3
+hardware:
+  device: cpu
+  cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
+software:
+  cmake: cmake version 3.22.1
+  cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
+  cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
+  nlohmann_json: 3.10.5
+  mathdx: 25.12.1

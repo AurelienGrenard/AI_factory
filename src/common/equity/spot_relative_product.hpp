@@ -81,7 +81,80 @@ Product resolve_product(const Product& quote, float reference_spot) {
         result.protection_barrier = level(quote.protection_barrier);
     if constexpr (requires { result.reference_spot; })
         result.reference_spot = reference_spot;
+    if constexpr (requires { result.quote_is_ratio; })
+        result.quote_is_ratio = false;
     return result;
+}
+
+// Resolve the quote only after selecting its central model row on the GPU.
+template<typename Product>
+__host__ __device__ Product resolve_product_unchecked(
+    const Product& quote, float reference_spot
+) {
+    Product result = quote;
+    if constexpr (requires { result.strike; }) result.strike = (quote.strike * reference_spot);
+    if constexpr (requires { result.trigger_strike; })
+        result.trigger_strike = (quote.trigger_strike * reference_spot);
+    if constexpr (requires { result.payoff_strike; })
+        result.payoff_strike = (quote.payoff_strike * reference_spot);
+    if constexpr (requires { result.barrier; }) result.barrier = (quote.barrier * reference_spot);
+    if constexpr (requires { result.lower_barrier; result.upper_barrier; }) {
+        if constexpr (!kAlreadyRelativePriceLevels<Product>) {
+            result.lower_barrier = (quote.lower_barrier * reference_spot);
+            result.upper_barrier = (quote.upper_barrier * reference_spot);
+        }
+    }
+    if constexpr (requires { result.autocall_barrier; })
+        result.autocall_barrier = (quote.autocall_barrier * reference_spot);
+    if constexpr (requires { result.coupon_barrier; })
+        result.coupon_barrier = (quote.coupon_barrier * reference_spot);
+    if constexpr (requires { result.protection_barrier; })
+        result.protection_barrier = (quote.protection_barrier * reference_spot);
+    if constexpr (requires { result.reference_spot; })
+        result.reference_spot = reference_spot;
+    if constexpr (requires { result.quote_is_ratio; })
+        result.quote_is_ratio = false;
+    return result;
+}
+
+template<typename Model, typename Product>
+__host__ __device__ Product selected_central_product(
+    const Model& model, const Product& quote, bool relative_quotes
+) {
+    if constexpr (requires { model.spot; }) {
+        return relative_quotes
+            ? resolve_product_unchecked(quote, model.spot) : quote;
+    } else {
+        return quote;
+    }
+}
+
+// Check selected pairs without keeping an expanded model/product dataset.
+template<typename Model, typename Product>
+void validate_resolved_rows(
+    std::span<const Model> models,
+    std::span<const Product> products,
+    PriceConstruction construction
+) {
+    const auto count = price_row_count(models.size(), products.size(),
+                                       construction);
+    for (std::size_t row = 0U; row < count; ++row) {
+        const auto indices = decode_model_product_result_index(
+            row, products.size(), construction);
+        (void)resolve_product(products[indices.product_index],
+                              models[indices.model_index].spot);
+    }
+}
+
+template<typename Model, typename Product>
+void validate_resolved_rows(
+    const std::vector<Model>& models,
+    const std::vector<Product>& products,
+    PriceConstruction construction
+) {
+    validate_resolved_rows(
+        std::span<const Model>(models), std::span<const Product>(products),
+        construction);
 }
 
 template<typename Model, typename Product>

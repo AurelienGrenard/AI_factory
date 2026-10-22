@@ -1,0 +1,128 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: range_accruals_01_shard00
+generator: catalog/product/range_accrual/range_accruals_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/range_accrual/range_accruals_01.json
+output:
+  path: datasets/product/range_accrual/range_accruals_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 17ce7be15de1a437fb0e87545213dc0c5eb9b730139abc8918b2d4175fd19349
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 8
+  - 17
+  - 20
+  - 39
+  - 40
+  - 53
+  - 63
+  - 75
+  - 83
+  - 97
+  - 109
+  - 119
+  - 127
+  - 138
+  - 140
+  - 157
+  - 165
+  - 177
+  - 183
+  - 190
+  - 200
+  - 211
+  - 227
+  - 231
+  - 241
+  - 258
+  - 267
+  - 273
+  - 284
+  - 296
+  - 307
+  - 312
+  - 326
+  - 338
+  - 340
+  - 355
+  - 360
+  - 378
+  - 385
+  - 390
+  - 404
+  - 414
+  - 424
+  - 433
+  - 449
+  - 450
+  - 464
+  - 472
+  - 484
+  - 499
+  - 508
+  - 519
+  - 520
+  - 534
+  - 543
+  - 551
+  - 565
+  - 579
+  - 584
+  - 597
+  - 609
+  - 616
+  - 627
+  - 631
+  - 648
+  - 650
+  - 665
+  - 678
+  - 682
+  - 694
+  - 705
+  - 716
+  - 727
+  - 730
+  - 747
+  - 755
+  - 765
+  - 778
+  - 781
+  - 793
+  - 805
+  - 814
+  - 822
+  - 839
+  - 843
+  - 853
+  - 862
+  - 879
+  - 888
+  - 899
+  - 904
+  - 915
+  - 926
+  - 934
+  - 948
+  - 950
+  - 963
+  - 972
+  - 982
+  - 992
+quote_convention:
+  lower_barrier:
+    mode: ratio_to_initial_spot
+    unit: dimensionless
+    observation: S(t_i)/S(0)
+  upper_barrier:
+    mode: ratio_to_initial_spot
+    unit: dimensionless
+    observation: S(t_i)/S(0)

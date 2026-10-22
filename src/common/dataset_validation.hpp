@@ -51,9 +51,14 @@ std::vector<Output> load_parameter_rows(
         const std::string prefix =
             display_name + " row id '" + row_id + "': ";
         try {
-            output_rows.push_back(std::invoke(
+            auto parsed = std::invoke(
                 parse_row, row.at("parameters"), prefix
-            ));
+            );
+            if constexpr (requires(Output& value) { value.quote_is_ratio; }) {
+                parsed.quote_is_ratio =
+                    family == ParameterDatasetFamily::Product;
+            }
+            output_rows.push_back(std::move(parsed));
         } catch (const nlohmann::json::exception& error) {
             throw std::invalid_argument(
                 prefix + "invalid or missing JSON field: " + error.what()

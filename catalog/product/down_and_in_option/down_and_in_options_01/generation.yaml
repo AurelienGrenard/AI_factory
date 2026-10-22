@@ -3,14 +3,13 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/down_and_in_option/down_and_in_options_01.json
-  sha256: be406598350fe58f17f922c6af12fcd317ee81d10f803364a7ddee9a6231b393
+  sha256: bae437f50d325d9e43e8ba285204b67b8dd81def8b4349ad50132e9b3a6d5114
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
+  cmake: cmake version 3.22.1
   cxx_compiler: g++-14 (Ubuntu 14.3.0-12ubuntu1~22~ppa2) 14.3.0
   cuda_compiler: Cuda compilation tools, release 12.9, V12.9.41
-  cmake: cmake version 3.22.1
   nlohmann_json: 3.10.5
   mathdx: 25.12.1

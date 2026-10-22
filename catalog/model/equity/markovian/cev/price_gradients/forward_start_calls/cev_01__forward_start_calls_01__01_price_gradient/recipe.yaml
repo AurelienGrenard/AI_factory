@@ -11,7 +11,6 @@
     "path": "datasets/model/equity/markovian/cev/price_gradients/forward_start_calls/cev_01__forward_start_calls_01__01_price_gradient.json",
     "format": "json"
   },
-  "generation_details": "catalog/model/equity/markovian/cev/price_gradients/forward_start_calls/cev_01__forward_start_calls_01__01_price_gradient/generation.yaml",
   "row_count": 1000,
   "paths_per_price": 1048576,
   "sensitivity": {

@@ -5,7 +5,6 @@ generator: "catalog/model/equity/markovian/schobel_zhu/factor_parameters/schobel
 output:
   path: "datasets/model/equity/markovian/schobel_zhu/factor_parameters/schobel_zhu_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/markovian/schobel_zhu/factor_parameters/schobel_zhu_factors_01/generation.yaml"
 model_family: "Schobel-Zhu"
 row_count: 1000
 parameterization: "factorized"

@@ -1,0 +1,126 @@
+schema_version: 1
+kind: product_parameters
+dataset_id: lookback_options_01_shard00
+generator: catalog/product/lookback_option/lookback_options_01_shard00/generator.cpp
+inputs:
+  source_product: datasets/product/lookback_option/lookback_options_01.json
+output:
+  path: datasets/product/lookback_option/lookback_options_01_shard00.json
+  format: json
+row_count: 100
+selection:
+  rule: one seeded permutation position per consecutive ten-row block
+  seed: ai-factory-product-shards-20261014-v1
+  source_sha256: 00feaadd525e0eec063dd492a6da36c6e291cc0a64ef498803f46f994926fed3
+  shard_index: 0
+  total_shards: 10
+  core_rows: 90
+  stress_rows: 10
+  source_row_indices:
+  - 1
+  - 17
+  - 27
+  - 36
+  - 45
+  - 57
+  - 60
+  - 70
+  - 84
+  - 91
+  - 101
+  - 118
+  - 122
+  - 131
+  - 146
+  - 157
+  - 160
+  - 174
+  - 187
+  - 193
+  - 203
+  - 212
+  - 229
+  - 237
+  - 241
+  - 250
+  - 261
+  - 273
+  - 289
+  - 295
+  - 300
+  - 318
+  - 328
+  - 331
+  - 341
+  - 357
+  - 362
+  - 375
+  - 381
+  - 395
+  - 401
+  - 418
+  - 421
+  - 433
+  - 445
+  - 452
+  - 462
+  - 473
+  - 489
+  - 493
+  - 507
+  - 512
+  - 521
+  - 539
+  - 544
+  - 555
+  - 564
+  - 572
+  - 581
+  - 597
+  - 600
+  - 617
+  - 622
+  - 632
+  - 644
+  - 651
+  - 664
+  - 672
+  - 685
+  - 691
+  - 706
+  - 713
+  - 727
+  - 731
+  - 741
+  - 756
+  - 765
+  - 774
+  - 789
+  - 796
+  - 800
+  - 812
+  - 824
+  - 833
+  - 842
+  - 858
+  - 866
+  - 873
+  - 888
+  - 896
+  - 905
+  - 918
+  - 923
+  - 934
+  - 949
+  - 950
+  - 961
+  - 973
+  - 982
+  - 994
+quote_convention:
+  strike:
+    mode: ratio_to_central_spot
+    unit: dimensionless
+    effective_level: strike * S0
+  reference_policy: Resolved at the unbumped model spot S0 for each model-product
+    pair; absolute contract levels remain fixed for model bumps.

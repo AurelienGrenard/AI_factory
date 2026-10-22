@@ -30,11 +30,6 @@ struct HybridPolicy<rough_bergomi::PathPolicy> {
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
     }
-    __device__ static float nominal_rate_step(
-        const Parameters& parameters, float dt
-    ) {
-        return parameters.risk_free_rate * dt;
-    }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.initial_variance;
     }
@@ -73,11 +68,6 @@ struct HybridPolicy<log_modulated_rough_bergomi::PathPolicy> {
     }
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
-    }
-    __device__ static float nominal_rate_step(
-        const Parameters& parameters, float dt
-    ) {
-        return parameters.risk_free_rate * dt;
     }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.initial_variance;
@@ -120,11 +110,6 @@ struct HybridPolicy<rough_sabr::PathPolicy> {
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
     }
-    __device__ static float nominal_rate_step(
-        const Parameters& parameters, float dt
-    ) {
-        return parameters.risk_free_rate * dt;
-    }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.initial_volatility;
     }
@@ -163,11 +148,6 @@ struct HybridPolicy<rough_stein_stein::PathPolicy> {
     }
     __device__ static PreparedModel prepare_model(const Parameters& p,float dt) {
         return Path::prepare_model(p,dt);
-    }
-    __device__ static float nominal_rate_step(
-        const Parameters& parameters, float dt
-    ) {
-        return parameters.risk_free_rate * dt;
     }
     __device__ static float initial_volatility(const PreparedModel& p) {
         return p.volatility_level;

@@ -5,15 +5,20 @@ generator: "catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01/
 output:
   path: "datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json"
   format: "json"
-generation_details: "catalog/product/zero_coupon_bond_option/zero_coupon_bond_options_01/generation.yaml"
 product_family: "Zero-Coupon Bond Options"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  strike:
+    mode: "ratio_to_initial_forward_bond_price"
+    unit: "dimensionless"
+    effective_level: "strike = strike_ratio * P(0,U)/P(0,T)"
+  reference_policy: "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
 parameters:
   notional: "Normalized contract notional."
-  strike: "Strike expressed as a zero-coupon bond price."
+  strike: "Dimensionless strike ratio to P(0,U)/P(0,T)."
   option_expiry: "Option expiry S in business days."
   bond_maturity: "Underlying bond maturity T > S in business days."
 payoff:
@@ -32,7 +37,7 @@ construction:
     generation:
       method: "Cartesian grid"
       rule: "Every option expiry, bond tenor, and strike combination."
-      description: "Representative expiries and strikes concentrated around 0.97."
+      description: "Expiry/tenor grid with strike ratios concentrated below the initial forward bond price."
       option_expiries:
         - 63
         - 133
@@ -56,38 +61,38 @@ construction:
         - 126
         - 252
       strikes:
-        - 0.800000011920929
-        - 0.8390567302703857
-        - 0.8716204166412354
-        - 0.8982812762260437
-        - 0.919629693031311
-        - 0.9362558126449585
-        - 0.9487500190734863
-        - 0.9577025771141052
-        - 0.9637037515640259
-        - 0.967343807220459
-        - 0.9692130088806152
-        - 0.9699016213417053
-        - 0.9700000286102295
-        - 0.970075249671936
-        - 0.9706018567085266
-        - 0.97203129529953
-        - 0.9748148322105408
-        - 0.9794039726257324
-        - 0.9862500429153442
-        - 0.9958044290542603
-        - 1.0085185766220093
-        - 1.0248438119888306
-        - 1.045231580734253
-        - 1.070133090019226
-        - 1.100000023841858
+        - 0.8700000047683716
+        - 0.8941233158111572
+        - 0.9142361283302307
+        - 0.9307031631469727
+        - 0.9438889026641846
+        - 0.9541580080986023
+        - 0.9618750214576721
+        - 0.9674045443534851
+        - 0.9711111187934875
+        - 0.9733594059944153
+        - 0.9745138883590698
+        - 0.9749392867088318
+        - 0.9750000238418579
+        - 0.9750145077705383
+        - 0.9751157760620117
+        - 0.9753906726837158
+        - 0.9759259223937988
+        - 0.976808488368988
+        - 0.9781250357627869
+        - 0.9799624085426331
+        - 0.9824074506759644
+        - 0.985546886920929
+        - 0.9894676208496094
+        - 0.9942563772201538
+        - 1.0
       notional: 1.0
   stress:
     row_count: 100
     generation:
       method: "Cartesian grid"
       rule: "Every option expiry, bond tenor, and strike combination."
-      description: "One-month to 7.5-year expiries, quarterly to five-year tenors, and moderate bond-price strike tails."
+      description: "One-month to 7.5-year expiries with moderate dimensionless strike-ratio tails."
       option_expiries:
         - 21
         - 229
@@ -103,9 +108,9 @@ construction:
         - 63
         - 1260
       strikes:
-        - 0.550000011920929
-        - 0.75
-        - 0.9700000286102295
-        - 1.100000023841858
-        - 1.25
+        - 0.7799999713897705
+        - 0.8700000047683716
+        - 0.949999988079071
+        - 0.9900000095367432
+        - 1.0299999713897705
       notional: 1.0

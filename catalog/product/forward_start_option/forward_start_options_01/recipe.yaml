@@ -5,12 +5,16 @@ generator: "catalog/product/forward_start_option/forward_start_options_01/genera
 output:
   path: "datasets/product/forward_start_option/forward_start_options_01.json"
   format: "json"
-generation_details: "catalog/product/forward_start_option/forward_start_options_01/generation.yaml"
 product_family: "Forward-Start Options"
 row_count: 1000
 time_convention:
   unit: "business_day"
   days_per_year: 252
+quote_convention:
+  moneyness:
+    mode: "multiplier_of_reset_spot"
+    unit: "dimensionless"
+    effective_level: "moneyness * S(reset_time)"
 parameters:
   moneyness: "Strike multiplier applied to the reset spot."
   reset_time: "Business day when the floating strike is fixed."

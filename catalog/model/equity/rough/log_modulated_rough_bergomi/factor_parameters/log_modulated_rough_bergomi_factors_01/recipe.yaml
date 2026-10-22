@@ -5,7 +5,6 @@ generator: "catalog/model/equity/rough/log_modulated_rough_bergomi/factor_parame
 output:
   path: "datasets/model/equity/rough/log_modulated_rough_bergomi/factor_parameters/log_modulated_rough_bergomi_factors_01.json"
   format: "json"
-generation_details: "catalog/model/equity/rough/log_modulated_rough_bergomi/factor_parameters/log_modulated_rough_bergomi_factors_01/generation.yaml"
 model_family: "log-modulated rough Bergomi"
 row_count: 1000
 parameterization: "factorized"

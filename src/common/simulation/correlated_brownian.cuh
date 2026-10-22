@@ -47,6 +47,22 @@ __device__ __forceinline__ float correlated_brownian_factor(
     return result;
 }
 
+// Internal model correlations are recovered once per price from the same
+// Cholesky rows that drive its shocks.
+__device__ __forceinline__ float factor_correlation(
+    const float* packed_lower, std::size_t first, std::size_t second
+) {
+    const std::size_t first_offset = first * (first + 1U) / 2U;
+    const std::size_t second_offset = second * (second + 1U) / 2U;
+    const std::size_t common = first < second ? first : second;
+    double value = 0.0;
+    for (std::size_t column = 0U; column <= common; ++column) {
+        value += static_cast<double>(packed_lower[first_offset + column])
+            * static_cast<double>(packed_lower[second_offset + column]);
+    }
+    return static_cast<float>(value);
+}
+
 template<unsigned int TeamSize>
 __device__ __forceinline__ unsigned int subgroup_mask() {
     static_assert(TeamSize > 0U && TeamSize <= 32U

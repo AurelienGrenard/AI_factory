@@ -1,13 +1,13 @@
-// One correlated Brownian vector drives equities and the stochastic numeraire.
+// One correlated Brownian vector drives equities and any rate factors.
 #pragma once
 
 #include "common/check_cuda.cuh"
-#include "common/multi_asset_price_row.hpp"
+#include "common/monte_carlo/multi_asset_limits.cuh"
 #include "common/philox.cuh"
 #include "common/reductions.cuh"
 #include "common/simulation/multi_asset_path.cuh"
 #include "common/simulation/multi_rough_path.cuh"
-#include "common/volterra/pricing_moments.cuh"
+#include "common/monte_carlo/pricing_moments_kernel.cuh"
 
 #include <cuda_runtime.h>
 
@@ -23,11 +23,10 @@ struct CrossAssetDeviceInputs {
     typename EquityPack::Inputs equity_models;
     typename RoughPack::Inputs rough_models;
     const typename RatePolicy::Parameters* rate_models;
-    const std::uint32_t* rate_indices;
     const typename RatePolicy::CurveParameters* curves;
     const typename Product::ProductParameters* products;
-    const MultiAssetPriceRow* rows;
     const float* packed_factors;
+    const RowIndexSelector* row_selectors;
 };
 
 template<typename EquityPack,typename RoughPack,typename RatePolicy,
@@ -104,14 +103,16 @@ __device__ __forceinline__ float evaluate_cross_asset_path(
         }
         if(Product::is_observation_step(
             step,steps,steps_per_day,product_parameters)) {
-            float observation;
-            if constexpr (rough_count==0U)
-                observation=Product::template observe<EquityPack,TeamSize>(
-                    equity_states,equity_prepared,lane);
-            else observation=Product::template observe_joint_group<
-                EquityPack,RoughPack,rough_count,TeamSize>(
-                    equity_states,equity_prepared,
-                    rough_logs,rough_initial,lane);
+            const auto observation = [&]() {
+                if constexpr (rough_count == 0U)
+                    return Product::template observe<EquityPack, TeamSize>(
+                        equity_states, equity_prepared, lane);
+                else
+                    return Product::template observe_joint_group<
+                        EquityPack, RoughPack, rough_count, TeamSize>(
+                            equity_states, equity_prepared,
+                            rough_logs, rough_initial, lane);
+            }();
             bool keep_going=true;
             if(lane==0U)
                 keep_going=handler.on_observation(step,observation);
@@ -134,7 +135,7 @@ __global__ void cross_asset_price_kernel(
     std::size_t result_offset,std::size_t path_offset,
     std::size_t path_count,std::size_t moment_stride,
     std::uint32_t steps_per_day,float dt,std::uint64_t base_seed,
-    const float* volatility_path,volterra::PartialMoments* moments,
+    const float* volatility_path,reductions::MomentSums* moments,
     float* path_payoffs,float* prices,float* standard_errors,
     bool use_shared_normals
 ) {
@@ -148,6 +149,9 @@ __global__ void cross_asset_price_kernel(
     __shared__ typename Product::PreparedProduct prepared_product;
     __shared__ typename Product::ProductParameters product_parameters;
     __shared__ philox::PhiloxKey key;
+    __shared__ std::uint32_t product_index;
+    __shared__ std::uint32_t correlation_index;
+    __shared__ std::uint32_t curve_index;
     static_assert(TeamSize>=1U && TeamSize<=32U
         && (TeamSize&(TeamSize-1U))==0U);
     const unsigned teams_per_block=blockDim.x/TeamSize;
@@ -171,27 +175,50 @@ __global__ void cross_asset_price_kernel(
         +team*dimension;
     const std::size_t result_index=result_offset+blockIdx.y;
     if(threadIdx.x==0U) {
-        const auto row=inputs.rows[result_index];
-        product_parameters=inputs.products[row.product_index];
-        prepared_product=Product::prepare(product_parameters,1.0f);
-        EquityPack::prepare(equity_prepared,inputs.equity_models,
-                            row.scenario_index,dt);
-        if constexpr (rough_count>0U)
-            RoughPack::prepare(rough_prepared,inputs.rough_models,
-                               row.scenario_index,dt);
-        typename RatePolicy::CurveParameters curve{};
+        constexpr std::size_t rate_slot =
+            EquityPack::kAssetCount + RoughPack::kAssetCount;
+        product_index=inputs.row_selectors[rate_slot+1U].select(
+            static_cast<std::uint32_t>(result_index));
+        correlation_index=inputs.row_selectors[rate_slot+2U].select(
+            static_cast<std::uint32_t>(result_index));
         if constexpr (RatePolicy::kUsesCurve)
-            curve=inputs.curves[row.curve_index];
-        rate_prepared=RatePolicy::prepare(inputs.rate_models[
-            inputs.rate_indices[row.scenario_index]],curve,dt);
+            curve_index=inputs.row_selectors[rate_slot+3U].select(
+                static_cast<std::uint32_t>(result_index));
+        product_parameters=inputs.products[product_index];
+        prepared_product=Product::prepare(product_parameters,1.0f);
         key=philox::make_key(base_seed+result_index);
     }
     __syncthreads();
-    const auto row=inputs.rows[result_index];
     const float* global_lower=inputs.packed_factors
-        +static_cast<std::size_t>(row.correlation_index)*lower_count;
+        +static_cast<std::size_t>(correlation_index)*lower_count;
     for(std::size_t index=threadIdx.x;index<lower_count;index+=blockDim.x)
         lower[index]=global_lower[index];
+    __syncthreads();
+    if (threadIdx.x == 0U) {
+        constexpr std::size_t rate_slot =
+            EquityPack::kAssetCount + RoughPack::kAssetCount;
+        EquityPack::template prepare_selected<0U,rough_count>(
+            equity_prepared, inputs.equity_models,
+            static_cast<std::uint32_t>(result_index),dt,lower);
+        if constexpr (rough_count>0U)
+            RoughPack::template prepare_selected<
+                rough_count,EquityPack::kFactorCount
+                    +RatePolicy::kBrownianDimension>(
+                rough_prepared,inputs.rough_models,
+                static_cast<std::uint32_t>(result_index),dt,lower);
+        auto rate = inputs.rate_models[
+            inputs.row_selectors[rate_slot].select(
+                static_cast<std::uint32_t>(result_index))];
+        if constexpr (RatePolicy::kBrownianDimension == 2U)
+            rate.process.correlation =
+                simulation::factor_correlation(
+                    lower, rough_count+EquityPack::kFactorCount,
+                    rough_count+EquityPack::kFactorCount+1U);
+        typename RatePolicy::CurveParameters curve{};
+        if constexpr (RatePolicy::kUsesCurve)
+            curve=inputs.curves[curve_index];
+        rate_prepared=RatePolicy::prepare(rate,curve,dt);
+    }
     __syncthreads();
     const auto steps=product_parameters.maturity_days*steps_per_day;
     double sum=0.0,sumsq=0.0;
@@ -221,8 +248,11 @@ __global__ void cross_asset_price_kernel(
             }
             if constexpr (RecordPaths)
                 if(lane==0U) path_payoffs[path]=payoff;
-            sum+=static_cast<double>(payoff);
-            sumsq+=static_cast<double>(payoff)*payoff;
+            if(lane==0U) {
+                const double value=static_cast<double>(payoff);
+                sum+=value;
+                sumsq+=value*value;
+            }
         }
     }
     // All paths have finished reading L before the reduction reuses shared.
@@ -249,16 +279,21 @@ void launch_cross_asset_batch_cuda(
     std::size_t moment_stride,unsigned blocks_per_result,
     unsigned threads_per_block,std::uint32_t steps_per_day,float dt,
     std::uint64_t base_seed,const float* volatility_path,
-    volterra::PartialMoments* moments,float* path_payoffs=nullptr,
-    float* prices=nullptr,float* standard_errors=nullptr
+    reductions::MomentSums* moments,float* path_payoffs=nullptr,
+    float* prices=nullptr,float* standard_errors=nullptr,
+    cudaStream_t stream=0
 ) {
     static_assert(EquityPack::kAssetCount+RoughPack::kAssetCount>0U);
+    static_assert(RoughPack::kAssetCount+EquityPack::kFactorCount
+            +RatePolicy::kBrownianDimension+RoughPack::kTwoFactorCount
+            <=kMaximumSharedCholeskyFactors,
+        "Cross-asset Brownian dimension exceeds the shared-Cholesky factor limit.");
     static_assert(EquityPack::kAssetCount+RoughPack::kAssetCount<=253U);
     static_assert(Product::kTerminalCashflow);
     static_assert(TeamSize>=1U && TeamSize<=32U
         && (TeamSize&(TeamSize-1U))==0U);
-    if(!inputs.products || !inputs.rows || !inputs.packed_factors
-        || !inputs.rate_models || !inputs.rate_indices
+    if(!inputs.products || !inputs.row_selectors
+        || !inputs.packed_factors || !inputs.rate_models
         || (RatePolicy::kUsesCurve && !inputs.curves)
         || (!moments && !prices) || (prices && !standard_errors)
         || path_count<2U
@@ -344,7 +379,7 @@ void launch_cross_asset_batch_cuda(
                 "cross-asset shared memory opt-in");
         cross_asset_price_kernel<EquityPack,RoughPack,RatePolicy,
             Product,RecordPaths,TeamSize,true>
-            <<<grid,threads_per_block,shared_bytes>>>(
+            <<<grid,threads_per_block,shared_bytes,stream>>>(
                 inputs,result_offset,path_offset,path_count,moment_stride,
                 steps_per_day,dt,base_seed,volatility_path,moments,
                 path_payoffs,prices,standard_errors,use_shared_normals);
@@ -368,7 +403,7 @@ void launch_cross_asset_batch_cuda(
                 "cross-asset local-state shared memory opt-in");
         cross_asset_price_kernel<EquityPack,RoughPack,RatePolicy,
             Product,RecordPaths,TeamSize,false>
-            <<<grid,threads_per_block,shared_bytes>>>(
+            <<<grid,threads_per_block,shared_bytes,stream>>>(
                 inputs,result_offset,path_offset,path_count,moment_stride,
                 steps_per_day,dt,base_seed,volatility_path,moments,
                 path_payoffs,prices,standard_errors,use_shared_normals);
@@ -383,8 +418,8 @@ void launch_cross_asset_cuda(
     std::size_t result_index,std::size_t path_offset,
     std::size_t path_count,std::uint32_t steps,
     std::uint32_t steps_per_day,float dt,std::uint64_t base_seed,
-    const float* volatility_path,volterra::PartialMoments* moments,
-    float* path_payoffs=nullptr
+    const float* volatility_path,reductions::MomentSums* moments,
+    float* path_payoffs=nullptr,cudaStream_t stream=0
 ) {
     (void)steps;
     launch_cross_asset_batch_cuda<EquityPack,RoughPack,RatePolicy,
@@ -393,7 +428,8 @@ void launch_cross_asset_cuda(
             (path_count+127U)/128U,
             static_cast<unsigned>((path_count+127U)/128U),
             128U,steps_per_day,dt,base_seed,
-            volatility_path,moments,path_payoffs);
+            volatility_path,moments,path_payoffs,
+            nullptr,nullptr,stream);
 }
 
 }  // namespace ai_factory::workbench::monte_carlo

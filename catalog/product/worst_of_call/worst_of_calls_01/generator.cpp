@@ -25,7 +25,12 @@ int main() {
             {"expression", "max(min_i(S_i(T)/S_i(0)) - strike, 0)"},
             {"notional", "one"}
         },
-        rows
+        rows,
+        {
+            {"strike", {{"mode", "strike_on_minimum_normalized_spot"},
+                        {"unit", "dimensionless"},
+                        {"underlying", "min_i(S_i(T)/S_i(0))"}}}
+        }
     );
     validate_product_dataset_file(
         "datasets/product/worst_of_call/worst_of_calls_01.json"

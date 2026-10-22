@@ -3,10 +3,9 @@ status: complete
 inputs: {}
 output:
   path: datasets/product/worst_of_call/worst_of_calls_01.json
-  sha256: 2b8d6472a978636ee24bf35be154b0904fb7e75df6f1e463b7493b1910b1c78d
+  sha256: 8ee3b9ceb6018a0c8edd6e57316d74b92e4a14b0ec10db2e3375326873f95446
 hardware:
   device: cpu
-  host: ALIENWAREAG
   cpu_model: 13th Gen Intel(R) Core(TM) i9-13900HK
 software:
   cmake: cmake version 3.22.1

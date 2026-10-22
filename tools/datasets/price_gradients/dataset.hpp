@@ -45,8 +45,10 @@ struct Recipe {
     bool exact_schedule_transition = false;
     bool barrier_grid_monitoring = false;
     std::optional<std::string> option_side;
+    std::optional<std::string> product_quote_mode;
     std::vector<ReconstructibleSensitivity> reconstructible_sensitivities;
 };
+void require_product_quote_convention(const Recipe&);
 void append_exercise_replay_metadata(
     const Recipe&,
     nlohmann::ordered_json&
