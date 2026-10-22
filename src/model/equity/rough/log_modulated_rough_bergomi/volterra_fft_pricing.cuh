@@ -1,9 +1,9 @@
 // Shared Volterra FFT pricing composition used by log-modulated rough Bergomi products.
 #pragma once
 
-#include "common/price_construction.cuh"
-#include "common/volterra/hybrid_fft_pricer_kernel.cuh"
-#include "common/volterra/log_modulated_hybrid_kernel.cuh"
+#include "pricing_rows/price_construction.cuh"
+#include "volterra/hybrid_fft_pricer_kernel.cuh"
+#include "volterra/log_modulated_hybrid_kernel.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::log_modulated_rough_bergomi {

@@ -1,5 +1,5 @@
 // Compare CIR rate-option launchers with independent QuantLib 1.43 values.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/cir/product/rate_option.cuh"
 #include "model/fixed_income/cir/product/zero_coupon_bond_option.cuh"
 

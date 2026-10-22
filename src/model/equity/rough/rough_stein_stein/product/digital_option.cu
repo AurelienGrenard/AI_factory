@@ -1,7 +1,7 @@
 // Rough Stein-Stein digital-option composition over the Volterra FFT engine.
 #include "model/equity/rough/rough_stein_stein/product/digital_option.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_stein_stein/volterra_fft_pricing.cuh"
 #include "product/digital_option/pricing_policy.cuh"
 

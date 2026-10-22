@@ -1,5 +1,5 @@
-#include "common/row_index_plan.hpp"
-#include "common/result_index.cuh"
+#include "pricing_rows/row_index_plan.hpp"
+#include "pricing_rows/result_index.cuh"
 
 #include <cstdint>
 #include <stdexcept>

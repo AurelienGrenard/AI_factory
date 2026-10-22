@@ -1,6 +1,6 @@
 // Convert asset-or-nothing JSON rows into compact CUDA parameters.
 #include "product/asset_or_nothing_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "product/asset_or_nothing_option/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

@@ -1,11 +1,11 @@
 // CIR Bermudan swaptions over the common Longstaff-Schwartz engine.
 #include "model/fixed_income/cir/product/bermudan_swaption.cuh"
 
-#include "common/fixed_income/scalar_rate_continuation_state.cuh"
-#include "common/longstaff_schwartz/basis/hermite.cuh"
-#include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "common/simulation/terminal_forward_exercise_schedule.cuh"
+#include "fixed_income/scalar_rate_continuation_state.cuh"
+#include "longstaff_schwartz/basis/hermite.cuh"
+#include "longstaff_schwartz/longstaff_schwartz_kernels.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
+#include "schedule/terminal_forward_exercise_schedule.cuh"
 #include "model/fixed_income/cir/analytics_impl.cuh"
 #include "model/fixed_income/cir/forward_measure_impl.cuh"
 #include "product/bermudan_swaption/terminal_forward_pricing_policy.cuh"

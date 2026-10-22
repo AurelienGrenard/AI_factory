@@ -27,5 +27,6 @@
       "effective_level": "strike = strike_ratio * P(0,U)/P(0,T)"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
-  }
+  },
+  "option_side": "call"
 }

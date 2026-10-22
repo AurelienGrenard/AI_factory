@@ -1,7 +1,7 @@
 // Quadratic rough-Heston asset-or-nothing-option composition over a prepared N-factor lift.
 #include "model/equity/rough/quadratic_rough_heston/product/asset_or_nothing_option.cuh"
 
-#include "common/simulation/schedule.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_pricing.cuh"
 #include "product/asset_or_nothing_option/pricing_policy.cuh"
 

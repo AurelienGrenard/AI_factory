@@ -1,6 +1,6 @@
 // Convert digital-option JSON rows into compact CUDA parameters.
 #include "product/digital_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "product/digital_option/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

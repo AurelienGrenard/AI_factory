@@ -1,10 +1,10 @@
 // Generated normal_inverse_gaussian cliquet composition over the shared price-delta engine.
 #include "model/equity/markovian/normal_inverse_gaussian/product/cliquet_price_delta.cuh"
 
-#include "common/equity/price_delta/coupled_spot_paths.cuh"
-#include "common/equity/price_delta/multiplicative_spot_path.cuh"
-#include "common/equity/price_delta/path_product_policy.cuh"
-#include "common/monte_carlo/monte_carlo_price_delta_kernel.cuh"
+#include "equity/price_delta/coupled_spot_paths.cuh"
+#include "equity/price_delta/multiplicative_spot_path.cuh"
+#include "equity/price_delta/path_product_policy.cuh"
+#include "monte_carlo/monte_carlo_price_delta_kernel.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
 #include "product/cliquet/pricing_policy.cuh"
 

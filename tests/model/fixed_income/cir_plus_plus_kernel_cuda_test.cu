@@ -7,7 +7,7 @@
 #include "model/fixed_income/cir_plus_plus/sample.cuh"
 #include "model/fixed_income/cir/sample.cuh"
 #include "product/european_swaption/schedule.cuh"
-#include "common/fixed_income/jamshidian_cooperative.cuh"
+#include "fixed_income/jamshidian_cooperative.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 
 #include <array>

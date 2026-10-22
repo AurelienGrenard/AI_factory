@@ -1,8 +1,8 @@
 // American spot delta: unchanged central regression, frozen exercise, paired payoffs.
 #pragma once
 
-#include "common/equity/price_delta/frozen_exercise_paths.cuh"
-#include "common/longstaff_schwartz/frozen_date_delta_kernels.cuh"
+#include "equity/price_delta/frozen_exercise_paths.cuh"
+#include "longstaff_schwartz/frozen_date_delta_kernels.cuh"
 #include "product/american_option/frozen_exercise_value.cuh"
 #include "product/american_option/pricing_policy.cuh"
 

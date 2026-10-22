@@ -19,7 +19,7 @@ Within `src/model/equity/rough/<model>/`:
 - `sample.cuh/.cu` compose model-only sampling when available;
 - `product/` contains generated model-product launch units.
 
-Shared Volterra kernels and engines live under `src/common/volterra`; product
+Shared Volterra kernels and engines live under `src/volterra`; product
 parameters, schedules, and payoffs live under `src/product`. Model READMEs
 document only equations and model-specific numerical choices.
 

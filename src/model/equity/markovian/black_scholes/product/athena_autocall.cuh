@@ -1,8 +1,8 @@
 // Public launcher for the Black-Scholes Athena-autocall CUDA kernel.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/black_scholes/parameters.hpp"
 #include "product/athena_autocall/parameters.hpp"
 

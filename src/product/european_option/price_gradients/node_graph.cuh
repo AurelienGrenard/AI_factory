@@ -1,8 +1,8 @@
 // European-option binding for the shared prepared-lift node graph.
 #pragma once
 
-#include "common/volterra/price_gradients/terminal_product_graph.cuh"
-#include "common/option_side.cuh"
+#include "volterra/price_gradients/terminal_product_graph.cuh"
+#include "payoff/option_side.cuh"
 #include "product/european_option/parameters.hpp"
 #include "product/european_option/price_gradients/device_preparation.cuh"
 #include "product/european_option/price_gradients/monte_carlo_policy.cuh"

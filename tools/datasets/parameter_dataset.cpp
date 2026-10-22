@@ -1,7 +1,7 @@
 // Parameter-dataset document assembly and publication.
 #include "tools/datasets/parameter_dataset.hpp"
 #include "tools/datasets/artifact_io.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <algorithm>
 #include <numeric>

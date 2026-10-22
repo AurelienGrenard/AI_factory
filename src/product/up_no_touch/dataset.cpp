@@ -1,6 +1,6 @@
 // Convert Up-no-touch JSON rows into compact CUDA parameters.
 #include "product/up_no_touch/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

@@ -1,8 +1,8 @@
 // Public launcher for the Stein-Stein Double-knock-out-option CUDA kernel.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/stein_stein/parameters.hpp"
 #include "product/double_knock_out_option/parameters.hpp"
 

@@ -1,8 +1,8 @@
 // Device preparation of one sampled rough-Heston parameter row.
 #pragma once
 
-#include "common/math/small_matrix_exponential.cuh"
-#include "common/volterra/fractional_kernel_approximation.hpp"
+#include "model/equity/rough/rough_heston/small_matrix_exponential.cuh"
+#include "volterra/fractional_kernel_approximation.hpp"
 #include "model/equity/rough/rough_heston/dynamics.cuh"
 
 #include <cmath>

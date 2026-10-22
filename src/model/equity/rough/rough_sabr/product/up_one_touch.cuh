@@ -1,8 +1,8 @@
 // Public Rough-SABR Up-one-touch hybrid-FFT launcher.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/rough/rough_sabr/parameters.hpp"
 #include "model/equity/rough/rough_sabr/volterra_fft_workspace.cuh"
 #include "product/up_one_touch/parameters.hpp"

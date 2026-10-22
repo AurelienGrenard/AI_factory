@@ -1,5 +1,5 @@
 // Compare mixed-speed G2/G2++ moments with independent host kernel integration.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/g2/analytics_impl.cuh"
 #include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics_impl.cuh"
 

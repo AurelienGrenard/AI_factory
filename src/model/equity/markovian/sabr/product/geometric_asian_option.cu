@@ -1,8 +1,8 @@
 // SABR geometric-asian-option composition over generic CUDA layers.
 #include "model/equity/markovian/sabr/product/geometric_asian_option.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/sabr/dynamics_impl.cuh"
 #include "product/geometric_asian_option/pricing_policy.cuh"
 

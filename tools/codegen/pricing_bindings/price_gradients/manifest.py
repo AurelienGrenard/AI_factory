@@ -748,7 +748,7 @@ def reconstructible_sensitivities(model, product):
                 "formula": "price / model.spot",
                 "standard_error": "standard_error / model.spot",
             }
-        elif product == "cliquet":
+        elif product in {"cliquet", "range_accrual"}:
             rules["model.spot"] = {
                 "formula": "0",
                 "standard_error": "0",

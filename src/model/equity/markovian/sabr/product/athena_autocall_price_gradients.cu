@@ -1,9 +1,9 @@
 // Generated sabr athena_autocall path sensitivities over the common device-prepared engine.
 #include "model/equity/markovian/sabr/product/athena_autocall_price_gradients.cuh"
 
-#include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/path_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
+#include "equity/price_gradients/path_device_prepared_launcher.cuh"
+#include "equity/price_gradients/path_node_graph_launcher.cuh"
+#include "equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/sabr/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/sabr/product/athena_autocall.cuh"
 #include "product/athena_autocall/pricing_policy.cuh"

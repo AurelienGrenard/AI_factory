@@ -1,9 +1,9 @@
 // Public normal_inverse_gaussian range_accrual price/spot-delta launcher, using caller-owned arrays.
 #pragma once
 
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/parameters.hpp"
 #include "product/range_accrual/parameters.hpp"
 

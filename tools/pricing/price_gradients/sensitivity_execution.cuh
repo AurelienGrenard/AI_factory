@@ -1,8 +1,8 @@
 // Shared execution policies for direct and node-graph sensitivities.
 #pragma once
 
-#include "common/price_gradients/sensitivity_strategy.hpp"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_strategy.hpp"
+#include "price_gradients/sensitivity_outputs.cuh"
 
 #include <cstddef>
 #include <functional>

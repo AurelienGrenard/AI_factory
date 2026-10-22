@@ -1,5 +1,5 @@
 // Generated Generate Hull-White/Svensson European payer-swaption prices.
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/hull_white/product/svensson/european_swaption.cuh"
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/hull_white/dataset.hpp"

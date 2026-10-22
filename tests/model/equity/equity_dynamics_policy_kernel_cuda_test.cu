@@ -1,5 +1,5 @@
 // Validate the market-neutral dynamics contracts on every non-rough equity model.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "tests/common/dynamics_contract.cuh"
 
 // This translation unit intentionally includes every factorized equity

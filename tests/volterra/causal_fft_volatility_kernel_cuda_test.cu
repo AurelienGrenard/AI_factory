@@ -1,6 +1,6 @@
 // Causal volatility-only FFT versus direct convolution with identical factors.
-#include "common/check_cuda.cuh"
-#include "common/volterra/causal_fft_volatility_kernel.cuh"
+#include "cuda/check_cuda.cuh"
+#include "volterra/causal_fft_volatility_kernel.cuh"
 #include "model/equity/rough/rough_heston/causal_fft_dynamics.cuh"
 #include "model/equity/rough/quadratic_rough_heston/causal_fft_dynamics.cuh"
 

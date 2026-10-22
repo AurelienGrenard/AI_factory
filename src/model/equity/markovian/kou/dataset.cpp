@@ -1,6 +1,6 @@
 // Host implementation of the Kou dataset loader.
 #include "model/equity/markovian/kou/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "model/equity/markovian/kou/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

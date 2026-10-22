@@ -1,6 +1,6 @@
 // Convert Up-one-touch JSON rows into compact CUDA parameters.
 #include "product/up_one_touch/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

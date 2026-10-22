@@ -1,7 +1,7 @@
 // Host implementation of constrained G2 parameter generation.
 #include "tools/sampling/parameters/g2_generation.hpp"
 
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 
 #include <cmath>
 #include <random>

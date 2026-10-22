@@ -1,8 +1,8 @@
 // Normal-Inverse-Gaussian athena-autocall composition over generic CUDA layers.
 #include "model/equity/markovian/normal_inverse_gaussian/product/athena_autocall.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
 #include "product/athena_autocall/pricing_policy.cuh"
 

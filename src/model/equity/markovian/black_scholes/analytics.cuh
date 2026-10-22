@@ -1,7 +1,7 @@
 // Public closed-form analytics declarations used by Black-Scholes pricing bindings.
 #pragma once
 
-#include "common/lognormal_option.cuh"
+#include "closed_form/lognormal_option.cuh"
 #include "model/equity/markovian/black_scholes/parameters.hpp"
 
 #include <cuda_runtime.h>

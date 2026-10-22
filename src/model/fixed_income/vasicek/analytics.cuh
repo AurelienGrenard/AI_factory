@@ -1,9 +1,9 @@
 // Public affine Vasicek analytics declarations used by fixed-income pricing bindings.
 #pragma once
 
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
-#include "common/fixed_income/cashflows.cuh"
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/cashflows.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/vasicek/dynamics.cuh"
 
 #include <cuda_runtime.h>

@@ -1,5 +1,5 @@
 // Full-Hessian Heston pilot for the selected terminal node graph.
-#include "common/monte_carlo/price_gradients/device_prepared_terminal_diagonal_kernel.cuh"
+#include "monte_carlo/price_gradients/device_prepared_terminal_diagonal_kernel.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/european_option_price_gradients.cuh"
 #include "mixed_node_graph_cuda_test_support.cuh"

@@ -1,7 +1,7 @@
 // Host/device-compilation and stress checks for reusable Volterra kernels.
-#include "common/volterra/fractional_hybrid_kernel.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
-#include "common/volterra/log_modulated_hybrid_kernel.cuh"
+#include "volterra/fractional_hybrid_kernel.cuh"
+#include "volterra/fractional_resolvent_hybrid_kernel.cuh"
+#include "volterra/log_modulated_hybrid_kernel.cuh"
 
 #include <algorithm>
 #include <cmath>

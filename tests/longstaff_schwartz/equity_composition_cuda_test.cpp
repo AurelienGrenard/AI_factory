@@ -1,5 +1,5 @@
 // Exercise American LSM composition for Black-Scholes, CEV, Kou, Merton and Schobel-Zhu.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/markovian/black_scholes/product/american_option.cuh"
 #include "model/equity/markovian/cev/product/american_option.cuh"
 #include "model/equity/markovian/kou/product/american_option.cuh"

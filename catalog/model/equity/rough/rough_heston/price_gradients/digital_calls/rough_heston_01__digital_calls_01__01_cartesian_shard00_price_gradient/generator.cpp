@@ -23,13 +23,13 @@ int main() {
         {"model.hurst_exponent", {0.001, pg::BumpScale::absolute}},
         {"model.rho", {0.002, pg::BumpScale::absolute}},
         {"product.strike", {0.005, pg::BumpScale::relative}},
-        {"product.cash_payoff", {0.005, pg::BumpScale::relative}},
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f / 504.0f, 2U}, false,
             pg::SensitivityOrders::first, {},
             pg::SensitivityStrategy::node_graph
         };
         recipe.option_side = "call";
+        recipe.reconstructible_sensitivities = {{"product.cash_payoff", "price / product.cash_payoff", "standard_error / product.cash_payoff"}};
         const auto models = binding::load_models(recipe.model_input);
         const auto products = product::load_digital_options(recipe.product_input);
         using Graph = binding::DigitalOptionNodeGraph<

@@ -1,7 +1,7 @@
 // Validate complete sensitivity rows before staging native JSON/YAML artifacts.
 #include "tools/datasets/price_gradients/dataset.hpp"
 #include "tools/datasets/artifact_io.hpp"
-#include "common/result_index.cuh"
+#include "pricing_rows/result_index.cuh"
 
 #include <cmath>
 #include <limits>

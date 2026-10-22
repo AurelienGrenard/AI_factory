@@ -1,7 +1,7 @@
 // Adapt the common terminal-payment view to a European-swaption row.
 #pragma once
 
-#include "common/fixed_income/price_gradients/terminal_maturity.cuh"
+#include "fixed_income/price_gradients/terminal_maturity.cuh"
 #include "product/european_swaption/pricing_row.cuh"
 
 namespace ai_factory::workbench::fixed_income::price_gradients {

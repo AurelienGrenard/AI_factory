@@ -1,10 +1,10 @@
 // G2 zero_coupon_bond_option analytical sensitivities.
 #include "model/fixed_income/g2/product/zero_coupon_bond_option_price_gradients.cuh"
 
-#include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
-#include "common/fixed_income/price_gradients/closed_form_policy.cuh"
-#include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
+#include "fixed_income/price_gradients/closed_form_policy.cuh"
+#include "price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/zero_coupon_bond_option/pricing_policy.cuh"
 #include "model/fixed_income/g2/analytics_impl.cuh"
 #include <stdexcept>

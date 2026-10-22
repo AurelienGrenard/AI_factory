@@ -3,9 +3,9 @@
 
 #include "model/fixed_income/g2/analytics.cuh"
 
-#include "common/fixed_income/analytics_concepts.cuh"
-#include "common/fixed_income/cashflows.cuh"
-#include "common/fixed_income/gaussian_bond_option.cuh"
+#include "fixed_income/analytics_concepts.cuh"
+#include "fixed_income/cashflows.cuh"
+#include "fixed_income/gaussian_bond_option.cuh"
 
 // Include exact G2 moments used by the analytical formulas below.
 #include "model/fixed_income/g2/dynamics_impl.cuh"

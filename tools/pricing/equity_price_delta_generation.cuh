@@ -1,9 +1,9 @@
 // Native paired-output recipes: production launch plan, RAII execution and publication.
 #pragma once
 
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/longstaff_schwartz/launch.cuh"
-#include "common/result_index.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "longstaff_schwartz/launch.cuh"
+#include "pricing_rows/result_index.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
 #include "tools/cuda/generation_checkpoint.hpp"

@@ -1,9 +1,9 @@
 // Public affine CIR analytics declarations used by fixed-income pricing bindings.
 #pragma once
 
-#include "common/fixed_income/cashflows.cuh"
-#include "common/fixed_income/one_factor_affine.cuh"
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/cashflows.cuh"
+#include "fixed_income/one_factor_affine.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
 
 #include <cuda_runtime.h>

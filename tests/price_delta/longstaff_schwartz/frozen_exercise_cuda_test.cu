@@ -1,6 +1,6 @@
 // BS/Heston/CEV public LSM deltas: central bits, time zero, maturity and bounded refits.
 #include "tests/price_delta/cuda_test_support.cuh"
-#include "common/equity/price_delta/spot_bump.cuh"
+#include "equity/price_delta/spot_bump.cuh"
 #include "model/equity/markovian/black_scholes/product/american_option.cuh"
 #include "model/equity/markovian/black_scholes/product/american_option_price_delta.cuh"
 #include "model/equity/markovian/heston/product/american_option.cuh"

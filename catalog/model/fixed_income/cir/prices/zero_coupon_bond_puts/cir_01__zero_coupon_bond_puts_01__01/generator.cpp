@@ -5,7 +5,7 @@
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <algorithm>
 #include <filesystem>

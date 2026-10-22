@@ -1,8 +1,8 @@
 // Included device definitions for the canonical Merton coupling interface.
 #pragma once
 #include "model/equity/markovian/merton/price_gradients/coupled_dynamics.cuh"
-#include "common/monte_carlo/price_gradients/coupled_brownian_endpoints.cuh"
-#include "common/monte_carlo/price_gradients/coupled_poisson_events.cuh"
+#include "monte_carlo/price_gradients/coupled_brownian_endpoints.cuh"
+#include "monte_carlo/price_gradients/coupled_poisson_events.cuh"
 #include "model/equity/markovian/merton/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::merton::price_gradients {

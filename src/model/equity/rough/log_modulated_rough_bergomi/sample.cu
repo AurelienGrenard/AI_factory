@@ -2,9 +2,9 @@
 #include "model/equity/rough/log_modulated_rough_bergomi/sample.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/volterra/log_modulated_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_schedule.cuh"
+#include <sample.cuh>
+#include "volterra/log_modulated_hybrid_kernel.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::log_modulated_rough_bergomi {

@@ -1,6 +1,6 @@
 #include "model/fixed_income/constant_rate/dataset.hpp"
 
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cmath>
 #include <stdexcept>

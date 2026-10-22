@@ -1,5 +1,5 @@
 // Qualify quadratic rough-Heston factor, time-step and H-grid convergence.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "model/equity/rough/quadratic_rough_heston/product/european_option.cuh"
 

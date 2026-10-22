@@ -1,8 +1,8 @@
 // Reusable CUDA interfaces for exact correlated G2 simulations.
 #pragma once
 
-#include "common/philox.cuh"
-#include "common/simulation/concepts.cuh"
+#include "philox/distributions.cuh"
+#include "dynamics/concepts.cuh"
 #include "model/fixed_income/g2/parameters.hpp"
 #include "model/fixed_income/g2/state.hpp"
 

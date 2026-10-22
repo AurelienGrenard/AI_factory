@@ -1,8 +1,8 @@
 // Enforce canonical factorization for every public equity product policy.
-#include "common/check_cuda.cuh"
-#include "common/equity/path_product_monte_carlo_policy.cuh"
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include "equity/path_product_monte_carlo_policy.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/heston/dynamics_impl.cuh"
 #include "product/asian_option/pricing_policy.cuh"
 #include "product/asset_or_nothing_option/pricing_policy.cuh"

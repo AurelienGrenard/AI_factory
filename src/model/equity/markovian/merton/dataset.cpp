@@ -1,7 +1,7 @@
 // Host implementation of the Merton dataset loader.
 #include "model/equity/markovian/merton/dataset.hpp"
 #include "model/equity/markovian/merton/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

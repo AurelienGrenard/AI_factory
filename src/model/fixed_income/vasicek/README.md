@@ -70,7 +70,7 @@ For the accumulated integral $`I_t=\int_0^t r_u\,\mathrm du`$, define
 D(0,t)=e^{-I_t}.
 ```
 
-Shared rate and swap identities: [fixed-income rate reference](../../../common/fixed_income/fixed-income-rate-identities-reference.md).
+Shared rate and swap identities: [fixed-income rate reference](../../../fixed_income/fixed-income-rate-identities-reference.md).
 
 ## Related contracts
 

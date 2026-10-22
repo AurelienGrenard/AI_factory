@@ -1,14 +1,14 @@
 // Bermudan sensitivities from one central LSM policy and row-local GPU tasks.
 #pragma once
 
-#include "common/longstaff_schwartz/frozen_exercise_trace.cuh"
-#include "common/longstaff_schwartz/price_gradients/execution_plan.cuh"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_frozen_replay_kernels.cuh"
-#include "common/longstaff_schwartz/price_gradients/exercise_replay.cuh"
-#include "common/longstaff_schwartz/price_gradients/workspace.cuh"
-#include "common/price_gradients/device_prepared_launch.cuh"
-#include "common/price_gradients/reconstruction.cuh"
-#include "common/result_index.cuh"
+#include "longstaff_schwartz/frozen_exercise_trace.cuh"
+#include "longstaff_schwartz/price_gradients/execution_plan.cuh"
+#include "longstaff_schwartz/price_gradients/device_prepared_frozen_replay_kernels.cuh"
+#include "longstaff_schwartz/price_gradients/exercise_replay.cuh"
+#include "longstaff_schwartz/price_gradients/workspace.cuh"
+#include "price_gradients/device_prepared_launch.cuh"
+#include "price_gradients/reconstruction.cuh"
+#include "pricing_rows/result_index.cuh"
 
 #include <cuda_runtime.h>
 

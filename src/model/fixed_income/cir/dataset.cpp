@@ -1,7 +1,7 @@
 // Host JSON loader for CIR short-rate parameters; retain the ordered row identity.
 #include "model/fixed_income/cir/dataset.hpp"
 #include "model/fixed_income/cir/parameter_row.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 namespace ai_factory::workbench::model::fixed_income::cir {
 std::vector<ModelParameters> load_models(const std::filesystem::path& path) {

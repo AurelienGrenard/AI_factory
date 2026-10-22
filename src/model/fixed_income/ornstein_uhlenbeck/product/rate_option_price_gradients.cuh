@@ -1,11 +1,11 @@
 // OU rate_option analytical sensitivities.
 #pragma once
 
-#include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
-#include "common/option_side.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "fixed_income/price_gradients/device_prepared_plan.hpp"
+#include "payoff/option_side.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/price_gradients/device_preparation.cuh"
 #include "product/rate_option/price_gradients/device_preparation.cuh"
 

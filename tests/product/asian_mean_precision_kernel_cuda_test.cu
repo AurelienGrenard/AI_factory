@@ -1,6 +1,6 @@
 // Qualify arithmetic and geometric Asian path accumulators on CUDA.
-#include "common/check_cuda.cuh"
-#include "common/compensated_sum.cuh"
+#include "cuda/check_cuda.cuh"
+#include "compensated_sum.cuh"
 
 #include <cuda_runtime.h>
 

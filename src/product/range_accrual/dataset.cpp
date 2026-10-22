@@ -1,6 +1,6 @@
 // Convert Range Accrual JSON rows into compact CUDA parameters.
 #include "product/range_accrual/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

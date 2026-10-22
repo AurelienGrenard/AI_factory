@@ -2,7 +2,7 @@
 // CUDA allocation/timing and JSON/YAML serialization remain in their shared owners.
 #pragma once
 
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
 #include "tools/cuda/monte_carlo_generation_checkpoint.cuh"

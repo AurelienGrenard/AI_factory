@@ -2,8 +2,8 @@
 #include "model/$source_folder/sample.cuh"
 #include "model/$source_folder/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "$dynamics_header"
 $extra_include
 namespace ai_factory::workbench::$namespace {

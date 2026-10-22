@@ -1,7 +1,7 @@
 // Path sensitivity graph composition for rough_sabr products.
 #pragma once
 
-#include "common/volterra/price_gradients/gaussian_path_product_graph.cuh"
+#include "volterra/price_gradients/gaussian_path_product_graph.cuh"
 #include "model/equity/rough/rough_sabr/price_gradients/terminal_product_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_sabr {

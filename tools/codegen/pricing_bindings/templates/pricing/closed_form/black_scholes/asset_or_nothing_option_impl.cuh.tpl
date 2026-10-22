@@ -1,12 +1,12 @@
 // Shared Black-Scholes asset_or_nothing_option formula policy used by price and price-delta kernels.
 #pragma once
 
-#include "common/closed_form/concepts.cuh"
+#include "closed_form/concepts.cuh"
 
 #include "model/equity/markovian/black_scholes/product/asset_or_nothing_option.cuh"
 
-#include "common/device_inputs.cuh"
-#include "common/time_configuration.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "schedule/time_configuration.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::black_scholes {

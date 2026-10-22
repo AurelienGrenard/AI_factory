@@ -1,7 +1,7 @@
 // Rough-SABR athena-autocall composition over the Volterra FFT engine.
 #include "model/equity/rough/rough_sabr/product/athena_autocall.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_sabr/volterra_fft_pricing.cuh"
 #include "product/athena_autocall/pricing_policy.cuh"
 

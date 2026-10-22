@@ -1,7 +1,7 @@
 // Use Black-Scholes to check shared sampling policies, sources, calendars and execution modes.
-#include "common/check_cuda.cuh"
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/black_scholes/sample.cuh"
 
 // Generic generated-source tests instantiate the dynamics in this CUDA TU.

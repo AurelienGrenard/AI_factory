@@ -1,6 +1,6 @@
 // Convert lookback-option JSON rows into compact CUDA parameters.
 #include "product/lookback_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

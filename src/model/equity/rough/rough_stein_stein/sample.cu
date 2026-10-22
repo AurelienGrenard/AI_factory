@@ -2,9 +2,9 @@
 #include "model/equity/rough/rough_stein_stein/sample.cuh"
 #include "model/equity/rough/rough_stein_stein/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_schedule.cuh"
+#include <sample.cuh>
+#include "volterra/fractional_resolvent_hybrid_kernel.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_stein_stein/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {

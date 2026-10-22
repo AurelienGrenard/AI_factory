@@ -1,8 +1,8 @@
 // Host preparation of fixed-factor rough-Heston dynamics.
 #pragma once
 
-#include "common/volterra/fractional_kernel_approximation.hpp"
-#include "common/math/small_matrix_exponential.cuh"
+#include "volterra/fractional_kernel_approximation.hpp"
+#include "model/equity/rough/rough_heston/small_matrix_exponential.cuh"
 #include "model/equity/rough/rough_heston/dynamics.cuh"
 
 #include <algorithm>

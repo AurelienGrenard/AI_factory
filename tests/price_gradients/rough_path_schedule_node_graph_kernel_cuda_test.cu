@@ -1,6 +1,6 @@
 // Exercise dense barrier, discrete reset, and regular-observation rough graphs.
-#include "common/check_cuda.cuh"
-#include "common/volterra/hybrid_fft_workspace.cuh"
+#include "cuda/check_cuda.cuh"
+#include "volterra/hybrid_fft_workspace.cuh"
 #include "model/equity/rough/rough_bergomi/product/down_and_out_option.cuh"
 #include "model/equity/rough/rough_bergomi/product/down_and_out_option_price_gradients.cuh"
 #include "model/equity/rough/rough_bergomi/product/forward_start_option.cuh"

@@ -65,6 +65,13 @@ sensitivity:
   bump_rule: h = displacement (absolute) or displacement * abs(x) (relative); centered
     when valid, otherwise second-order one-sided.
   source_price_recipe: catalog/model/fixed_income/g2_plus_plus/prices/svensson/bermudan_payer_swaptions/g2_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian_shard00/recipe.yaml
+quote_convention:
+  strike:
+    mode: additive_to_initial_first_exercise_par_swap_rate
+    unit: annualized_decimal_rate
+    effective_level: strike = initial_first_exercise_par_swap_rate + strike_spread
+  reference_policy: Resolved at the unbumped model and initial curve; absolute contract
+    levels stay fixed for model and curve bumps.
 option_side: payer
 curve_assignment:
   method: splitmix64_modulo
@@ -98,10 +105,3 @@ product_shard:
   selection: one seeded permutation position per contiguous ten-row block
   core_products: 90
   stress_products: 10
-quote_convention:
-  strike:
-    mode: additive_to_initial_first_exercise_par_swap_rate
-    unit: annualized_decimal_rate
-    effective_level: strike = initial_first_exercise_par_swap_rate + strike_spread
-  reference_policy: Resolved at the unbumped model and initial curve; absolute contract
-    levels stay fixed for model and curve bumps.

@@ -1,11 +1,11 @@
 // American payoff reconstruction on row-local sensitivity nodes.
 #pragma once
 
-#include "common/equity/discount.cuh"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_frozen_exercise_nodes.cuh"
-#include "common/option_side.cuh"
-#include "common/payoff/vanilla_option.cuh"
-#include "common/price_gradients/reconstruction.cuh"
+#include "equity/discount.cuh"
+#include "longstaff_schwartz/price_gradients/device_prepared_frozen_exercise_nodes.cuh"
+#include "payoff/option_side.cuh"
+#include "payoff/vanilla_option.cuh"
+#include "price_gradients/reconstruction.cuh"
 
 #include <cstddef>
 #include <cstdint>

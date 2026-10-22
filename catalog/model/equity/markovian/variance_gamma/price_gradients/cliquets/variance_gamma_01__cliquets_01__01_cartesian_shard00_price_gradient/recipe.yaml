@@ -13,10 +13,6 @@ paths_per_price: 1048576
 sensitivity:
   method: finite_difference_shared_innovations
   parameters:
-  - parameter: model.spot
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
   - parameter: model.sigma
     displacement: 0.005
     scale: relative
@@ -64,6 +60,10 @@ sensitivity:
   bump_rule: h = displacement (absolute) or displacement * abs(x) (relative); centered
     when valid, otherwise second-order one-sided.
   source_price_recipe: catalog/model/equity/markovian/variance_gamma/prices/cliquets/variance_gamma_01__cliquets_01__01_cartesian_shard00/recipe.yaml
+  reconstructible_from_price:
+  - parameter: model.spot
+    formula: '0'
+    standard_error: '0'
   spot_contract_rule: Spot bumps keep absolute strikes and barriers resolved at the
     central spot fixed; product gradients use quoted ratios.
 sensitivity_strategy: mono

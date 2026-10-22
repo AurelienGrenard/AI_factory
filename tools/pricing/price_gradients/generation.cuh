@@ -6,10 +6,10 @@
 #include "tools/cuda/generation_progress.hpp"
 #include "tools/datasets/price_gradients/dataset.hpp"
 #include "tools/pricing/price_gradients/sensitivity_execution.cuh"
-#include "common/equity/price_gradients/device_preparation.cuh"
-#include "common/price_gradients/device_prepared_launch.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "equity/price_gradients/device_preparation.cuh"
+#include "price_gradients/device_prepared_launch.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include <iostream>
 #include <memory>
 #include <type_traits>

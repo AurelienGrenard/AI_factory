@@ -1,7 +1,7 @@
 // Grid-monitored fixed-income bond barrier generation with explicit MC provenance.
 #pragma once
 
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
 #include "tools/datasets/price_dataset.hpp"

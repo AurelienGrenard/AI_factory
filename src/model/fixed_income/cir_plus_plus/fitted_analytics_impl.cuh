@@ -4,7 +4,7 @@
 
 #include "model/fixed_income/cir_plus_plus/fitted_analytics.cuh"
 #include "model/fixed_income/cir/analytics_impl.cuh"
-#include "common/fixed_income/jamshidian.cuh"
+#include "fixed_income/jamshidian.cuh"
 
 namespace ai_factory::workbench::model::fixed_income::cir_plus_plus::fitted {
 

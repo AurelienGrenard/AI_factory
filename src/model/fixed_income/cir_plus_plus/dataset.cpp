@@ -1,7 +1,7 @@
 // Host JSON loader for CIR++ factor parameters; retain the ordered row identity.
 #include "model/fixed_income/cir_plus_plus/dataset.hpp"
 #include "model/fixed_income/cir/parameter_row.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 namespace ai_factory::workbench::model::fixed_income::cir_plus_plus {
 std::vector<ModelParameters> load_models(const std::filesystem::path& path) {

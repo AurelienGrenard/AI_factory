@@ -1,7 +1,7 @@
 // SABR terminal sensitivities reuse the canonical transition and Philox path.
 #include "model/equity/markovian/sabr/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/sabr/product/european_option.cuh"
-#include "common/equity/spot_relative_product.hpp"
+#include "equity/spot_relative_product.hpp"
 #include "cuda_test_support.cuh"
 #include "diagonal_cuda_test_support.cuh"
 

@@ -1,7 +1,7 @@
 // Reusable CUDA runtime checks for statically composed dynamics policies.
 #pragma once
 
-#include "common/simulation/path_simulation.cuh"
+#include "dynamics/path_simulation.cuh"
 
 #include <cstddef>
 #include <cstdint>

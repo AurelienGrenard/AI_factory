@@ -1,8 +1,8 @@
 // Cliquet device adapter for continuous sensitivities.
 #pragma once
 
-#include "common/price_gradients/product_parameter_access.cuh"
-#include "common/simulation/calendar.hpp"
+#include "price_gradients/product_parameter_access.cuh"
+#include "schedule/calendar.hpp"
 #include "product/cliquet/parameters.hpp"
 
 #include <array>

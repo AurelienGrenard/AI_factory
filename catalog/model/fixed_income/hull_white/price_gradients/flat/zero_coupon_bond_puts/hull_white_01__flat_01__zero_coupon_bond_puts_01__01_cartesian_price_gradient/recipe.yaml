@@ -1,56 +1,75 @@
-schema_version: 1
-kind: price_gradients
-dataset_id: hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient
-generator: catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-inputs:
-  model: datasets/model/fixed_income/hull_white/parameters/hull_white_01.json
-  product: datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json
-  curve: datasets/curve/flat/flat_01.json
-output:
-  path: datasets/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient.json
-  format: json
-row_count: 1000000
-paths_per_price: 0
-sensitivity:
-  method: finite_difference
-  parameters:
-  - parameter: model.mean_reversion
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
-  - parameter: model.volatility
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
-  - parameter: curve.rate
-    displacement: 0.0005
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  - parameter: product.strike
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
-  - parameter: product.maturity_years
-    displacement: 0.001984126984126984
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  bump_rule: h = displacement (absolute) or displacement * abs(x) (relative); centered
-    when valid, otherwise second-order one-sided.
-  source_price_recipe: catalog/model/fixed_income/hull_white/prices/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian/recipe.yaml
-option_side: put
-curve_assignment:
-  method: splitmix64_modulo
-  seed: 20261014
-  sampling: with_replacement
-  key: zero_based_result_index
-time_representation:
-  kind: exact_terminal_transition
-  contractual_days_per_year: 252
-  maturity_bump_steps_per_year: 504
-quote_convention:
-  strike:
-    mode: ratio_to_initial_forward_bond_price
-    unit: dimensionless
-    effective_level: strike = strike_ratio * P(0,U)/P(0,T)
-  reference_policy: Resolved at the unbumped model and initial curve; absolute contract
-    levels stay fixed for model and curve bumps.
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient",
+  "generator": "catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/hull_white/parameters/hull_white_01.json",
+    "product": "datasets/product/zero_coupon_bond_option/zero_coupon_bond_options_01.json",
+    "curve": "datasets/curve/flat/flat_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient.json",
+    "format": "json"
+  },
+  "row_count": 1000000,
+  "paths_per_price": 0,
+  "sensitivity": {
+    "method": "finite_difference",
+    "parameters": [
+      {
+        "parameter": "model.mean_reversion",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.rate",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.maturity_years",
+        "displacement": 0.001984126984126984,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
+    "source_price_recipe": "catalog/model/fixed_income/hull_white/prices/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian/recipe.yaml",
+    "maturity_coordinate": "Underlying bond maturity U; option expiry T and the central absolute strike stay fixed."
+  },
+  "quote_convention": {
+    "strike": {
+      "mode": "ratio_to_initial_forward_bond_price",
+      "unit": "dimensionless",
+      "effective_level": "strike = strike_ratio * P(0,U)/P(0,T)"
+    },
+    "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
+  },
+  "option_side": "put",
+  "curve_assignment": {
+    "method": "splitmix64_modulo",
+    "seed": 20261014,
+    "sampling": "with_replacement",
+    "key": "zero_based_result_index"
+  },
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

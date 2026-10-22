@@ -1,7 +1,7 @@
 // Host-side quadrature and coefficient preparation for quadratic rough Heston N-factor lifts.
 #pragma once
 
-#include "common/volterra/fractional_kernel_approximation.hpp"
+#include "volterra/fractional_kernel_approximation.hpp"
 #include "model/equity/rough/quadratic_rough_heston/dynamics.cuh"
 
 #include <bit>

@@ -3,8 +3,8 @@
 
 #include "model/equity/markovian/bates/dynamics.cuh"
 
-#include "common/compound_poisson.cuh"
-#include "common/philox.cuh"
+#include "philox/compound_poisson.cuh"
+#include "philox/distributions.cuh"
 
 // Bates composes the existing QE-M variance/spot transition without changing
 // Heston's implementation or its random-number mapping.

@@ -1,11 +1,11 @@
 // Generated CIR++/Svensson Bermudan swaptions over the common LSM engine.
 #include "model/fixed_income/cir_plus_plus/product/svensson/bermudan_swaption.cuh"
 
-#include "common/fixed_income/scalar_rate_continuation_state.cuh"
-#include "common/longstaff_schwartz/basis/hermite.cuh"
-#include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "common/simulation/terminal_forward_exercise_schedule.cuh"
+#include "fixed_income/scalar_rate_continuation_state.cuh"
+#include "longstaff_schwartz/basis/hermite.cuh"
+#include "longstaff_schwartz/longstaff_schwartz_kernels.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
+#include "schedule/terminal_forward_exercise_schedule.cuh"
 #include "model/fixed_income/cir/forward_measure_impl.cuh"
 #include "model/fixed_income/cir_plus_plus/svensson/analytics_impl.cuh"
 #include "product/bermudan_swaption/terminal_forward_pricing_policy.cuh"

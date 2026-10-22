@@ -1,8 +1,8 @@
 // Public Rough-Heston Athena-autocall N-factor launcher.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/rough/rough_heston/dynamics.cuh"
 #include "product/athena_autocall/parameters.hpp"
 

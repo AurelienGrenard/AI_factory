@@ -1,7 +1,7 @@
 // Log-modulated rough-Bergomi straddle composition over the Volterra FFT engine.
 #include "model/equity/rough/log_modulated_rough_bergomi/product/straddle.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/straddle/pricing_policy.cuh"
 

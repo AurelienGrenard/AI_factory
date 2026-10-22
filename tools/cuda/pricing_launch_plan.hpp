@@ -161,7 +161,7 @@ inline nlohmann::ordered_json pricing_launch_metadata(const PricingLaunchPlan& p
         result.erase("threads_per_block");
         result["pricing_path_threads"] = plan.profile.threads_per_block;
         result["pricing_finalization_threads"] = kVolterraPricingFinalizationThreads;
-        result["fft_geometry_owner"] = "src/common/volterra/hybrid_fft_tuning.cuh";
+        result["fft_geometry_owner"] = "src/volterra/hybrid_fft_tuning.cuh";
         result["work_distribution"] = "compiled FFT specialization; sequential price submissions";
         result["path_chunk_size"] = plan.profile.path_chunk_size;
         result["chunks_per_price"] = ceiling_divide(plan.paths_per_price, plan.profile.path_chunk_size);

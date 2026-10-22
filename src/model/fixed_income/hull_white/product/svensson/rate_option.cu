@@ -1,10 +1,10 @@
 // Generated Closed-form Hull-White rate-option composition fitted to a parametric curve.
 #include "model/fixed_income/hull_white/product/svensson/rate_option.cuh"
 
-#include "common/closed_form/closed_form_kernels.cuh"
-#include "common/device_inputs.cuh"
+#include "closed_form/closed_form_kernels.cuh"
+#include "pricing_rows/device_inputs.cuh"
 #include "product/rate_option/pricing_policy.cuh"
-#include "common/time_configuration.cuh"
+#include "schedule/time_configuration.cuh"
 
 // Keep the model-specific analytical primitives visible for device inlining.
 #include "model/fixed_income/hull_white/svensson/analytics_impl.cuh"

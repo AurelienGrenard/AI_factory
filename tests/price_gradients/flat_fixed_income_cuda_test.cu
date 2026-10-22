@@ -227,6 +227,31 @@ int main() {
         sampled.stencils, sampled_reference.stencils,
         "Sampled curve stencils"
     );
+    // A spread quote resolves once at the central curve. Curve bumps must
+    // differentiate the same absolute-strike contract as the reference row.
+    auto spread_quote = products.front();
+    spread_quote.strike = 0.005f;
+    spread_quote.quote_is_relative = true;
+    auto absolute_contract = spread_quote;
+    const float fixing = 126.0f / 252.0f;
+    const float payment = 252.0f / 252.0f;
+    const float accrual = 126.0f / 252.0f;
+    absolute_contract.strike =
+        (std::exp(curves.front().rate * (payment - fixing)) - 1.0f)
+            / accrual + spread_quote.strike;
+    absolute_contract.quote_is_relative = false;
+    const auto quoted_result = execute(
+        {models.front()}, {curves.front()}, {spread_quote});
+    const auto absolute_result = execute(
+        {models.front()}, {curves.front()}, {absolute_contract});
+    if (std::fabs(quoted_result.price[0] - absolute_result.price[0]) > 2.e-5f
+        || std::fabs(quoted_result.gradient[0] - absolute_result.gradient[0])
+            > 2.e-4f
+        || std::fabs(quoted_result.gradient[1] - absolute_result.gradient[1])
+            > 2.e-4f) {
+        throw std::runtime_error(
+            "Relative caplet strike did not keep its central absolute level");
+    }
     std::cout << "Flat scalar bindings preserve isolated results across warp boundaries\n";
     return 0;
 }

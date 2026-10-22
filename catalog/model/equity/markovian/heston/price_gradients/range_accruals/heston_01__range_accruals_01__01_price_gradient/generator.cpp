@@ -11,7 +11,6 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/markovian/heston/parameters/heston_01.json", "datasets/product/range_accrual/range_accruals_01.json", "datasets/model/equity/markovian/heston/price_gradients/range_accruals/heston_01__range_accruals_01__01_price_gradient.json", "catalog/model/equity/markovian/heston/price_gradients/range_accruals/heston_01__range_accruals_01__01_price_gradient/generation.yaml", "catalog/model/equity/markovian/heston/prices/range_accruals/heston_01__range_accruals_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
-        {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.initial_variance", {0.001, pg::BumpScale::absolute}},
         {"model.rho", {0.002, pg::BumpScale::absolute}},
         {"model.risk_free_rate", {0.0005, pg::BumpScale::absolute}},
@@ -23,7 +22,7 @@ int main() {
         {"product.upper_barrier", {0.005, pg::BumpScale::relative}},
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f/504.0f, 2U}, false};
-        recipe.reconstructible_sensitivities = {{"product.coupon_rate", "(price - exp(-model.risk_free_rate * product.maturity / 252)) / product.coupon_rate", "standard_error / product.coupon_rate"}};
+        recipe.reconstructible_sensitivities = {{"model.spot", "0", "0"}, {"product.coupon_rate", "(price - exp(-model.risk_free_rate * product.maturity / 252)) / product.coupon_rate", "standard_error / product.coupon_rate"}};
         const auto models = model::equity::heston::load_models(recipe.model_input);
         const auto products = product::load_range_accruals(recipe.product_input);
         return offline::pricing::price_gradients::execute_dataset<true>(recipe,

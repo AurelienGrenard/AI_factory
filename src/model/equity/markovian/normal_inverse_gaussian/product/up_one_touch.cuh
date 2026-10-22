@@ -1,8 +1,8 @@
 // Public launcher for the Normal-Inverse-Gaussian Up-one-touch CUDA kernel.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/parameters.hpp"
 #include "product/up_one_touch/parameters.hpp"
 

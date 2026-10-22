@@ -1,7 +1,7 @@
 // Quadratic rough-Heston down-and-in-option composition over a prepared N-factor lift.
 #include "model/equity/rough/quadratic_rough_heston/product/down_and_in_option.cuh"
 
-#include "common/simulation/schedule.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_pricing.cuh"
 #include "product/down_and_in_option/pricing_policy.cuh"
 

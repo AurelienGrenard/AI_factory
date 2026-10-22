@@ -1,6 +1,6 @@
 // Bitwise parity of the terminal three-kernel graph against the mono engine.
-#include "common/monte_carlo/price_gradients/device_prepared_terminal_diagonal_kernel.cuh"
-#include "common/monte_carlo/price_gradients/device_prepared_terminal_node_graph.cuh"
+#include "monte_carlo/price_gradients/device_prepared_terminal_diagonal_kernel.cuh"
+#include "monte_carlo/price_gradients/device_prepared_terminal_node_graph.cuh"
 #include "model/equity/markovian/bates/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/bates/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/cev/price_gradients/coupled_dynamics_impl.cuh"

@@ -15,6 +15,7 @@ outputs:
 - price
 - standard_error
 paths_per_price: 1048576
+option_side: call
 seeds:
   dynamics: 11668827326006689792
 random_number_generator: philox
@@ -25,4 +26,3 @@ product_shard:
   selection: one seeded permutation position per contiguous ten-row block
   core_products: 90
   stress_products: 10
-option_side: call

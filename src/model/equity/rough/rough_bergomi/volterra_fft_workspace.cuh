@@ -1,7 +1,7 @@
 // Public workspace planning shared by all rough-Bergomi FFT products.
 #pragma once
 
-#include "common/volterra/hybrid_fft_workspace.cuh"
+#include "volterra/hybrid_fft_workspace.cuh"
 
 #include <cstddef>
 

@@ -1,5 +1,5 @@
 // Validate exact Vasicek transitions and closed-form fixed-income identities.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 
 // Include the implementation exactly as future product kernels will.
 #include "model/fixed_income/vasicek/analytics_impl.cuh"

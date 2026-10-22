@@ -1,7 +1,7 @@
 // Log-modulated rough-Bergomi up-no-touch composition over the Volterra FFT engine.
 #include "model/equity/rough/log_modulated_rough_bergomi/product/up_no_touch.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/up_no_touch/pricing_policy.cuh"
 

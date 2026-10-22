@@ -1,9 +1,9 @@
 // The four Gaussian-Volterra equity models share the same correlated FFT scan.
 #pragma once
 
-#include "common/volterra/fractional_hybrid_kernel.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
-#include "common/volterra/log_modulated_hybrid_kernel.cuh"
+#include "volterra/fractional_hybrid_kernel.cuh"
+#include "volterra/fractional_resolvent_hybrid_kernel.cuh"
+#include "volterra/log_modulated_hybrid_kernel.cuh"
 #include "model/equity/rough/rough_bergomi/dynamics_impl.cuh"
 #include "model/equity/rough/rough_sabr/dynamics_impl.cuh"
 #include "model/equity/rough/rough_stein_stein/dynamics_impl.cuh"

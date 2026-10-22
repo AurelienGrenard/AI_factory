@@ -1,10 +1,10 @@
 // Generated Public launcher for Hull-White Svensson zero-coupon bond options.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
 #include "curve/svensson/parameters.hpp"
-#include "common/option_side.cuh"
+#include "payoff/option_side.cuh"
 #include "model/fixed_income/hull_white/parameters.hpp"
 #include "product/zero_coupon_bond_option/parameters.hpp"
 

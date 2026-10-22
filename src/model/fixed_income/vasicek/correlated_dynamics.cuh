@@ -1,8 +1,8 @@
 // Vasicek rate factor for a cross-asset Brownian vector.
 #pragma once
 
-#include "common/fixed_income/correlated_gaussian_rate.cuh"
-#include "common/fixed_income/no_curve.hpp"
+#include "fixed_income/correlated_gaussian_rate.cuh"
+#include "fixed_income/no_curve.hpp"
 #include "model/fixed_income/vasicek/parameters.hpp"
 
 #include <cmath>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/row_index_plan.hpp"
+#include "pricing_rows/row_index_plan.hpp"
 
 #include <nlohmann/json.hpp>
 

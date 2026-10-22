@@ -1,10 +1,10 @@
 // Generated Closed-form ${model_display} zero-coupon-bond-option composition.
 #include "model/fixed_income/${model}/product/${curve}/zero_coupon_bond_option.cuh"
 
-#include "common/closed_form/closed_form_kernels.cuh"
-#include "common/device_inputs.cuh"
+#include "closed_form/closed_form_kernels.cuh"
+#include "pricing_rows/device_inputs.cuh"
 #include "product/zero_coupon_bond_option/pricing_policy.cuh"
-#include "common/time_configuration.cuh"
+#include "schedule/time_configuration.cuh"
 
 // Keep the model-specific analytical primitives visible for device inlining.
 #include "model/fixed_income/${model}/${curve}/analytics_impl.cuh"

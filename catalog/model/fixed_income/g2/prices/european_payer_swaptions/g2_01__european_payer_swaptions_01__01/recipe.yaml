@@ -20,10 +20,6 @@
     "standard_error"
   ],
   "paths_per_price": 1048576,
-  "seeds": {
-    "dynamics": 11668829159957725184
-  },
-  "random_number_generator": "philox",
   "quote_convention": {
     "strike": {
       "mode": "additive_to_initial_par_swap_rate",
@@ -31,5 +27,10 @@
       "effective_level": "strike = initial_par_swap_rate + strike_spread"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
-  }
+  },
+  "option_side": "payer",
+  "seeds": {
+    "dynamics": 11668829159957725184
+  },
+  "random_number_generator": "philox"
 }

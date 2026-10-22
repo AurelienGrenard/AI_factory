@@ -1,7 +1,7 @@
 // Rough Stein-Stein down-and-out-option composition over the Volterra FFT engine.
 #include "model/equity/rough/rough_stein_stein/product/down_and_out_option.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_stein_stein/volterra_fft_pricing.cuh"
 #include "product/down_and_out_option/pricing_policy.cuh"
 

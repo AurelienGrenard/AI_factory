@@ -17,12 +17,6 @@
     "method": "finite_difference_shared_innovations",
     "parameters": [
       {
-        "parameter": "model.spot",
-        "displacement": 0.005,
-        "scale": "relative",
-        "boundary": "central_then_one_sided_order2"
-      },
-      {
         "parameter": "model.volatility",
         "displacement": 0.005,
         "scale": "relative",
@@ -79,14 +73,19 @@
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/equity/markovian/merton/prices/range_accruals/merton_01__range_accruals_01__01/recipe.yaml",
-    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios.",
     "reconstructible_from_price": [
+      {
+        "parameter": "model.spot",
+        "formula": "0",
+        "standard_error": "0"
+      },
       {
         "parameter": "product.coupon_rate",
         "formula": "(price - exp(-model.risk_free_rate * product.maturity / 252)) / product.coupon_rate",
         "standard_error": "standard_error / product.coupon_rate"
       }
-    ]
+    ],
+    "spot_contract_rule": "The fixed bounds apply directly to S(t_i)/S0; spot bumps keep both bounds unchanged."
   },
   "sensitivity_strategy": "mono",
   "standard_error_scope": "paired Monte Carlo sampling error; excludes bump and discretization bias",

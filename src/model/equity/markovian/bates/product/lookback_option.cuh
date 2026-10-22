@@ -1,8 +1,8 @@
 // Public launcher for the Bates Lookback-option CUDA kernel.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/bates/parameters.hpp"
 #include "product/lookback_option/parameters.hpp"
 

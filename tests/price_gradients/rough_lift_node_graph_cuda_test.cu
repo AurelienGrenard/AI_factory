@@ -1,5 +1,5 @@
 // RH and QRH graph: CRN, Cartesian reuse, first/diagonal orders and price parity.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/rough/rough_heston/product/european_option.cuh"
 #include "model/equity/rough/rough_heston/product/european_option_price_gradients.cuh"
 #include "model/equity/rough/quadratic_rough_heston/product/european_option.cuh"

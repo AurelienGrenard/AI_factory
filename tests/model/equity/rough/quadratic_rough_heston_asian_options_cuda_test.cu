@@ -1,5 +1,5 @@
 // Exercise arithmetic and geometric Asian products on the QRH N-factor engine.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"
 #include "model/equity/rough/quadratic_rough_heston/product/asian_option.cuh"
 #include "model/equity/rough/quadratic_rough_heston/product/geometric_asian_option.cuh"

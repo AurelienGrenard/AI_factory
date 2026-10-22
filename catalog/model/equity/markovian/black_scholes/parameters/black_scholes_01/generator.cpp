@@ -1,6 +1,6 @@
 // Generate risk-neutral Black-Scholes rows in ordered core and stress regimes.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cstdint>
 #include <filesystem>

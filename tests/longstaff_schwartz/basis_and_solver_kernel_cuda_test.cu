@@ -1,12 +1,12 @@
 // Check small-basis evaluation, FP64 solves, statuses and LSM workspace planning.
-#include "common/check_cuda.cuh"
-#include "common/longstaff_schwartz/basis/hermite.cuh"
-#include "common/longstaff_schwartz/basis/hinge.cuh"
-#include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/concepts.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "common/longstaff_schwartz/workspace.cuh"
-#include "common/simulation/early_exercise_schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include "longstaff_schwartz/basis/hermite.cuh"
+#include "longstaff_schwartz/basis/hinge.cuh"
+#include "longstaff_schwartz/basis/laguerre.cuh"
+#include "longstaff_schwartz/concepts.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
+#include "longstaff_schwartz/workspace.cuh"
+#include "schedule/early_exercise_schedule.cuh"
 
 #include <cuda_runtime.h>
 

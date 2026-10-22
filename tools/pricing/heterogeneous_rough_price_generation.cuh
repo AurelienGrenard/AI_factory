@@ -1,9 +1,9 @@
 // Static rough-type composition for volatility-first multi-asset pricing.
 #pragma once
 
-#include "common/monte_carlo/multi_asset_heterogeneous_rough_kernel.cuh"
-#include "common/volterra/causal_fft_volatility_kernel.cuh"
-#include "common/volterra/hybrid_fft_volatility_kernel.cuh"
+#include "multi_asset/rough_price_kernel.cuh"
+#include "volterra/causal_fft_volatility_kernel.cuh"
+#include "volterra/hybrid_fft_volatility_kernel.cuh"
 #include "tools/pricing/multi_asset_price_generation.cuh"
 
 #include <algorithm>

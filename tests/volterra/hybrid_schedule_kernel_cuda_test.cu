@@ -1,6 +1,6 @@
 // Verify every rounded Volterra observation reaches its handler and final payoff.
-#include "common/check_cuda.cuh"
-#include "common/volterra/hybrid_schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "product/athena_autocall/pricing_policy.cuh"
 
 #include <array>

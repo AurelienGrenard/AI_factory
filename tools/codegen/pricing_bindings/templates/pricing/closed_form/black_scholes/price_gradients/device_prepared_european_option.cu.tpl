@@ -1,11 +1,11 @@
 // Generated Black-Scholes analytical and MC sensitivities with device-prepared rows.
 #include "model/equity/markovian/${model}/product/european_option_price_gradients.cuh"
 
-#include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
-#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
+#include "equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
 #include "model/equity/markovian/${model}/analytics_impl.cuh"
 #include "model/equity/markovian/${model}/price_gradients/coupled_dynamics_impl.cuh"
 #include "product/european_option/price_gradients/closed_form_policy.cuh"

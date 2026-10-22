@@ -1,8 +1,8 @@
 // Reusable CUDA interfaces for exact CIR state simulations.
 #pragma once
 
-#include "common/philox_domains.cuh"
-#include "common/simulation/concepts.cuh"
+#include "philox/domains.cuh"
+#include "dynamics/concepts.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
 
 #include <cuda_runtime.h>

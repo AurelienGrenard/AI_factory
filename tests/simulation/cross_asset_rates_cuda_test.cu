@@ -1,6 +1,6 @@
 // Every short-rate family can discount the same equity basket through R.
 #include "correlation/dataset.hpp"
-#include "common/simulation/rate_adjusted_equity_path.cuh"
+#include "multi_asset/rate_adjusted_model_group.cuh"
 #include "curve/flat/term_structure_impl.cuh"
 #include "curve/nelson_siegel/term_structure_impl.cuh"
 #include "curve/svensson/term_structure_impl.cuh"

@@ -1,7 +1,7 @@
 // Qualify Black-Scholes range-accrual probability summation on CUDA.
-#include "common/check_cuda.cuh"
-#include "common/compensated_sum.cuh"
-#include "common/time_configuration.cuh"
+#include "cuda/check_cuda.cuh"
+#include "compensated_sum.cuh"
+#include "schedule/time_configuration.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
 #include "product/range_accrual/parameters.hpp"
 

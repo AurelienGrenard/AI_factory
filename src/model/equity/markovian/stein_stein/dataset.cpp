@@ -1,7 +1,7 @@
 // JSON loading and validation for Stein--Stein parameter datasets.
 #include "model/equity/markovian/stein_stein/dataset.hpp"
 
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "model/equity/markovian/stein_stein/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

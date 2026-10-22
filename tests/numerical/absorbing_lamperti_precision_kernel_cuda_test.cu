@@ -1,6 +1,6 @@
 // Resolve near-beta-one Lamperti increments without FP32 cancellation.
-#include "common/check_cuda.cuh"
-#include "common/equity/absorbing_lamperti.cuh"
+#include "cuda/check_cuda.cuh"
+#include "equity/absorbing_lamperti.cuh"
 #include <cuda_runtime.h>
 #include <cmath>
 #include <stdexcept>

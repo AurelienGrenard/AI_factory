@@ -1,8 +1,8 @@
 // Causal FFT dynamics cell for the quadratic_rough_heston Volterra engine.
 #pragma once
 
-#include "common/volterra/fractional_causal_kernel.cuh"
-#include "common/volterra/hybrid_fft.cuh"
+#include "volterra/fractional_causal_kernel.cuh"
+#include "volterra/hybrid_fft.cuh"
 #include "model/equity/rough/quadratic_rough_heston/parameters.hpp"
 
 #include <cuda_runtime.h>

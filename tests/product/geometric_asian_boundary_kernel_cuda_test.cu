@@ -1,5 +1,5 @@
 // Check geometric Asian absorption and invalid observations through the real policy.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/markovian/cev/dynamics_impl.cuh"
 #include "model/equity/markovian/sabr/dynamics_impl.cuh"
 #include "product/geometric_asian_option/pricing_policy.cuh"

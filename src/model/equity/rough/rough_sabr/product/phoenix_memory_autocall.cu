@@ -1,7 +1,7 @@
 // Rough-SABR phoenix-memory-autocall composition over the Volterra FFT engine.
 #include "model/equity/rough/rough_sabr/product/phoenix_memory_autocall.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_sabr/volterra_fft_pricing.cuh"
 #include "product/phoenix_memory_autocall/pricing_policy.cuh"
 

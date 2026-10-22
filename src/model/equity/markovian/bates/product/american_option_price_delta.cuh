@@ -1,10 +1,10 @@
 // bates American price and frozen-exercise spot delta; separate from price-only.
 #pragma once
 
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/longstaff_schwartz/launch.cuh"
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "longstaff_schwartz/launch.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/bates/parameters.hpp"
 #include "product/american_option/parameters.hpp"
 #include <cstddef>

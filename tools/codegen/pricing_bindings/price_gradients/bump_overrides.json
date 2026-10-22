@@ -3650,12 +3650,6 @@
       "scale": "absolute"
     },
     {
-      "dataset_id": "rough_sabr_01__range_accruals_01__01_price_gradient",
-      "parameter": "model.spot",
-      "displacement": 0.01,
-      "scale": "relative"
-    },
-    {
       "dataset_id": "rough_stein_stein_01__asset_or_nothing_calls_01__01_price_gradient",
       "parameter": "model.hurst_exponent",
       "displacement": 0.004,

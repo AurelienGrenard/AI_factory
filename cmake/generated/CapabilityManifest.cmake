@@ -1346,6 +1346,7 @@ set(AI_FACTORY_MANIFEST_PARAMETER_GENERATOR_SOURCES
 set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/bates/price_gradients/american_calls/bates_01__american_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/american_puts/bates_01__american_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/bates/price_gradients/asian_calls/bates_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/asian_calls/bates_01__asian_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/asian_puts/bates_01__asian_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/asset_or_nothing_calls/bates_01__asset_or_nothing_calls_01__01_price_gradient/generator.cpp
@@ -1358,6 +1359,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/bates/price_gradients/double_knock_out_puts/bates_01__double_knock_out_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/down_and_in_puts/bates_01__down_and_in_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/down_and_out_puts/bates_01__down_and_out_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/bates/price_gradients/european_calls/bates_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/european_calls/bates_01__european_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/european_puts/bates_01__european_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/forward_start_calls/bates_01__forward_start_calls_01__01_price_gradient/generator.cpp
@@ -1372,6 +1374,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/bates/price_gradients/range_accruals/bates_01__range_accruals_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/straddles/bates_01__straddles_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/up_and_in_calls/bates_01__up_and_in_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/bates/price_gradients/up_and_out_calls/bates_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/up_and_out_calls/bates_01__up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/up_no_touches/bates_01__up_no_touches_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/bates/price_gradients/up_one_touches/bates_01__up_one_touches_01__01_price_gradient/generator.cpp
@@ -1390,6 +1393,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/bates/prices/down_and_in_puts/bates_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/bates/prices/european_calls/bates_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/bates/prices/european_calls/bates_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/bates/prices/european_puts/bates_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/bates/prices/forward_start_calls/bates_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/bates/prices/forward_start_puts/bates_01__forward_start_puts_01__01/generator.cpp
@@ -1448,6 +1452,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/down_and_out_puts/black_scholes_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01_cartesian/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/european_puts/black_scholes_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/forward_start_calls/black_scholes_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/black_scholes/prices/forward_start_puts/black_scholes_01__forward_start_puts_01__01/generator.cpp
@@ -1510,6 +1515,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/cev/prices/down_and_in_puts/cev_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/cev/prices/down_and_out_puts/cev_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/cev/prices/european_puts/cev_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/cev/prices/forward_start_puts/cev_01__forward_start_puts_01__01/generator.cpp
@@ -1528,10 +1534,15 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/cev/prices/up_one_touches/cev_01__up_one_touches_01__01/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/american_calls/heston_01__american_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/american_puts/heston_01__american_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/asian_calls/heston_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/asian_calls/heston_01__asian_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/asian_puts/heston_01__asian_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/asian_puts/heston_01__asian_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/athena_autocalls/heston_01__athena_autocalls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/athena_autocalls/heston_01__athena_autocalls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/cliquets/heston_01__cliquets_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/digital_calls/heston_01__digital_calls_01__01_price_gradient/generator.cpp
@@ -1540,6 +1551,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/heston/price_gradients/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/down_and_in_puts/heston_01__down_and_in_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/down_and_out_puts/heston_01__down_and_out_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/european_puts/heston_01__european_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/forward_start_calls/heston_01__forward_start_calls_01__01_price_gradient/generator.cpp
@@ -1554,6 +1566,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/heston/price_gradients/range_accruals/heston_01__range_accruals_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/straddles/heston_01__straddles_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/up_and_in_calls/heston_01__up_and_in_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/heston/price_gradients/up_and_out_calls/heston_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/up_and_out_calls/heston_01__up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/up_no_touches/heston_01__up_no_touches_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/heston/price_gradients/up_one_touches/heston_01__up_one_touches_01__01_price_gradient/generator.cpp
@@ -1572,6 +1585,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/heston/prices/down_and_in_puts/heston_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/heston/prices/european_puts/heston_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/heston/prices/forward_start_calls/heston_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/heston/prices/forward_start_puts/heston_01__forward_start_puts_01__01/generator.cpp
@@ -1630,6 +1644,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/heston_3_2/prices/down_and_in_puts/heston_3_2_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/heston_3_2/prices/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/heston_3_2/prices/european_calls/heston_3_2_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/heston_3_2/prices/european_calls/heston_3_2_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/heston_3_2/prices/european_puts/heston_3_2_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/heston_3_2/prices/forward_start_calls/heston_3_2_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01/generator.cpp
@@ -1692,6 +1707,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/kou/prices/down_and_in_puts/kou_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/kou/prices/down_and_out_puts/kou_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/kou/prices/european_calls/kou_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/kou/prices/european_calls/kou_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/kou/prices/european_puts/kou_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/kou/prices/forward_start_puts/kou_01__forward_start_puts_01__01/generator.cpp
@@ -1754,6 +1770,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/merton/prices/down_and_out_puts/merton_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/merton/prices/european_puts/merton_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01/generator.cpp
@@ -1816,6 +1833,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_in_puts/normal_inverse_gaussian_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_out_puts/normal_inverse_gaussian_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_calls/normal_inverse_gaussian_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_calls/normal_inverse_gaussian_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_puts/normal_inverse_gaussian_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_puts/normal_inverse_gaussian_01__forward_start_puts_01__01/generator.cpp
@@ -1874,6 +1892,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/sabr/prices/down_and_in_puts/sabr_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/sabr/prices/down_and_out_puts/sabr_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/sabr/prices/european_puts/sabr_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/sabr/prices/forward_start_calls/sabr_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/sabr/prices/forward_start_puts/sabr_01__forward_start_puts_01__01/generator.cpp
@@ -1936,6 +1955,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/schobel_zhu/prices/down_and_in_puts/schobel_zhu_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/schobel_zhu/prices/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01/generator.cpp
@@ -1994,6 +2014,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/stein_stein/prices/down_and_in_puts/stein_stein_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/stein_stein/prices/down_and_out_puts/stein_stein_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/stein_stein/prices/european_calls/stein_stein_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/stein_stein/prices/european_calls/stein_stein_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/stein_stein/prices/european_puts/stein_stein_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/stein_stein/prices/forward_start_puts/stein_stein_01__forward_start_puts_01__01/generator.cpp
@@ -2012,18 +2033,30 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/stein_stein/prices/up_one_touches/stein_stein_01__up_one_touches_01__01/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/american_calls/variance_gamma_01__american_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/american_puts/variance_gamma_01__american_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/asian_calls/variance_gamma_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/asian_calls/variance_gamma_01__asian_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/asian_puts/variance_gamma_01__asian_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/asian_puts/variance_gamma_01__asian_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_calls/variance_gamma_01__asset_or_nothing_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_calls/variance_gamma_01__asset_or_nothing_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/athena_autocalls/variance_gamma_01__athena_autocalls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/athena_autocalls/variance_gamma_01__athena_autocalls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/cliquets/variance_gamma_01__cliquets_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/cliquets/variance_gamma_01__cliquets_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/digital_calls/variance_gamma_01__digital_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/digital_calls/variance_gamma_01__digital_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/digital_puts/variance_gamma_01__digital_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/digital_puts/variance_gamma_01__digital_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/double_knock_out_calls/variance_gamma_01__double_knock_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/double_knock_out_calls/variance_gamma_01__double_knock_out_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/double_knock_out_puts/variance_gamma_01__double_knock_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/double_knock_out_puts/variance_gamma_01__double_knock_out_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/down_and_out_puts/variance_gamma_01__down_and_out_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/european_calls/variance_gamma_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/european_calls/variance_gamma_01__european_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/european_puts/variance_gamma_01__european_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/forward_start_calls/variance_gamma_01__forward_start_calls_01__01_price_gradient/generator.cpp
@@ -2038,6 +2071,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/variance_gamma/price_gradients/range_accruals/variance_gamma_01__range_accruals_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/straddles/variance_gamma_01__straddles_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/up_and_in_calls/variance_gamma_01__up_and_in_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/price_gradients/up_and_out_calls/variance_gamma_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/up_and_out_calls/variance_gamma_01__up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/up_no_touches/variance_gamma_01__up_no_touches_01__01_price_gradient/generator.cpp
     catalog/model/equity/markovian/variance_gamma/price_gradients/up_one_touches/variance_gamma_01__up_one_touches_01__01_price_gradient/generator.cpp
@@ -2056,6 +2090,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/markovian/variance_gamma/prices/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/markovian/variance_gamma/prices/down_and_out_puts/variance_gamma_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/markovian/variance_gamma/prices/european_calls/variance_gamma_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/markovian/variance_gamma/prices/european_calls/variance_gamma_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01/generator.cpp
     catalog/model/equity/markovian/variance_gamma/prices/forward_start_calls/variance_gamma_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/markovian/variance_gamma/prices/forward_start_puts/variance_gamma_01__forward_start_puts_01__01/generator.cpp
@@ -2114,6 +2149,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01/generator.cpp
@@ -2172,6 +2208,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_in_puts/quadratic_rough_heston_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/european_calls/quadratic_rough_heston_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/quadratic_rough_heston/prices/european_calls/quadratic_rough_heston_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/european_puts/quadratic_rough_heston_01__european_puts_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_calls/quadratic_rough_heston_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_puts/quadratic_rough_heston_01__forward_start_puts_01__01/generator.cpp
@@ -2246,18 +2283,31 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/asian_calls/rough_heston_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/asian_calls/rough_heston_01__asian_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/asian_puts/rough_heston_01__asian_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/asian_puts/rough_heston_01__asian_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/athena_autocalls/rough_heston_01__athena_autocalls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/athena_autocalls/rough_heston_01__athena_autocalls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/cliquets/rough_heston_01__cliquets_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/cliquets/rough_heston_01__cliquets_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/digital_calls/rough_heston_01__digital_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/digital_calls/rough_heston_01__digital_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/digital_puts/rough_heston_01__digital_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/digital_puts/rough_heston_01__digital_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/double_knock_out_puts/rough_heston_01__double_knock_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/double_knock_out_puts/rough_heston_01__double_knock_out_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/down_and_in_puts/rough_heston_01__down_and_in_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/down_and_in_puts/rough_heston_01__down_and_in_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/down_and_out_puts/rough_heston_01__down_and_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/down_and_out_puts/rough_heston_01__down_and_out_puts_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/european_calls/rough_heston_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/european_calls/rough_heston_01__european_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/european_puts/rough_heston_01__european_puts_01__01_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/forward_start_calls/rough_heston_01__forward_start_calls_01__01_price_gradient/generator.cpp
@@ -2272,6 +2322,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_heston/price_gradients/range_accruals/rough_heston_01__range_accruals_01__01_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/straddles/rough_heston_01__straddles_01__01_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/up_and_in_calls/rough_heston_01__up_and_in_calls_01__01_price_gradient/generator.cpp
+    catalog/model/equity/rough/rough_heston/price_gradients/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/up_no_touches/rough_heston_01__up_no_touches_01__01_price_gradient/generator.cpp
     catalog/model/equity/rough/rough_heston/price_gradients/up_one_touches/rough_heston_01__up_one_touches_01__01_price_gradient/generator.cpp
@@ -2404,6 +2455,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_stein_stein/prices/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/european_puts/rough_stein_stein_01__european_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01/generator.cpp
@@ -2420,14 +2472,23 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_stein_stein/prices/up_and_out_calls/rough_stein_stein_01__up_and_out_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/up_one_touches/rough_stein_stein_01__up_one_touches_01__01/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/caplets/cir_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/caplets/cir_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/european_payer_swaptions/cir_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/european_payer_swaptions/cir_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/floorlets/cir_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/floorlets/cir_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/cir/prices/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01/generator.cpp
     catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01/generator.cpp
@@ -2440,30 +2501,55 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/fixed_income/cir/prices/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/bermudan_payer_swaptions/cir_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/bermudan_receiver_swaptions/cir_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/caplets/cir_plus_plus_01__flat_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/caplets/cir_plus_plus_01__flat_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/european_payer_swaptions/cir_plus_plus_01__flat_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/european_payer_swaptions/cir_plus_plus_01__flat_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/european_receiver_swaptions/cir_plus_plus_01__flat_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/european_receiver_swaptions/cir_plus_plus_01__flat_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/floorlets/cir_plus_plus_01__flat_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/floorlets/cir_plus_plus_01__flat_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_calls/cir_plus_plus_01__flat_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_calls/cir_plus_plus_01__flat_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_puts/cir_plus_plus_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_puts/cir_plus_plus_01__flat_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/european_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/european_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/european_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/european_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_puts/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_puts/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/european_receiver_swaptions/cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/european_receiver_swaptions/cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/floorlets/cir_plus_plus_01__svensson_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/floorlets/cir_plus_plus_01__svensson_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/prices/flat/bermudan_payer_swaptions/cir_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/prices/flat/bermudan_receiver_swaptions/cir_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01/generator.cpp
@@ -2492,14 +2578,23 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01/generator.cpp
     catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/bermudan_receiver_swaptions/g2_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/bermudan_receiver_swaptions/g2_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/caplets/g2_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/caplets/g2_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/european_payer_swaptions/g2_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/european_payer_swaptions/g2_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/european_receiver_swaptions/g2_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/european_receiver_swaptions/g2_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/floorlets/g2_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/floorlets/g2_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_up_and_out_calls/g2_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_up_and_out_calls/g2_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/g2/prices/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01/generator.cpp
     catalog/model/fixed_income/g2/prices/bermudan_receiver_swaptions/g2_01__bermudan_receiver_swaptions_01__01/generator.cpp
@@ -2512,30 +2607,54 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/fixed_income/g2/prices/zero_coupon_bond_up_and_out_calls/g2_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/bermudan_payer_swaptions/g2_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/bermudan_receiver_swaptions/g2_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/caplets/g2_plus_plus_01__flat_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/caplets/g2_plus_plus_01__flat_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/european_payer_swaptions/g2_plus_plus_01__flat_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/european_payer_swaptions/g2_plus_plus_01__flat_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/european_receiver_swaptions/g2_plus_plus_01__flat_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/european_receiver_swaptions/g2_plus_plus_01__flat_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/floorlets/g2_plus_plus_01__flat_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/floorlets/g2_plus_plus_01__flat_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_calls/g2_plus_plus_01__flat_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_calls/g2_plus_plus_01__flat_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_puts/g2_plus_plus_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_puts/g2_plus_plus_01__flat_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/bermudan_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/bermudan_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/european_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/european_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/european_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/european_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/g2_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/g2_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/g2_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/prices/flat/bermudan_payer_swaptions/g2_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01/generator.cpp
     catalog/model/fixed_income/g2_plus_plus/prices/flat/bermudan_receiver_swaptions/g2_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01/generator.cpp
@@ -2566,30 +2685,51 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/bermudan_receiver_swaptions/hull_white_01__flat_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/flat/caplets/hull_white_01__flat_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/caplets/hull_white_01__flat_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/flat/european_payer_swaptions/hull_white_01__flat_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/european_payer_swaptions/hull_white_01__flat_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/flat/european_receiver_swaptions/hull_white_01__flat_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/european_receiver_swaptions/hull_white_01__flat_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/flat/floorlets/hull_white_01__flat_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/floorlets/hull_white_01__flat_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_calls/hull_white_01__flat_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_calls/hull_white_01__flat_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_up_and_out_calls/hull_white_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_up_and_out_calls/hull_white_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/bermudan_payer_swaptions/hull_white_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/bermudan_receiver_swaptions/hull_white_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/european_receiver_swaptions/hull_white_01__nelson_siegel_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/european_receiver_swaptions/hull_white_01__nelson_siegel_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/bermudan_payer_swaptions/hull_white_01__svensson_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/bermudan_receiver_swaptions/hull_white_01__svensson_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/svensson/caplets/hull_white_01__svensson_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/caplets/hull_white_01__svensson_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/svensson/european_receiver_swaptions/hull_white_01__svensson_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/european_receiver_swaptions/hull_white_01__svensson_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/hull_white/prices/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01/generator.cpp
     catalog/model/fixed_income/hull_white/prices/flat/bermudan_receiver_swaptions/hull_white_01__flat_01__bermudan_receiver_swaptions_01__01/generator.cpp
@@ -2620,12 +2760,19 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/bermudan_receiver_swaptions/ornstein_uhlenbeck_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/caplets/ornstein_uhlenbeck_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/caplets/ornstein_uhlenbeck_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/european_receiver_swaptions/ornstein_uhlenbeck_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/european_receiver_swaptions/ornstein_uhlenbeck_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/floorlets/ornstein_uhlenbeck_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/floorlets/ornstein_uhlenbeck_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01/generator.cpp
     catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_receiver_swaptions/ornstein_uhlenbeck_01__bermudan_receiver_swaptions_01__01/generator.cpp
@@ -2638,12 +2785,19 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/bermudan_payer_swaptions/vasicek_01__bermudan_payer_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01_price_gradient_frozen_policy/generator.cpp
+    catalog/model/fixed_income/vasicek/price_gradients/caplets/vasicek_01__caplets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/caplets/vasicek_01__caplets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/vasicek/price_gradients/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/vasicek/price_gradients/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/vasicek/price_gradients/floorlets/vasicek_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/floorlets/vasicek_01__floorlets_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01_price_gradient/generator.cpp
+    catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_up_and_out_calls/vasicek_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_up_and_out_calls/vasicek_01__zero_coupon_bond_up_and_out_calls_01__01_price_gradient/generator.cpp
     catalog/model/fixed_income/vasicek/prices/bermudan_payer_swaptions/vasicek_01__bermudan_payer_swaptions_01__01/generator.cpp
     catalog/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01/generator.cpp
@@ -2656,7 +2810,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     catalog/model/fixed_income/vasicek/prices/zero_coupon_bond_up_and_out_calls/vasicek_01__zero_coupon_bond_up_and_out_calls_01__01/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/american_calls/bates_01__american_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/american_puts/bates_01__american_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/bates/price_gradients/asian_calls/bates_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/asian_puts/bates_01__asian_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/asset_or_nothing_calls/bates_01__asset_or_nothing_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/asset_or_nothing_puts/bates_01__asset_or_nothing_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
@@ -2668,7 +2821,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/bates/price_gradients/double_knock_out_puts/bates_01__double_knock_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/down_and_in_puts/bates_01__down_and_in_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/bates/price_gradients/european_calls/bates_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/european_puts/bates_01__european_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/forward_start_calls/bates_01__forward_start_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/forward_start_puts/bates_01__forward_start_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
@@ -2682,7 +2834,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/bates/price_gradients/range_accruals/bates_01__range_accruals_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/straddles/bates_01__straddles_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/up_and_in_calls/bates_01__up_and_in_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/bates/price_gradients/up_and_out_calls/bates_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/up_no_touches/bates_01__up_no_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/price_gradients/up_one_touches/bates_01__up_one_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/bates/prices/american_calls/bates_01__american_calls_01__01_cartesian_shard00/generator.cpp
@@ -2699,7 +2850,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/bates/prices/double_knock_out_puts/bates_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/bates/prices/down_and_in_puts/bates_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/bates/prices/down_and_out_puts/bates_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/bates/prices/european_calls/bates_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/bates/prices/european_puts/bates_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/bates/prices/forward_start_calls/bates_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/bates/prices/forward_start_puts/bates_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -2757,7 +2907,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/black_scholes/prices/double_knock_out_puts/black_scholes_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/black_scholes/prices/down_and_in_puts/black_scholes_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/black_scholes/prices/down_and_out_puts/black_scholes_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/black_scholes/prices/european_calls/black_scholes_01__european_calls_01__01_cartesian/generator.cpp
     work/catalog/model/equity/markovian/black_scholes/prices/european_puts/black_scholes_01__european_puts_01__01_cartesian/generator.cpp
     work/catalog/model/equity/markovian/black_scholes/prices/forward_start_calls/black_scholes_01__forward_start_calls_01__01_cartesian/generator.cpp
     work/catalog/model/equity/markovian/black_scholes/prices/forward_start_puts/black_scholes_01__forward_start_puts_01__01_cartesian/generator.cpp
@@ -2819,7 +2968,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/cev/prices/double_knock_out_puts/cev_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/cev/prices/down_and_in_puts/cev_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/cev/prices/down_and_out_puts/cev_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/cev/prices/european_calls/cev_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/cev/prices/european_puts/cev_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/cev/prices/forward_start_calls/cev_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/cev/prices/forward_start_puts/cev_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -2838,11 +2986,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/cev/prices/up_one_touches/cev_01__up_one_touches_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/american_calls/heston_01__american_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/american_puts/heston_01__american_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/heston/price_gradients/asian_calls/heston_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/heston/price_gradients/asian_puts/heston_01__asian_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/heston/price_gradients/asset_or_nothing_calls/heston_01__asset_or_nothing_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/heston/price_gradients/asset_or_nothing_puts/heston_01__asset_or_nothing_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/heston/price_gradients/athena_autocalls/heston_01__athena_autocalls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/cliquets/heston_01__cliquets_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/digital_calls/heston_01__digital_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/digital_puts/heston_01__digital_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
@@ -2850,7 +2993,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/heston/price_gradients/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/down_and_in_puts/heston_01__down_and_in_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/down_and_out_puts/heston_01__down_and_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/heston/price_gradients/european_calls/heston_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/european_puts/heston_01__european_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/forward_start_calls/heston_01__forward_start_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/forward_start_puts/heston_01__forward_start_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
@@ -2864,7 +3006,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/heston/price_gradients/range_accruals/heston_01__range_accruals_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/straddles/heston_01__straddles_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/up_and_in_calls/heston_01__up_and_in_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/heston/price_gradients/up_and_out_calls/heston_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/up_no_touches/heston_01__up_no_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/price_gradients/up_one_touches/heston_01__up_one_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/heston/prices/american_calls/heston_01__american_calls_01__01_cartesian_shard00/generator.cpp
@@ -2881,7 +3022,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/heston/prices/double_knock_out_puts/heston_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston/prices/down_and_in_puts/heston_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston/prices/down_and_out_puts/heston_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/heston/prices/european_calls/heston_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston/prices/european_puts/heston_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston/prices/forward_start_calls/heston_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston/prices/forward_start_puts/heston_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -2939,7 +3079,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/heston_3_2/prices/double_knock_out_puts/heston_3_2_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston_3_2/prices/down_and_in_puts/heston_3_2_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston_3_2/prices/down_and_out_puts/heston_3_2_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/heston_3_2/prices/european_calls/heston_3_2_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston_3_2/prices/european_puts/heston_3_2_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston_3_2/prices/forward_start_calls/heston_3_2_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/heston_3_2/prices/forward_start_puts/heston_3_2_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3001,7 +3140,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/kou/prices/double_knock_out_puts/kou_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/kou/prices/down_and_in_puts/kou_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/kou/prices/down_and_out_puts/kou_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/kou/prices/european_calls/kou_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/kou/prices/european_puts/kou_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/kou/prices/forward_start_calls/kou_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/kou/prices/forward_start_puts/kou_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3063,7 +3201,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/merton/prices/double_knock_out_puts/merton_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/merton/prices/down_and_in_puts/merton_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/merton/prices/down_and_out_puts/merton_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/merton/prices/european_calls/merton_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/merton/prices/european_puts/merton_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/merton/prices/forward_start_calls/merton_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/merton/prices/forward_start_puts/merton_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3125,7 +3262,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/normal_inverse_gaussian/prices/double_knock_out_puts/normal_inverse_gaussian_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_in_puts/normal_inverse_gaussian_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/normal_inverse_gaussian/prices/down_and_out_puts/normal_inverse_gaussian_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_calls/normal_inverse_gaussian_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/normal_inverse_gaussian/prices/european_puts/normal_inverse_gaussian_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_calls/normal_inverse_gaussian_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/normal_inverse_gaussian/prices/forward_start_puts/normal_inverse_gaussian_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3183,7 +3319,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/sabr/prices/double_knock_out_puts/sabr_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/sabr/prices/down_and_in_puts/sabr_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/sabr/prices/down_and_out_puts/sabr_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/sabr/prices/european_calls/sabr_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/sabr/prices/european_puts/sabr_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/sabr/prices/forward_start_calls/sabr_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/sabr/prices/forward_start_puts/sabr_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3245,7 +3380,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/schobel_zhu/prices/double_knock_out_puts/schobel_zhu_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/schobel_zhu/prices/down_and_in_puts/schobel_zhu_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/schobel_zhu/prices/down_and_out_puts/schobel_zhu_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/schobel_zhu/prices/european_calls/schobel_zhu_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/schobel_zhu/prices/european_puts/schobel_zhu_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/schobel_zhu/prices/forward_start_calls/schobel_zhu_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/schobel_zhu/prices/forward_start_puts/schobel_zhu_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3303,7 +3437,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/stein_stein/prices/double_knock_out_puts/stein_stein_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/stein_stein/prices/down_and_in_puts/stein_stein_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/stein_stein/prices/down_and_out_puts/stein_stein_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/stein_stein/prices/european_calls/stein_stein_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/stein_stein/prices/european_puts/stein_stein_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/stein_stein/prices/forward_start_calls/stein_stein_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/stein_stein/prices/forward_start_puts/stein_stein_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3322,19 +3455,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/stein_stein/prices/up_one_touches/stein_stein_01__up_one_touches_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/american_calls/variance_gamma_01__american_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/american_puts/variance_gamma_01__american_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/asian_calls/variance_gamma_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/asian_puts/variance_gamma_01__asian_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_calls/variance_gamma_01__asset_or_nothing_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/asset_or_nothing_puts/variance_gamma_01__asset_or_nothing_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/athena_autocalls/variance_gamma_01__athena_autocalls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/cliquets/variance_gamma_01__cliquets_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/digital_calls/variance_gamma_01__digital_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/digital_puts/variance_gamma_01__digital_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/double_knock_out_calls/variance_gamma_01__double_knock_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/double_knock_out_puts/variance_gamma_01__double_knock_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/down_and_out_puts/variance_gamma_01__down_and_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/european_calls/variance_gamma_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/european_puts/variance_gamma_01__european_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/forward_start_calls/variance_gamma_01__forward_start_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/forward_start_puts/variance_gamma_01__forward_start_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
@@ -3348,7 +3469,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/range_accruals/variance_gamma_01__range_accruals_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/straddles/variance_gamma_01__straddles_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/up_and_in_calls/variance_gamma_01__up_and_in_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/price_gradients/up_and_out_calls/variance_gamma_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/up_no_touches/variance_gamma_01__up_no_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/price_gradients/up_one_touches/variance_gamma_01__up_one_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/prices/american_calls/variance_gamma_01__american_calls_01__01_cartesian_shard00/generator.cpp
@@ -3365,7 +3485,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/markovian/variance_gamma/prices/double_knock_out_puts/variance_gamma_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/prices/down_and_in_puts/variance_gamma_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/prices/down_and_out_puts/variance_gamma_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/markovian/variance_gamma/prices/european_calls/variance_gamma_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/prices/european_puts/variance_gamma_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/prices/forward_start_calls/variance_gamma_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/markovian/variance_gamma/prices/forward_start_puts/variance_gamma_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3423,7 +3542,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/double_knock_out_puts/log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3481,7 +3599,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/rough/quadratic_rough_heston/prices/double_knock_out_puts/quadratic_rough_heston_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_in_puts/quadratic_rough_heston_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/quadratic_rough_heston/prices/down_and_out_puts/quadratic_rough_heston_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/rough/quadratic_rough_heston/prices/european_calls/quadratic_rough_heston_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/quadratic_rough_heston/prices/european_puts/quadratic_rough_heston_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_calls/quadratic_rough_heston_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/quadratic_rough_heston/prices/forward_start_puts/quadratic_rough_heston_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3556,19 +3673,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/rough/rough_bergomi/prices/up_and_out_calls/rough_bergomi_01__up_and_out_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_bergomi/prices/up_no_touches/rough_bergomi_01__up_no_touches_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_bergomi/prices/up_one_touches/rough_bergomi_01__up_one_touches_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/asian_calls/rough_heston_01__asian_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/asian_puts/rough_heston_01__asian_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_calls/rough_heston_01__asset_or_nothing_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/asset_or_nothing_puts/rough_heston_01__asset_or_nothing_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/athena_autocalls/rough_heston_01__athena_autocalls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/cliquets/rough_heston_01__cliquets_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/digital_calls/rough_heston_01__digital_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/digital_puts/rough_heston_01__digital_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/double_knock_out_calls/rough_heston_01__double_knock_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/double_knock_out_puts/rough_heston_01__double_knock_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/down_and_in_puts/rough_heston_01__down_and_in_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/down_and_out_puts/rough_heston_01__down_and_out_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/european_calls/rough_heston_01__european_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/price_gradients/european_puts/rough_heston_01__european_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/price_gradients/forward_start_calls/rough_heston_01__forward_start_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/price_gradients/forward_start_puts/rough_heston_01__forward_start_puts_01__01_cartesian_shard00_price_gradient/generator.cpp
@@ -3582,7 +3686,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/rough/rough_heston/price_gradients/range_accruals/rough_heston_01__range_accruals_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/price_gradients/straddles/rough_heston_01__straddles_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/price_gradients/up_and_in_calls/rough_heston_01__up_and_in_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/equity/rough/rough_heston/price_gradients/up_and_out_calls/rough_heston_01__up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/price_gradients/up_no_touches/rough_heston_01__up_no_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/price_gradients/up_one_touches/rough_heston_01__up_one_touches_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/equity/rough/rough_heston/prices/asian_calls/rough_heston_01__asian_calls_01__01_cartesian_shard00/generator.cpp
@@ -3713,7 +3816,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/rough/rough_stein_stein/prices/double_knock_out_puts/rough_stein_stein_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/european_puts/rough_stein_stein_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -3730,15 +3832,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/equity/rough/rough_stein_stein/prices/up_and_out_calls/rough_stein_stein_01__up_and_out_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/up_no_touches/rough_stein_stein_01__up_no_touches_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/up_one_touches/rough_stein_stein_01__up_one_touches_01__01_cartesian_shard00/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/caplets/cir_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/european_payer_swaptions/cir_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/european_receiver_swaptions/cir_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/floorlets/cir_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_calls/cir_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_puts/cir_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir/price_gradients/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/cir/prices/bermudan_payer_swaptions/cir_01__bermudan_payer_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/cir/prices/bermudan_receiver_swaptions/cir_01__bermudan_receiver_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/cir/prices/caplets/cir_01__caplets_01__01_cartesian/generator.cpp
@@ -3750,31 +3843,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/cir/prices/zero_coupon_bond_up_and_out_calls/cir_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/bermudan_payer_swaptions/cir_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/bermudan_receiver_swaptions/cir_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/caplets/cir_plus_plus_01__flat_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/european_payer_swaptions/cir_plus_plus_01__flat_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/european_receiver_swaptions/cir_plus_plus_01__flat_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/floorlets/cir_plus_plus_01__flat_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_calls/cir_plus_plus_01__flat_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_puts/cir_plus_plus_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/flat/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/european_payer_swaptions/cir_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/european_receiver_swaptions/cir_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/floorlets/cir_plus_plus_01__nelson_siegel_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_puts/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/cir_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/cir_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/caplets/cir_plus_plus_01__svensson_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/european_payer_swaptions/cir_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/european_receiver_swaptions/cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/floorlets/cir_plus_plus_01__svensson_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/cir_plus_plus/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/cir_plus_plus/prices/flat/bermudan_payer_swaptions/cir_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/cir_plus_plus/prices/flat/bermudan_receiver_swaptions/cir_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/cir_plus_plus/prices/flat/caplets/cir_plus_plus_01__flat_01__caplets_01__01_cartesian/generator.cpp
@@ -3802,15 +3870,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01_cartesian/generator.cpp
     work/catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_puts/cir_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian/generator.cpp
     work/catalog/model/fixed_income/cir_plus_plus/prices/svensson/zero_coupon_bond_up_and_out_calls/cir_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/bermudan_receiver_swaptions/g2_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/caplets/g2_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/european_payer_swaptions/g2_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/european_receiver_swaptions/g2_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/floorlets/g2_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_calls/g2_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_puts/g2_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2/price_gradients/zero_coupon_bond_up_and_out_calls/g2_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/g2/prices/bermudan_payer_swaptions/g2_01__bermudan_payer_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/g2/prices/bermudan_receiver_swaptions/g2_01__bermudan_receiver_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/g2/prices/caplets/g2_01__caplets_01__01_cartesian/generator.cpp
@@ -3822,31 +3881,7 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/g2/prices/zero_coupon_bond_up_and_out_calls/g2_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/bermudan_payer_swaptions/g2_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/bermudan_receiver_swaptions/g2_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/caplets/g2_plus_plus_01__flat_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/european_payer_swaptions/g2_plus_plus_01__flat_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/european_receiver_swaptions/g2_plus_plus_01__flat_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/floorlets/g2_plus_plus_01__flat_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_calls/g2_plus_plus_01__flat_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_puts/g2_plus_plus_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/flat/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/bermudan_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/bermudan_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/caplets/g2_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/european_payer_swaptions/g2_plus_plus_01__nelson_siegel_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/european_receiver_swaptions/g2_plus_plus_01__nelson_siegel_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/floorlets/g2_plus_plus_01__nelson_siegel_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/bermudan_payer_swaptions/g2_plus_plus_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/bermudan_receiver_swaptions/g2_plus_plus_01__svensson_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/caplets/g2_plus_plus_01__svensson_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_payer_swaptions/g2_plus_plus_01__svensson_01__european_payer_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/european_receiver_swaptions/g2_plus_plus_01__svensson_01__european_receiver_swaptions_01__01_cartesian_shard00_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/floorlets/g2_plus_plus_01__svensson_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_puts/g2_plus_plus_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/g2_plus_plus/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/g2_plus_plus/prices/flat/bermudan_payer_swaptions/g2_plus_plus_01__flat_01__bermudan_payer_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/g2_plus_plus/prices/flat/bermudan_receiver_swaptions/g2_plus_plus_01__flat_01__bermudan_receiver_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/g2_plus_plus/prices/flat/caplets/g2_plus_plus_01__flat_01__caplets_01__01_cartesian/generator.cpp
@@ -3876,31 +3911,10 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/g2_plus_plus/prices/svensson/zero_coupon_bond_up_and_out_calls/g2_plus_plus_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/hull_white/price_gradients/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/hull_white/price_gradients/flat/bermudan_receiver_swaptions/hull_white_01__flat_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/flat/caplets/hull_white_01__flat_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/flat/european_payer_swaptions/hull_white_01__flat_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/flat/european_receiver_swaptions/hull_white_01__flat_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/flat/floorlets/hull_white_01__flat_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_calls/hull_white_01__flat_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_puts/hull_white_01__flat_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/flat/zero_coupon_bond_up_and_out_calls/hull_white_01__flat_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/bermudan_payer_swaptions/hull_white_01__nelson_siegel_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/bermudan_receiver_swaptions/hull_white_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/caplets/hull_white_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/european_payer_swaptions/hull_white_01__nelson_siegel_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/european_receiver_swaptions/hull_white_01__nelson_siegel_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/floorlets/hull_white_01__nelson_siegel_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_puts/hull_white_01__nelson_siegel_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/nelson_siegel/zero_coupon_bond_up_and_out_calls/hull_white_01__nelson_siegel_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/hull_white/price_gradients/svensson/bermudan_payer_swaptions/hull_white_01__svensson_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/hull_white/price_gradients/svensson/bermudan_receiver_swaptions/hull_white_01__svensson_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/svensson/caplets/hull_white_01__svensson_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/svensson/european_payer_swaptions/hull_white_01__svensson_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/svensson/european_receiver_swaptions/hull_white_01__svensson_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/svensson/floorlets/hull_white_01__svensson_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_calls/hull_white_01__svensson_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_puts/hull_white_01__svensson_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/hull_white/price_gradients/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/hull_white/prices/flat/bermudan_payer_swaptions/hull_white_01__flat_01__bermudan_payer_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/hull_white/prices/flat/bermudan_receiver_swaptions/hull_white_01__flat_01__bermudan_receiver_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/hull_white/prices/flat/caplets/hull_white_01__flat_01__caplets_01__01_cartesian/generator.cpp
@@ -3930,13 +3944,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/hull_white/prices/svensson/zero_coupon_bond_up_and_out_calls/hull_white_01__svensson_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/bermudan_receiver_swaptions/ornstein_uhlenbeck_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/caplets/ornstein_uhlenbeck_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/european_payer_swaptions/ornstein_uhlenbeck_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/european_receiver_swaptions/ornstein_uhlenbeck_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/floorlets/ornstein_uhlenbeck_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_calls/ornstein_uhlenbeck_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_puts/ornstein_uhlenbeck_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/ornstein_uhlenbeck/price_gradients/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_payer_swaptions/ornstein_uhlenbeck_01__bermudan_payer_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/ornstein_uhlenbeck/prices/bermudan_receiver_swaptions/ornstein_uhlenbeck_01__bermudan_receiver_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/ornstein_uhlenbeck/prices/caplets/ornstein_uhlenbeck_01__caplets_01__01_cartesian/generator.cpp
@@ -3948,13 +3955,6 @@ set(AI_FACTORY_MANIFEST_PRICE_GENERATOR_SOURCES
     work/catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/vasicek/price_gradients/bermudan_payer_swaptions/vasicek_01__bermudan_payer_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
     work/catalog/model/fixed_income/vasicek/price_gradients/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01_cartesian_shard00_price_gradient_frozen_policy/generator.cpp
-    catalog/model/fixed_income/vasicek/price_gradients/caplets/vasicek_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/vasicek/price_gradients/european_payer_swaptions/vasicek_01__european_payer_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/vasicek/price_gradients/european_receiver_swaptions/vasicek_01__european_receiver_swaptions_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/vasicek/price_gradients/floorlets/vasicek_01__floorlets_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_calls/vasicek_01__zero_coupon_bond_calls_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_puts/vasicek_01__zero_coupon_bond_puts_01__01_cartesian_price_gradient/generator.cpp
-    catalog/model/fixed_income/vasicek/price_gradients/zero_coupon_bond_up_and_out_calls/vasicek_01__zero_coupon_bond_up_and_out_calls_01__01_cartesian_shard00_price_gradient/generator.cpp
     work/catalog/model/fixed_income/vasicek/prices/bermudan_payer_swaptions/vasicek_01__bermudan_payer_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/vasicek/prices/bermudan_receiver_swaptions/vasicek_01__bermudan_receiver_swaptions_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/fixed_income/vasicek/prices/caplets/vasicek_01__caplets_01__01_cartesian/generator.cpp
@@ -4062,6 +4062,7 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01/generator.cpp
@@ -4242,6 +4243,7 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     catalog/model/equity/rough/rough_stein_stein/prices/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01/generator.cpp
+    catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01_cartesian_shard00/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/european_puts/rough_stein_stein_01__european_puts_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01/generator.cpp
     catalog/model/equity/rough/rough_stein_stein/prices/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01/generator.cpp
@@ -4301,7 +4303,6 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/double_knock_out_puts/log_modulated_rough_bergomi_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_in_puts/log_modulated_rough_bergomi_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/down_and_out_puts/log_modulated_rough_bergomi_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_calls/log_modulated_rough_bergomi_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/european_puts/log_modulated_rough_bergomi_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_calls/log_modulated_rough_bergomi_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/log_modulated_rough_bergomi/prices/forward_start_puts/log_modulated_rough_bergomi_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp
@@ -4475,7 +4476,6 @@ set(AI_FACTORY_MANIFEST_MATHDX_GENERATOR_SOURCES
     work/catalog/model/equity/rough/rough_stein_stein/prices/double_knock_out_puts/rough_stein_stein_01__double_knock_out_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/down_and_in_puts/rough_stein_stein_01__down_and_in_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/down_and_out_puts/rough_stein_stein_01__down_and_out_puts_01__01_cartesian_shard00/generator.cpp
-    catalog/model/equity/rough/rough_stein_stein/prices/european_calls/rough_stein_stein_01__european_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/european_puts/rough_stein_stein_01__european_puts_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/forward_start_calls/rough_stein_stein_01__forward_start_calls_01__01_cartesian_shard00/generator.cpp
     work/catalog/model/equity/rough/rough_stein_stein/prices/forward_start_puts/rough_stein_stein_01__forward_start_puts_01__01_cartesian_shard00/generator.cpp

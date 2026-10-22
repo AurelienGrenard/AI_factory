@@ -1,7 +1,7 @@
 // Gaussian rough Asian graph: cached FFT, path payoff, CRN and price parity.
-#include "common/check_cuda.cuh"
-#include "common/equity/spot_relative_product.hpp"
-#include "common/volterra/hybrid_fft_workspace.cuh"
+#include "cuda/check_cuda.cuh"
+#include "equity/spot_relative_product.hpp"
+#include "volterra/hybrid_fft_workspace.cuh"
 #ifndef ROUGH_GAUSSIAN_PATH_TEST_MODEL
 #define ROUGH_GAUSSIAN_PATH_TEST_MODEL 0
 #endif

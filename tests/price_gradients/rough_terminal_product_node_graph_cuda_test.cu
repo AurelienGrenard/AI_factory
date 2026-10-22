@@ -1,5 +1,5 @@
 // Non-European terminal product exercises the shared rough graph payoff policy.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #if ROUGH_TERMINAL_TEST_MODEL == 0
 #include "model/equity/rough/rough_heston/product/digital_option.cuh"
 #include "model/equity/rough/rough_heston/product/digital_option_price_gradients.cuh"

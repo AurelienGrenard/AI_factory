@@ -1,7 +1,7 @@
 // Quadratic rough-Heston range-accrual composition over a prepared N-factor lift.
 #include "model/equity/rough/quadratic_rough_heston/product/range_accrual.cuh"
 
-#include "common/simulation/schedule.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_pricing.cuh"
 #include "product/range_accrual/pricing_policy.cuh"
 

@@ -1,5 +1,5 @@
 // Generated Generate CIR++/Svensson European receiver-swaption prices.
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/cir_plus_plus/product/svensson/european_swaption.cuh"
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/cir_plus_plus/dataset.hpp"

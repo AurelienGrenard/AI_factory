@@ -1,7 +1,7 @@
 // Generated public launcher for closed-form Black-Scholes range-accrual pricing.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
 #include "model/equity/markovian/black_scholes/parameters.hpp"
 #include "product/range_accrual/parameters.hpp"

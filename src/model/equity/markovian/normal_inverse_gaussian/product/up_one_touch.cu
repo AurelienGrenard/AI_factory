@@ -1,8 +1,8 @@
 // Normal-Inverse-Gaussian up-one-touch composition over generic CUDA layers.
 #include "model/equity/markovian/normal_inverse_gaussian/product/up_one_touch.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
 #include "product/up_one_touch/pricing_policy.cuh"
 

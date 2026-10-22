@@ -1,6 +1,6 @@
 // Host implementation of the Bates dataset loader.
 #include "model/equity/markovian/bates/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "model/equity/markovian/bates/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

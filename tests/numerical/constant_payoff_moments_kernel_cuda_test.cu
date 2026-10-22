@@ -1,6 +1,6 @@
 // Production-length raw-moment sums must not reject deterministic FP32 payoffs.
-#include "common/reductions.cuh"
-#include "common/check_cuda.cuh"
+#include "monte_carlo/reductions.cuh"
+#include "cuda/check_cuda.cuh"
 #include <array>
 #include <cmath>
 #include <iostream>

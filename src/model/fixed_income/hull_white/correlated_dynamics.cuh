@@ -1,6 +1,6 @@
 // Hull-White curve fitting around the correlated OU factor.
 #pragma once
-#include "common/fixed_income/fitted_correlated_rate.cuh"
+#include "fixed_income/fitted_correlated_rate.cuh"
 #include "model/fixed_income/hull_white/fitted_analytics.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/analytics_impl.cuh"
 #include "model/fixed_income/hull_white/parameter_domain.hpp"

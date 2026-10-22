@@ -1,7 +1,7 @@
 // Rough-Heston up-one-touch composition over a prepared N-factor lift.
 #include "model/equity/rough/rough_heston/product/up_one_touch.cuh"
 
-#include "common/simulation/schedule.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/rough_heston/markovian_n_factor_pricing.cuh"
 #include "product/up_one_touch/pricing_policy.cuh"
 

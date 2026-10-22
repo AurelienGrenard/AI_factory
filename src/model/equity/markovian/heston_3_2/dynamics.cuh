@@ -1,8 +1,8 @@
 // Public state and fixed-step dynamics-policy declarations for the Heston 3/2 model.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "equity/concepts.cuh"
+#include "philox/distributions.cuh"
 #include "model/equity/markovian/heston_3_2/parameters.hpp"
 
 #include <cuda_runtime.h>

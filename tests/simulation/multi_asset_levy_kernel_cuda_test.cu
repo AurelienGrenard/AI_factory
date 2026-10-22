@@ -1,5 +1,5 @@
 // Gaussian factor coupling for exact NIG and VG one-step transitions.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "correlation/dataset.hpp"
 #include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
 #include "model/equity/markovian/variance_gamma/dynamics_impl.cuh"

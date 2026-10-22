@@ -1,6 +1,6 @@
 // Validate Nelson-Siegel and exact Hull-White building blocks on CUDA.
-#include "common/check_cuda.cuh"
-#include "common/simulation/path_simulation.cuh"
+#include "cuda/check_cuda.cuh"
+#include "dynamics/path_simulation.cuh"
 
 // Include the implementation exactly as future product kernels will.
 #include "model/fixed_income/hull_white/nelson_siegel/analytics_impl.cuh"

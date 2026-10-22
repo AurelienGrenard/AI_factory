@@ -1,7 +1,7 @@
 // Generated Black-Scholes $product_type composition over shared closed-form bumping.
 #include "model/equity/markovian/black_scholes/product/${product}_price_delta.cuh"
 
-#include "common/closed_form/closed_form_price_delta_kernels.cuh"
+#include "closed_form/closed_form_price_delta_kernels.cuh"
 $policy_include
 
 namespace ai_factory::workbench::model::equity::black_scholes {

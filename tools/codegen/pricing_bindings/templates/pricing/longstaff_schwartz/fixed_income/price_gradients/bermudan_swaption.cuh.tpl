@@ -1,13 +1,13 @@
 // Generated ${model_display}${curve_display_suffix} Bermudan sensitivities.
 #pragma once
 
-#include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/longstaff_schwartz/launch.cuh"
-#include "common/longstaff_schwartz/price_gradients/exercise_replay.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "fixed_income/price_gradients/device_prepared_plan.hpp"
+#include "fixed_income/swaption_side.cuh"
+#include "longstaff_schwartz/launch.cuh"
+#include "longstaff_schwartz/price_gradients/exercise_replay.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 ${curve_header_include}#include "model/fixed_income/${model}/price_gradients/device_preparation.cuh"
 #include "product/bermudan_swaption/price_gradients/device_preparation.cuh"
 

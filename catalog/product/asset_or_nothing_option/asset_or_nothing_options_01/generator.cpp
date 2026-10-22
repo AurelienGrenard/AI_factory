@@ -1,6 +1,6 @@
 // Generate asset-or-nothing options on the standard equity grid.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <filesystem>
 #include <string>

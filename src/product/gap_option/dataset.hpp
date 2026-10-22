@@ -3,7 +3,7 @@
 
 #include "product/gap_option/parameters.hpp"
 
-#include "common/option_side.cuh"
+#include "payoff/option_side.cuh"
 
 #include <filesystem>
 #include <vector>

@@ -1,10 +1,10 @@
 // Range-accrual payoff composed with a regular equity schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/equity/path_product_monte_carlo_policy.cuh"
-#include "common/equity/path_product_policy.cuh"
-#include "common/simulation/schedule.cuh"
+#include "equity/concepts.cuh"
+#include "equity/path_product_monte_carlo_policy.cuh"
+#include "equity/path_product_policy.cuh"
+#include "schedule/schedule.cuh"
 #include "product/range_accrual/parameters.hpp"
 
 #include <cmath>

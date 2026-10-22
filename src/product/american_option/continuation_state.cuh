@@ -1,10 +1,10 @@
 // Compact SoA continuation-state projections for American equity options.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/equity/handlers.cuh"
-#include "common/longstaff_schwartz/basis/feature_vector.cuh"
-#include "common/longstaff_schwartz/workspace.cuh"
+#include "equity/concepts.cuh"
+#include "equity/handlers.cuh"
+#include "longstaff_schwartz/basis/feature_vector.cuh"
+#include "longstaff_schwartz/workspace.cuh"
 
 #include <cmath>
 #include <cstddef>

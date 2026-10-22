@@ -79,14 +79,14 @@
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/equity/markovian/kou/prices/up_one_touches/kou_01__up_one_touches_01__01/recipe.yaml",
-    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios.",
     "reconstructible_from_price": [
       {
         "parameter": "product.cash_payoff",
         "formula": "price / product.cash_payoff",
         "standard_error": "standard_error / product.cash_payoff"
       }
-    ]
+    ],
+    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios."
   },
   "sensitivity_strategy": "mono",
   "standard_error_scope": "paired Monte Carlo sampling error; excludes bump and discretization bias",

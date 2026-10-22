@@ -1,7 +1,7 @@
 // Host implementation of the Heston dataset loader.
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "model/equity/markovian/heston/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

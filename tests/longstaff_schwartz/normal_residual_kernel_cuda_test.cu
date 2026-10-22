@@ -1,7 +1,7 @@
 // Check the bounded LSM residual correction, its precision and status accounting.
-#include "common/check_cuda.cuh"
-#include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
+#include "cuda/check_cuda.cuh"
+#include "longstaff_schwartz/basis/laguerre.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
 
 #include <cuda_runtime.h>
 

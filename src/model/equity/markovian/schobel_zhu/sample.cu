@@ -2,8 +2,8 @@
 #include "model/equity/markovian/schobel_zhu/sample.cuh"
 #include "model/equity/markovian/schobel_zhu/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/schobel_zhu/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::schobel_zhu {

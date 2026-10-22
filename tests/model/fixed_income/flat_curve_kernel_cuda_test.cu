@@ -1,5 +1,5 @@
 // Validate the flat term structure and its exact Nelson-Siegel embedding on CUDA.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "curve/flat/term_structure_impl.cuh"
 #include "curve/nelson_siegel/term_structure_impl.cuh"
 

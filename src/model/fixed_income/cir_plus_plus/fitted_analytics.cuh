@@ -1,7 +1,7 @@
 // Curve-independent CIR++ composition and public affine analytics contracts.
 #pragma once
 
-#include "common/fixed_income/analytics_concepts.cuh"
+#include "fixed_income/analytics_concepts.cuh"
 #include "model/fixed_income/cir/analytics.cuh"
 #include "model/fixed_income/cir_plus_plus/parameters.hpp"
 

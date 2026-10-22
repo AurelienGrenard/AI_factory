@@ -1,5 +1,5 @@
 // Runtime checks for CUDA kernel resource and occupancy inspection.
-#include "common/cuda_kernel_diagnostics.cuh"
+#include "cuda/cuda_kernel_diagnostics.cuh"
 
 #include <cuda_runtime.h>
 

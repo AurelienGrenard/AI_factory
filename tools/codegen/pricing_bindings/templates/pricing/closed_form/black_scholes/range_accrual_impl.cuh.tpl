@@ -1,13 +1,13 @@
 // Shared Black-Scholes range_accrual formula policy used by price and price-delta kernels.
 #pragma once
 
-#include "common/closed_form/concepts.cuh"
+#include "closed_form/concepts.cuh"
 
 #include "model/equity/markovian/black_scholes/product/range_accrual.cuh"
 
-#include "common/compensated_sum.cuh"
-#include "common/device_inputs.cuh"
-#include "common/time_configuration.cuh"
+#include "compensated_sum.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "schedule/time_configuration.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::black_scholes {

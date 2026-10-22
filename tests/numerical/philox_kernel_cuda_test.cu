@@ -1,7 +1,7 @@
 // Verify the common Philox counter layout and path-local sequence contract.
-#include "common/check_cuda.cuh"
-#include "common/philox.cuh"
-#include "common/philox_domains.cuh"
+#include "cuda/check_cuda.cuh"
+#include "philox/distributions.cuh"
+#include "philox/domains.cuh"
 
 #include <cuda_runtime.h>
 

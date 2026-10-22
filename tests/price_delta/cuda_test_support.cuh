@@ -1,7 +1,7 @@
 // Small RAII device fixtures and fail-fast assertions shared by price-delta tests.
 #pragma once
 
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include <cstddef>
 #include <stdexcept>
 

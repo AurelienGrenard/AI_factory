@@ -1,12 +1,12 @@
 // Vasicek European-swaption sensitivities under Jamshidian.
 #pragma once
 
-#include "common/closed_form/concepts.cuh"
-#include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "closed_form/concepts.cuh"
+#include "fixed_income/price_gradients/device_prepared_plan.hpp"
+#include "fixed_income/swaption_side.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/vasicek/price_gradients/device_preparation.cuh"
 #include "product/european_swaption/price_gradients/device_preparation.cuh"
 

@@ -1,7 +1,7 @@
 // Rough Stein-Stein lookback-option composition over the Volterra FFT engine.
 #include "model/equity/rough/rough_stein_stein/product/lookback_option.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_stein_stein/volterra_fft_pricing.cuh"
 #include "product/lookback_option/pricing_policy.cuh"
 

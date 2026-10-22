@@ -2,7 +2,7 @@
 #include "model/equity/markovian/bates/product/american_option.cuh"
 #include "model/equity/markovian/bates/product/american_option_price_delta.cuh"
 #include "model/equity/markovian/bates/product/american_option_price_gradients.cuh"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_frozen_exercise_replay.cuh"
+#include "longstaff_schwartz/price_gradients/device_prepared_frozen_exercise_replay.cuh"
 #include "model/equity/markovian/bates/dynamics_impl.cuh"
 #include "model/equity/markovian/bates/price_gradients/coupled_dynamics_impl.cuh"
 #include "tests/price_gradients/cuda_test_support.cuh"

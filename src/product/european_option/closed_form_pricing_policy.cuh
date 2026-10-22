@@ -1,10 +1,10 @@
 // European payoff composition for models exposing discounted lognormal analytics.
 #pragma once
 
-#include "common/device_inputs.cuh"
-#include "common/lognormal_option.cuh"
-#include "common/option_side.cuh"
-#include "common/time_configuration.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "closed_form/lognormal_option.cuh"
+#include "payoff/option_side.cuh"
+#include "schedule/time_configuration.cuh"
 #include "product/european_option/parameters.hpp"
 
 namespace ai_factory::workbench::product {

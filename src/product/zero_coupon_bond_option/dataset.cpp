@@ -1,6 +1,6 @@
 // Convert zero-coupon bond option JSON rows into compact CUDA parameters.
 #include "product/zero_coupon_bond_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -13,9 +13,11 @@ namespace ai_factory::workbench::product {
 std::vector<ZeroCouponBondOptionParameters> load_zero_coupon_bond_options(
     const std::filesystem::path& dataset_path
 ) {
-    const bool quoted = datasets::read_parameter_dataset(
-        dataset_path, datasets::ParameterDatasetFamily::Product,
-        "Fixed-income product").contains("quote_convention");
+    const bool quoted = datasets::fixed_income_relative_quote(
+        datasets::read_parameter_dataset(
+            dataset_path, datasets::ParameterDatasetFamily::Product,
+            "Fixed-income product"),
+        "ratio_to_initial_forward_bond_price", "dimensionless");
     return datasets::load_parameter_rows<ZeroCouponBondOptionParameters>(
         dataset_path,
         datasets::ParameterDatasetFamily::Product,

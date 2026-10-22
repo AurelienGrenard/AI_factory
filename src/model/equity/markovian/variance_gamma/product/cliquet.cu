@@ -1,8 +1,8 @@
 // Variance-Gamma cliquet composition over generic CUDA layers.
 #include "model/equity/markovian/variance_gamma/product/cliquet.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/variance_gamma/dynamics_impl.cuh"
 #include "product/cliquet/pricing_policy.cuh"
 

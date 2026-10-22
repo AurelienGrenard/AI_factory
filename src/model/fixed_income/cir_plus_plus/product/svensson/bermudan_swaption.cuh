@@ -1,10 +1,10 @@
 // Generated Public Longstaff-Schwartz launcher for CIR++/Svensson Bermudan swaptions.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/longstaff_schwartz/launch.cuh"
+#include "fixed_income/swaption_side.cuh"
+#include "longstaff_schwartz/launch.cuh"
 #include "curve/svensson/dataset.hpp"
 #include "model/fixed_income/cir_plus_plus/parameters.hpp"
 #include "product/bermudan_swaption/parameters.hpp"

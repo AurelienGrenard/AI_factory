@@ -1,7 +1,7 @@
 // Path sensitivity graph composition for log_modulated_rough_bergomi products.
 #pragma once
 
-#include "common/volterra/price_gradients/gaussian_path_product_graph.cuh"
+#include "volterra/price_gradients/gaussian_path_product_graph.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/price_gradients/terminal_product_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::log_modulated_rough_bergomi {

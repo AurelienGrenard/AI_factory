@@ -1,7 +1,7 @@
 // Terminal sensitivity graph composition for rough_bergomi products.
 #pragma once
 
-#include "common/volterra/price_gradients/gaussian_terminal_product_graph.cuh"
+#include "volterra/price_gradients/gaussian_terminal_product_graph.cuh"
 #include "model/equity/rough/rough_bergomi/dynamics_impl.cuh"
 #include "model/equity/rough/rough_bergomi/price_gradients/device_preparation.cuh"
 

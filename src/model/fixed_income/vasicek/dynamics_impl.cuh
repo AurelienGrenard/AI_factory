@@ -2,7 +2,7 @@
 #pragma once
 
 #include "model/fixed_income/vasicek/dynamics.cuh"
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 
 namespace ai_factory::workbench::model::fixed_income::vasicek {
 

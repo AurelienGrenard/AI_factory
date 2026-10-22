@@ -54,19 +54,8 @@
       }
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
-    "source_price_recipe": "catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01/recipe.yaml"
-  },
-  "option_side": "call",
-  "standard_error_scope": "paired Monte Carlo sampling error; excludes bump and discretization bias",
-  "seeds": {
-    "dynamics": 11668829245857071104
-  },
-  "random_number_generator": "philox",
-  "time_grid": {
-    "steps_per_year": 504,
-    "simulation_steps_per_day": 2,
-    "delta_t": "1 / 504",
-    "monitoring": "grid points including t=0 and T; continuous barrier approximate"
+    "source_price_recipe": "catalog/model/fixed_income/ornstein_uhlenbeck/prices/zero_coupon_bond_up_and_out_calls/ornstein_uhlenbeck_01__zero_coupon_bond_up_and_out_calls_01__01/recipe.yaml",
+    "maturity_coordinate": "Underlying bond maturity U; option expiry T, monitoring grid, and central absolute K and B stay fixed."
   },
   "quote_convention": {
     "strike": {
@@ -80,5 +69,17 @@
       "effective_level": "barrier = barrier_ratio * P(0,U)"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute K and B stay fixed for model and curve bumps."
+  },
+  "option_side": "call",
+  "standard_error_scope": "paired Monte Carlo sampling error; excludes bump and discretization bias",
+  "seeds": {
+    "dynamics": 11668829245857071104
+  },
+  "random_number_generator": "philox",
+  "time_grid": {
+    "steps_per_year": 504,
+    "simulation_steps_per_day": 2,
+    "delta_t": "1 / 504",
+    "monitoring": "grid points including t=0 and T; continuous barrier approximate"
   }
 }

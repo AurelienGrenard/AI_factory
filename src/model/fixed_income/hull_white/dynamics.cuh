@@ -1,7 +1,7 @@
 // Hull-White stochastic-factor adapters over the shared OU dynamics.
 #pragma once
 
-#include "common/simulation/adapted_dynamics.cuh"
+#include "dynamics/adapted_dynamics.cuh"
 #include "model/fixed_income/hull_white/parameters.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics.cuh"
 

@@ -1,6 +1,6 @@
 // Host implementation of the rough-Bergomi dataset loader.
 #include "model/equity/rough/rough_bergomi/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

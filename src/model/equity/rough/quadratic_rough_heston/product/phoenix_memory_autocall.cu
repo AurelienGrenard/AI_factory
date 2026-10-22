@@ -1,7 +1,7 @@
 // Quadratic rough-Heston phoenix-memory-autocall composition over a prepared N-factor lift.
 #include "model/equity/rough/quadratic_rough_heston/product/phoenix_memory_autocall.cuh"
 
-#include "common/simulation/schedule.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_pricing.cuh"
 #include "product/phoenix_memory_autocall/pricing_policy.cuh"
 

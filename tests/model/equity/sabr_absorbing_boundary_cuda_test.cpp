@@ -1,5 +1,5 @@
 // Compare beta=0 SABR with the killed arithmetic-Brownian reference law.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/markovian/sabr/product/european_option.cuh"
 
 #include <cuda_runtime.h>

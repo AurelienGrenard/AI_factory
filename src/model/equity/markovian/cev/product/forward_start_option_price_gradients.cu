@@ -1,9 +1,9 @@
 // Generated cev forward_start_option path sensitivities over the common device-prepared engine.
 #include "model/equity/markovian/cev/product/forward_start_option_price_gradients.cuh"
 
-#include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/path_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
+#include "equity/price_gradients/path_device_prepared_launcher.cuh"
+#include "equity/price_gradients/path_node_graph_launcher.cuh"
+#include "equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/cev/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/cev/product/forward_start_option.cuh"
 #include "product/forward_start_option/pricing_policy.cuh"

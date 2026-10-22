@@ -1,5 +1,5 @@
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 int main() {
     using namespace ai_factory::workbench::datasets;

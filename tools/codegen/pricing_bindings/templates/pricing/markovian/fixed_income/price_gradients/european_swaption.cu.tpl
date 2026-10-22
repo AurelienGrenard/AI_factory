@@ -1,10 +1,10 @@
 // ${model_display}${curve_display_suffix} European-swaption mono/node-graph MC sensitivities.
 #include "${unit_path}.cuh"
 
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
-#include "common/monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
+#include "equity/price_gradients/terminal_node_graph_launcher.cuh"
+#include "monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
 #include "product/european_swaption/price_gradients/monte_carlo_policy.cuh"
 ${implementation_includes}
 #include <algorithm>

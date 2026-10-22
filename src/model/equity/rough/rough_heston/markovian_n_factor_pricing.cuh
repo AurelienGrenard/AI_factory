@@ -1,9 +1,9 @@
 // Generic product binding for the host-prepared rough-Heston Markovian lift.
 #pragma once
 
-#include "common/equity/prepared_path_product_pricing.cuh"
-#include "common/price_construction.cuh"
-#include "common/simulation/schedule.cuh"
+#include "equity/prepared_path_product_pricing.cuh"
+#include "pricing_rows/price_construction.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/rough_heston/dynamics_impl.cuh"
 
 #include <cstddef>

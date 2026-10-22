@@ -1,8 +1,8 @@
 // Public state and fixed-step dynamics-policy declarations for Stein--Stein.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "equity/concepts.cuh"
+#include "philox/distributions.cuh"
 #include "model/equity/markovian/stein_stein/parameters.hpp"
 
 #include <cuda_runtime.h>

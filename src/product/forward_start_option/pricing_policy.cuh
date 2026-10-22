@@ -1,11 +1,11 @@
 // Two-date forward-start payoff composed with an exact calendar schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/option_side.cuh"
-#include "common/equity/path_product_monte_carlo_policy.cuh"
-#include "common/equity/path_product_policy.cuh"
-#include "common/simulation/schedule.cuh"
+#include "equity/concepts.cuh"
+#include "payoff/option_side.cuh"
+#include "equity/path_product_monte_carlo_policy.cuh"
+#include "equity/path_product_policy.cuh"
+#include "schedule/schedule.cuh"
 #include "product/forward_start_option/parameters.hpp"
 
 #include <cmath>

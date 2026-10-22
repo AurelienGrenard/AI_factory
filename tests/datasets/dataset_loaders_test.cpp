@@ -50,7 +50,8 @@
 #include "product/up_one_touch/dataset.hpp"
 #include "product/up_and_out_option/dataset.hpp"
 #include "product/zero_coupon_bond_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "product/zero_coupon_bond_up_and_out/dataset.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -220,8 +221,132 @@ nlohmann::json one_row(
             {"unit", "business_day"},
             {"days_per_year", 252U},
         };
+        if (!parameters.contains("notional")) {
+            nlohmann::json convention = nlohmann::json::object();
+            for (const char* field : {
+                     "strike", "trigger_strike", "payoff_strike", "barrier",
+                     "lower_barrier", "upper_barrier", "autocall_barrier",
+                     "coupon_barrier", "protection_barrier"}) {
+                if (!parameters.contains(field)) continue;
+                const bool intrinsic_range =
+                    !parameters.contains("strike")
+                    && parameters.contains("coupon_rate");
+                convention[field] = {
+                    {"mode", intrinsic_range
+                        ? "ratio_to_initial_spot" : "ratio_to_central_spot"},
+                    {"unit", "dimensionless"},
+                };
+            }
+            if (!convention.empty())
+                document["quote_convention"] = std::move(convention);
+        }
     }
     return document;
+}
+
+void check_equity_quote_convention() {
+    auto document = one_row(
+        "products", {{"strike", 0.9f}, {"maturity", 252U}}
+    );
+    write_document(document);
+    require(ai_factory::workbench::product::load_european_options(
+                test_path).front().quote_is_ratio,
+            "valid strike ratio was not marked as a ratio");
+    const auto rejects = [&](const nlohmann::json& candidate) {
+        write_document(candidate);
+        try {
+            static_cast<void>(
+                ai_factory::workbench::product::load_european_options(test_path)
+            );
+        } catch (const std::invalid_argument& error) {
+            require(std::string(error.what()).find("quote_convention")
+                        != std::string::npos,
+                    "invalid quote mode was rejected without naming it");
+            return;
+        }
+        throw std::runtime_error("absolute or undeclared strike was accepted");
+    };
+    document.erase("quote_convention");
+    rejects(document);
+    document["quote_convention"] = {
+        {"strike", {{"mode", "absolute"}, {"unit", "currency"}}},
+    };
+    rejects(document);
+
+    document = one_row("products", {
+        {"maturity", 252U}, {"observation_interval", 21U},
+        {"lower_barrier", 0.9f}, {"upper_barrier", 1.1f},
+        {"coupon_rate", 0.05f},
+    });
+    write_document(document);
+    require(!ai_factory::workbench::product::load_range_accruals(
+                test_path).front().quote_is_ratio,
+            "normalized range bounds were marked for spot conversion");
+}
+
+void check_fixed_income_quote_convention() {
+    namespace product = ai_factory::workbench::product;
+    const auto check = [&](const nlohmann::json& parameters,
+                           const char* mode, const char* unit,
+                           auto load, const char* barrier_mode = nullptr) {
+        auto document = one_row("products", parameters);
+        document["quote_convention"] = {
+            {"strike", {{"mode", mode}, {"unit", unit}}},
+        };
+        if (barrier_mode) {
+            document["quote_convention"]["barrier"] = {
+                {"mode", barrier_mode}, {"unit", "dimensionless"},
+            };
+        }
+        write_document(document);
+        static_cast<void>(load(test_path));
+        document["quote_convention"]["strike"]["mode"] = "absolute";
+        write_document(document);
+        bool rejected = false;
+        try { static_cast<void>(load(test_path)); }
+        catch (const std::invalid_argument& error) {
+            rejected = std::string(error.what()).find("quote_convention")
+                != std::string::npos;
+        }
+        require(rejected, "fixed-income loader accepted a wrong strike quote mode");
+        if (barrier_mode) {
+            document["quote_convention"]["strike"]["mode"] = mode;
+            document["quote_convention"]["barrier"]["mode"] = "absolute";
+            write_document(document);
+            rejected = false;
+            try { static_cast<void>(load(test_path)); }
+            catch (const std::invalid_argument& error) {
+                rejected = std::string(error.what()).find("quote_convention")
+                    != std::string::npos;
+            }
+            require(rejected, "bond barrier loader accepted a wrong barrier quote mode");
+        }
+    };
+    check({{"notional", 1.0f}, {"strike", 1.0f},
+           {"option_expiry", 252U}, {"bond_maturity", 504U}},
+          "ratio_to_initial_forward_bond_price", "dimensionless",
+          product::load_zero_coupon_bond_options);
+    check({{"notional", 1.0f}, {"strike", 1.0f}, {"barrier", 1.2f},
+           {"option_expiry", 252U}, {"bond_maturity", 504U}},
+          "ratio_to_initial_forward_bond_price", "dimensionless",
+          product::load_zero_coupon_bond_up_and_outs,
+          "ratio_to_initial_bond_price");
+    check({{"notional", 1.0f}, {"strike", 0.005f},
+           {"fixing_time", 252U}, {"payment_time", 378U},
+           {"accrual_period", 126U}},
+          "additive_to_initial_simple_forward_rate",
+          "annualized_decimal_rate", product::load_rate_options);
+    check({{"notional", 1.0f}, {"strike", 0.005f},
+           {"exercise_time", 252U}, {"payment_interval", 126U},
+           {"payment_count", 4U}, {"accrual_fraction", 0.5f}},
+          "additive_to_initial_par_swap_rate",
+          "annualized_decimal_rate", product::load_european_swaptions);
+    check({{"notional", 1.0f}, {"strike", 0.005f},
+           {"first_exercise_time", 252U}, {"payment_interval", 126U},
+           {"payment_count", 4U}, {"exercise_count", 2U},
+           {"accrual_fraction", 0.5f}},
+          "additive_to_initial_first_exercise_par_swap_rate",
+          "annualized_decimal_rate", product::load_bermudan_swaptions);
 }
 
 }  // namespace
@@ -257,6 +382,8 @@ int main() {
     using ai_factory::workbench::OptionSide;
 
     check_common_loader_diagnostics();
+    check_equity_quote_convention();
+    check_fixed_income_quote_convention();
 
     check_missing_field(
         "Model", "model_family",

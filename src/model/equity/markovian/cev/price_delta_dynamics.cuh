@@ -1,7 +1,7 @@
 // Public three-state CEV dynamics interface for common-innovation spot bumping.
 #pragma once
 
-#include "common/equity/price_delta/spot_bump.cuh"
+#include "equity/price_delta/spot_bump.cuh"
 #include "model/equity/markovian/cev/dynamics.cuh"
 
 namespace ai_factory::workbench::model::equity::cev {

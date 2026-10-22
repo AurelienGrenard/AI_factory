@@ -1,7 +1,7 @@
 // Host implementation of the Hull-White one-factor dataset loader.
 #include "model/fixed_income/hull_white/dataset.hpp"
 #include "model/fixed_income/hull_white/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

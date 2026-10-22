@@ -1,7 +1,7 @@
 // Path sensitivity graph composition for quadratic_rough_heston products.
 #pragma once
 
-#include "common/volterra/price_gradients/prepared_lift_path_product_graph.cuh"
+#include "volterra/price_gradients/prepared_lift_path_product_graph.cuh"
 #include "model/equity/rough/quadratic_rough_heston/price_gradients/terminal_product_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::quadratic_rough_heston {

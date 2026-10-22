@@ -1,7 +1,7 @@
 // Convert European-swaption JSON rows into compact CUDA parameters.
 #include "product/european_swaption/dataset.hpp"
 #include "product/european_swaption/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -31,7 +31,9 @@ RegularEuropeanSwaptionDataset load_european_swaptions(
     const std::filesystem::path& dataset_path
 ) {
     const nlohmann::json document = load_document(dataset_path);
-    const bool quoted = document.contains("quote_convention");
+    const bool quoted = datasets::fixed_income_relative_quote(
+        document, "additive_to_initial_par_swap_rate",
+        "annualized_decimal_rate");
     const auto& rows = document.at("products");
     RegularEuropeanSwaptionDataset dataset{};
     dataset.products.reserve(rows.size());

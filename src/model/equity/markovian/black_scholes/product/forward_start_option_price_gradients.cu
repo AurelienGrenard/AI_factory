@@ -1,11 +1,11 @@
 // Generated Black-Scholes closed-form forward_start_option sensitivities.
 #include "model/equity/markovian/black_scholes/product/forward_start_option_price_gradients.cuh"
 
-#include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
-#include "common/equity/price_gradients/scenario_closed_form_policy.cuh"
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
+#include "equity/price_gradients/scenario_closed_form_policy.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "price_gradients/device_prepared_stencil_launcher.cuh"
 #include "model/equity/markovian/black_scholes/product/forward_start_option_impl.cuh"
 
 #include <stdexcept>

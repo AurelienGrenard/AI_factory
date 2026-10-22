@@ -57,7 +57,7 @@ absolute level before calling a model-product price kernel. Public gradient
 preparation does the same before forming bumps: a spot bump keeps the original
 absolute contract level fixed, while a product-quote derivative is reported per
 unit of ratio. The common resolver is
-[`src/common/equity/spot_relative_product.hpp`](../common/equity/spot_relative_product.hpp).
+[`src/equity/spot_relative_product.hpp`](../equity/spot_relative_product.hpp).
 
 The low-level `launch_*_cuda` price and historical price-delta functions take
 product levels that are **already absolute**. A direct caller comparing those

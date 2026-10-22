@@ -1,5 +1,5 @@
 // Validate every one-factor Jamshidian launcher against independent FP64 data.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/cir/product/european_swaption.cuh"
 #include "model/fixed_income/hull_white/product/nelson_siegel/european_swaption.cuh"
 #include "model/fixed_income/hull_white/product/svensson/european_swaption.cuh"

@@ -1,9 +1,9 @@
 // Generated closed-form Black-Scholes European-option composition.
 #include "model/equity/markovian/black_scholes/product/european_option.cuh"
 
-#include "common/closed_form/closed_form_kernels.cuh"
-#include "common/device_inputs.cuh"
-#include "common/time_configuration.cuh"
+#include "closed_form/closed_form_kernels.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "schedule/time_configuration.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
 #include "product/european_option/closed_form_pricing_policy.cuh"
 

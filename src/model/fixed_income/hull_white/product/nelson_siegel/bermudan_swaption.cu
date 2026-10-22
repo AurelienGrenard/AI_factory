@@ -1,11 +1,11 @@
 // Hull-White/NS Bermudan swaptions over the common LSM engine.
 #include "model/fixed_income/hull_white/product/nelson_siegel/bermudan_swaption.cuh"
 
-#include "common/fixed_income/bermudan_swaption_continuation_state.cuh"
-#include "common/longstaff_schwartz/basis/hermite.cuh"
-#include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "common/simulation/early_exercise_schedule.cuh"
+#include "fixed_income/bermudan_swaption_continuation_state.cuh"
+#include "longstaff_schwartz/basis/hermite.cuh"
+#include "longstaff_schwartz/longstaff_schwartz_kernels.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
+#include "schedule/early_exercise_schedule.cuh"
 #include "model/fixed_income/hull_white/dynamics.cuh"
 #include "model/fixed_income/hull_white/nelson_siegel/analytics_impl.cuh"
 #include "product/bermudan_swaption/pricing_policy.cuh"

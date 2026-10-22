@@ -1,9 +1,9 @@
 // Generated Heston 3/2 device-side parameter law for autonomous model samples.
 #pragma once
 
-#include "common/sample/parameter_bounds.cuh"
+#include "sample/parameter_bounds.cuh"
 #ifdef __CUDACC__
-#include "common/philox.cuh"
+#include "philox/distributions.cuh"
 #endif
 #include "model/equity/markovian/heston_3_2/parameters.hpp"
 

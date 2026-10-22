@@ -3,7 +3,7 @@
 #include "model/equity/markovian/black_scholes/product/european_option_price_delta.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_delta.cuh"
-#include "common/equity/spot_relative_product.hpp"
+#include "equity/spot_relative_product.hpp"
 #include "cuda_test_support.cuh"
 #include "diagonal_cuda_test_support.cuh"
 #include "closed_form_mixed_cuda_test_support.cuh"

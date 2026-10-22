@@ -1,8 +1,8 @@
 // CEV asset-or-nothing-option composition over generic CUDA layers.
 #include "model/equity/markovian/cev/product/asset_or_nothing_option.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/cev/dynamics_impl.cuh"
 #include "product/asset_or_nothing_option/pricing_policy.cuh"
 

@@ -1,10 +1,10 @@
 // Curve-agnostic G2++ analytics built from the standalone G2 process.
 #pragma once
 
-#include "common/fixed_income/analytics_concepts.cuh"
-#include "common/fixed_income/cashflows.cuh"
-#include "common/fixed_income/gaussian_bond_option.cuh"
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/analytics_concepts.cuh"
+#include "fixed_income/cashflows.cuh"
+#include "fixed_income/gaussian_bond_option.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 #include "model/fixed_income/g2/analytics.cuh"
 #include "model/fixed_income/g2_plus_plus/parameters.hpp"
 

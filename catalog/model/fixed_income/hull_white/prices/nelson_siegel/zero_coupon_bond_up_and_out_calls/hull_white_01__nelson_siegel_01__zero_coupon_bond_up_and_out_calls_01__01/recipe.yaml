@@ -21,16 +21,6 @@
     "standard_error"
   ],
   "paths_per_price": 1048576,
-  "seeds": {
-    "dynamics": 11668829288806744064
-  },
-  "random_number_generator": "philox",
-  "time_grid": {
-    "steps_per_year": 252,
-    "simulation_steps_per_day": 1,
-    "delta_t": "1 / 252",
-    "monitoring": "grid points including t=0 and T; continuous barrier approximate"
-  },
   "quote_convention": {
     "strike": {
       "mode": "ratio_to_initial_forward_bond_price",
@@ -43,5 +33,16 @@
       "effective_level": "barrier = barrier_ratio * P(0,U)"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute K and B stay fixed for model and curve bumps."
+  },
+  "option_side": "call",
+  "seeds": {
+    "dynamics": 11668829288806744064
+  },
+  "random_number_generator": "philox",
+  "time_grid": {
+    "steps_per_year": 252,
+    "simulation_steps_per_day": 1,
+    "delta_t": "1 / 252",
+    "monitoring": "grid points including t=0 and T; continuous barrier approximate"
   }
 }

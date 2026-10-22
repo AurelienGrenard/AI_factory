@@ -1,10 +1,10 @@
 // Generic rough-SABR binding for Gaussian-Volterra product policies.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
-#include "common/volterra/fractional_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_fft_pricer_kernel.cuh"
+#include "volterra/fractional_hybrid_kernel.cuh"
+#include "volterra/hybrid_fft_pricer_kernel.cuh"
 #include "model/equity/rough/rough_sabr/parameters.hpp"
 
 #include "model/equity/rough/rough_sabr/dynamics_impl.cuh"

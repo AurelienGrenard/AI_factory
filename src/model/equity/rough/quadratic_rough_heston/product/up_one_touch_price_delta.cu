@@ -1,7 +1,7 @@
 // Quadratic rough-Heston up-one-touch legacy delta API backed by the rough lift graph.
 #include "model/equity/rough/quadratic_rough_heston/product/up_one_touch_price_delta.cuh"
 #include "model/equity/rough/quadratic_rough_heston/product/up_one_touch_price_gradients.cuh"
-#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
+#include "volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::quadratic_rough_heston {
 

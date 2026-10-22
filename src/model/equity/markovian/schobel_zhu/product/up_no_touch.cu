@@ -1,8 +1,8 @@
 // Schobel-Zhu up-no-touch composition over generic CUDA layers.
 #include "model/equity/markovian/schobel_zhu/product/up_no_touch.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/schobel_zhu/dynamics_impl.cuh"
 #include "product/up_no_touch/pricing_policy.cuh"
 

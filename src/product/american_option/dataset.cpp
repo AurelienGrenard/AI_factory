@@ -1,7 +1,7 @@
 // Convert American-option JSON rows into compact CUDA parameters.
 #include "product/american_option/dataset.hpp"
 #include "product/american_option/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

@@ -1,5 +1,5 @@
 // Compare three G2 rate-option launchers with independent FP64 formulas.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/g2/product/rate_option.cuh"
 #include "model/fixed_income/g2/product/zero_coupon_bond_option.cuh"
 

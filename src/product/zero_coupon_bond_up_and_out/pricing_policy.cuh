@@ -1,8 +1,8 @@
 // Grid-monitored zero-coupon bond barrier call under a joint rate/integral path.
 #pragma once
 
-#include "common/device_inputs.cuh"
-#include "common/simulation/schedule.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "schedule/schedule.cuh"
 #include "product/zero_coupon_bond_up_and_out/parameters.hpp"
 
 #include <cmath>

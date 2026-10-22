@@ -1,7 +1,7 @@
 // Terminal sensitivity graph composition for rough_heston products.
 #pragma once
 
-#include "common/volterra/price_gradients/terminal_product_graph.cuh"
+#include "volterra/price_gradients/terminal_product_graph.cuh"
 #include "model/equity/rough/rough_heston/dynamics_impl.cuh"
 #include "model/equity/rough/rough_heston/price_gradients/device_preparation.cuh"
 #include "model/equity/rough/rough_heston/price_gradients/lift_node_preparation.hpp"

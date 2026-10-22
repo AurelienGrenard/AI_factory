@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/equity/multi_asset_path_product_policy.cuh"
+#include "multi_asset/equity_basket_observation.cuh"
 #include "product/basket_down_and_out_call/parameters.hpp"
 
 #include <cuda_runtime.h>

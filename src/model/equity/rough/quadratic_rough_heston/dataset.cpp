@@ -1,7 +1,7 @@
 // JSON loading and validation for quadratic rough Heston parameter datasets.
 #include "model/equity/rough/quadratic_rough_heston/dataset.hpp"
 
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

@@ -1,7 +1,7 @@
 // Public rough-Bergomi state-mapping contract used by the Gaussian Volterra kernel.
 #pragma once
 
-#include "common/equity/concepts.cuh"
+#include "equity/concepts.cuh"
 #include "model/equity/rough/rough_bergomi/parameters.hpp"
 
 #include <cuda_runtime.h>

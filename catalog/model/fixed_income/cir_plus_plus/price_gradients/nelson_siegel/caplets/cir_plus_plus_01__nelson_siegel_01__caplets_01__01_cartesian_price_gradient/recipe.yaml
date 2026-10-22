@@ -1,76 +1,105 @@
-schema_version: 1
-kind: price_gradients
-dataset_id: cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient
-generator: catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp
-inputs:
-  model: datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json
-  product: datasets/product/rate_option/rate_options_01.json
-  curve: datasets/curve/nelson_siegel/nelson_siegel_01.json
-output:
-  path: datasets/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient.json
-  format: json
-row_count: 1000000
-paths_per_price: 0
-sensitivity:
-  method: finite_difference
-  parameters:
-  - parameter: model.mean_reversion
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
-  - parameter: model.long_term_mean
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
-  - parameter: model.volatility
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
-  - parameter: model.initial_state
-    displacement: 0.0005
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  - parameter: curve.beta0
-    displacement: 0.0005
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  - parameter: curve.beta1
-    displacement: 0.0005
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  - parameter: curve.beta2
-    displacement: 0.0005
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  - parameter: curve.tau
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
-  - parameter: product.strike
-    displacement: 0.0005
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  - parameter: product.maturity_years
-    displacement: 0.001984126984126984
-    scale: absolute
-    boundary: central_then_one_sided_order2
-  bump_rule: h = displacement (absolute) or displacement * abs(x) (relative); centered
-    when valid, otherwise second-order one-sided.
-  source_price_recipe: catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian/recipe.yaml
-option_side: call
-curve_assignment:
-  method: splitmix64_modulo
-  seed: 20261014
-  sampling: with_replacement
-  key: zero_based_result_index
-time_representation:
-  kind: exact_terminal_transition
-  contractual_days_per_year: 252
-  maturity_bump_steps_per_year: 504
-quote_convention:
-  strike:
-    mode: additive_to_initial_simple_forward_rate
-    unit: annualized_decimal_rate
-    effective_level: strike = initial_simple_forward_rate + strike_spread
-  reference_policy: Resolved at the unbumped model and initial curve; absolute contract
-    levels stay fixed for model and curve bumps.
+{
+  "schema_version": 1,
+  "kind": "price_gradients",
+  "dataset_id": "cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient",
+  "generator": "catalog/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient/generator.cpp",
+  "inputs": {
+    "model": "datasets/model/fixed_income/cir_plus_plus/parameters/cir_plus_plus_01.json",
+    "product": "datasets/product/rate_option/rate_options_01.json",
+    "curve": "datasets/curve/nelson_siegel/nelson_siegel_01.json"
+  },
+  "output": {
+    "path": "datasets/model/fixed_income/cir_plus_plus/price_gradients/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian_price_gradient.json",
+    "format": "json"
+  },
+  "row_count": 1000000,
+  "paths_per_price": 0,
+  "sensitivity": {
+    "method": "finite_difference",
+    "parameters": [
+      {
+        "parameter": "model.mean_reversion",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.long_term_mean",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.volatility",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "model.initial_state",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta0",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta1",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.beta2",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "curve.tau",
+        "displacement": 0.005,
+        "scale": "relative",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.strike",
+        "displacement": 0.0005,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      },
+      {
+        "parameter": "product.maturity_years",
+        "displacement": 0.001984126984126984,
+        "scale": "absolute",
+        "boundary": "central_then_one_sided_order2"
+      }
+    ],
+    "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
+    "source_price_recipe": "catalog/model/fixed_income/cir_plus_plus/prices/nelson_siegel/caplets/cir_plus_plus_01__nelson_siegel_01__caplets_01__01_cartesian/recipe.yaml",
+    "maturity_coordinate": "Payment time T2; fixing T1 and the contractual accrual period stay fixed."
+  },
+  "quote_convention": {
+    "strike": {
+      "mode": "additive_to_initial_simple_forward_rate",
+      "unit": "annualized_decimal_rate",
+      "effective_level": "strike = initial_simple_forward_rate + strike_spread"
+    },
+    "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
+  },
+  "option_side": "call",
+  "curve_assignment": {
+    "method": "splitmix64_modulo",
+    "seed": 20261014,
+    "sampling": "with_replacement",
+    "key": "zero_based_result_index"
+  },
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
+  }
+}

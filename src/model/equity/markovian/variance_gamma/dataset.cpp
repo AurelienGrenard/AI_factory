@@ -1,6 +1,6 @@
 // Host implementation of the Variance-Gamma dataset loader.
 #include "model/equity/markovian/variance_gamma/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "model/equity/markovian/variance_gamma/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

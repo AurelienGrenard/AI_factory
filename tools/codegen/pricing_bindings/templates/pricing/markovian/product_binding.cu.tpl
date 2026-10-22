@@ -1,8 +1,8 @@
 // {model_display} {product_comment} composition over generic CUDA layers.
 #include "model/equity/markovian/{model}/product/{product}.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/{model}/dynamics_impl.cuh"
 #include "product/{product}/pricing_policy.cuh"
 

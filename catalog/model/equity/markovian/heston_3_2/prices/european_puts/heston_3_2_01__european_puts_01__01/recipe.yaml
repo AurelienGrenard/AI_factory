@@ -20,6 +20,7 @@
     "standard_error"
   ],
   "paths_per_price": 1048576,
+  "option_side": "put",
   "seeds": {
     "dynamics": 11668827188567736320
   },

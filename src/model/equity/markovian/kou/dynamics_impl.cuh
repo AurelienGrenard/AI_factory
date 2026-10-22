@@ -2,7 +2,7 @@
 #pragma once
 
 #include "model/equity/markovian/kou/dynamics.cuh"
-#include "common/compound_poisson.cuh"
+#include "philox/compound_poisson.cuh"
 
 #include <cmath>
 #include <cstdint>

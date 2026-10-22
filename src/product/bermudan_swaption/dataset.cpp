@@ -1,7 +1,7 @@
 // Convert co-terminal Bermudan-swaption JSON rows into compact parameters.
 #include "product/bermudan_swaption/dataset.hpp"
 #include "product/bermudan_swaption/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -16,9 +16,12 @@ namespace ai_factory::workbench::product {
 std::vector<BermudanSwaptionParameters> load_bermudan_swaptions(
     const std::filesystem::path& dataset_path
 ) {
-    const bool quoted = datasets::read_parameter_dataset(
-        dataset_path, datasets::ParameterDatasetFamily::Product,
-        "Fixed-income product").contains("quote_convention");
+    const bool quoted = datasets::fixed_income_relative_quote(
+        datasets::read_parameter_dataset(
+            dataset_path, datasets::ParameterDatasetFamily::Product,
+            "Fixed-income product"),
+        "additive_to_initial_first_exercise_par_swap_rate",
+        "annualized_decimal_rate");
     return datasets::load_parameter_rows<BermudanSwaptionParameters>(
         dataset_path,
         datasets::ParameterDatasetFamily::Product,

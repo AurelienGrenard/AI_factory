@@ -1,7 +1,7 @@
 // Verify the common samplers and exact VG/NIG dynamics contracts.
-#include "common/check_cuda.cuh"
-#include "common/equity/handlers.cuh"
-#include "common/simulation/path_simulation.cuh"
+#include "cuda/check_cuda.cuh"
+#include "equity/handlers.cuh"
+#include "dynamics/path_simulation.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/dynamics_impl.cuh"
 #include "model/equity/markovian/variance_gamma/dynamics_impl.cuh"
 

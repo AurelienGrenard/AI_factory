@@ -1,7 +1,7 @@
 // Host implementation of the CEV dataset loader.
 #include "model/equity/markovian/cev/dataset.hpp"
 #include "model/equity/markovian/cev/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

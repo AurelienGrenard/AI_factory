@@ -1,9 +1,9 @@
 // Public Black-Scholes Straddle price/delta launcher using centered spot bumping.
 #pragma once
 
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/black_scholes/parameters.hpp"
 #include "product/straddle/parameters.hpp"
 

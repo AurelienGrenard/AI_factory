@@ -20,6 +20,7 @@
     "standard_error"
   ],
   "paths_per_price": 1048576,
+  "option_side": "call",
   "seeds": {
     "dynamics": 11668827343186558976
   },

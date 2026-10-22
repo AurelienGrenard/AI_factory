@@ -1,6 +1,6 @@
 // Generate flat continuously compounded curves over core and stress ranges.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cstddef>
 #include <cstdint>

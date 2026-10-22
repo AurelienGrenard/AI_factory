@@ -2,9 +2,9 @@
 #pragma once
 
 #include "tests/price_delta/cuda_test_support.cuh"
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/longstaff_schwartz/launch.cuh"
-#include "common/price_construction.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "longstaff_schwartz/launch.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include <array>
 #include <bit>
 #include <cmath>

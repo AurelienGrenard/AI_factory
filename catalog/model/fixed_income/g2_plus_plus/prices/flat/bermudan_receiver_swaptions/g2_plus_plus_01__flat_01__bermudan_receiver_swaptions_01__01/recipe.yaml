@@ -21,12 +21,6 @@
     "standard_error"
   ],
   "paths_per_price": 1048576,
-  "standard_error_scope": "in-sample discounted cashflow dispersion / sqrt(paths); excludes variation across fitted policies and policy bias",
-  "fit_and_valuation_paths": "same paths",
-  "seeds": {
-    "dynamics": 11668829224382234624
-  },
-  "random_number_generator": "philox",
   "quote_convention": {
     "strike": {
       "mode": "additive_to_initial_first_exercise_par_swap_rate",
@@ -34,5 +28,12 @@
       "effective_level": "strike = initial_first_exercise_par_swap_rate + strike_spread"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
-  }
+  },
+  "option_side": "receiver",
+  "standard_error_scope": "in-sample discounted cashflow dispersion / sqrt(paths); excludes variation across fitted policies and policy bias",
+  "fit_and_valuation_paths": "same paths",
+  "seeds": {
+    "dynamics": 11668829224382234624
+  },
+  "random_number_generator": "philox"
 }

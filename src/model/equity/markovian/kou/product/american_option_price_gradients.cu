@@ -1,11 +1,11 @@
 // Generated kou composition over central LSM and frozen-exercise replay.
 #include "model/equity/markovian/kou/product/american_option_price_gradients.cuh"
 
-#include "common/equity/price_gradients/device_prepared_stencil_launcher.cuh"
-#include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_exact_transition_frozen_exercise_replay.cuh"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_launcher.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
+#include "equity/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "longstaff_schwartz/basis/laguerre.cuh"
+#include "longstaff_schwartz/price_gradients/device_prepared_exact_transition_frozen_exercise_replay.cuh"
+#include "longstaff_schwartz/price_gradients/device_prepared_launcher.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
 #include "model/equity/markovian/kou/dynamics_impl.cuh"
 #include "model/equity/markovian/kou/price_gradients/coupled_dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"

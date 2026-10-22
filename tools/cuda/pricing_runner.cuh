@@ -1,7 +1,7 @@
 // Shared RAII execution pipeline for offline CUDA price generators.
 #pragma once
 
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 
 #include <cuda_runtime.h>
 

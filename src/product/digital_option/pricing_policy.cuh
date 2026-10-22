@@ -1,11 +1,11 @@
 // Cash-or-nothing payoff composed with a terminal equity schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/equity/path_product_monte_carlo_policy.cuh"
-#include "common/equity/path_product_policy.cuh"
-#include "common/option_side.cuh"
-#include "common/simulation/schedule.cuh"
+#include "equity/concepts.cuh"
+#include "equity/path_product_monte_carlo_policy.cuh"
+#include "equity/path_product_policy.cuh"
+#include "payoff/option_side.cuh"
+#include "schedule/schedule.cuh"
 #include "product/digital_option/parameters.hpp"
 
 #include <cstdint>

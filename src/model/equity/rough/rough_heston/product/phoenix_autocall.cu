@@ -1,7 +1,7 @@
 // Rough-Heston phoenix-autocall composition over a prepared N-factor lift.
 #include "model/equity/rough/rough_heston/product/phoenix_autocall.cuh"
 
-#include "common/simulation/schedule.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/rough_heston/markovian_n_factor_pricing.cuh"
 #include "product/phoenix_autocall/pricing_policy.cuh"
 

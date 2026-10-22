@@ -73,14 +73,14 @@
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/equity/markovian/heston/prices/forward_start_puts/heston_01__forward_start_puts_01__01/recipe.yaml",
-    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios.",
     "reconstructible_from_price": [
       {
         "parameter": "model.spot",
         "formula": "price / model.spot",
         "standard_error": "standard_error / model.spot"
       }
-    ]
+    ],
+    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios."
   },
   "option_side": "put",
   "sensitivity_strategy": "mono",

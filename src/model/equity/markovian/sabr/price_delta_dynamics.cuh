@@ -1,7 +1,7 @@
 // Public three-state SABR interface preserving normalized initial volatility under spot bumps.
 #pragma once
 
-#include "common/equity/price_delta/spot_bump.cuh"
+#include "equity/price_delta/spot_bump.cuh"
 #include "model/equity/markovian/sabr/dynamics.cuh"
 
 namespace ai_factory::workbench::model::equity::sabr {

@@ -39,14 +39,14 @@ function(ai_factory_configure_cuda_library target)
 endfunction()
 
 add_library(ai_factory_runtime STATIC EXCLUDE_FROM_ALL
-    src/common/cuda_kernel_diagnostics.cpp
+    src/cuda/cuda_kernel_diagnostics.cpp
 )
 ai_factory_configure_host_library(ai_factory_runtime)
 target_link_libraries(ai_factory_runtime PUBLIC ai_factory_cuda_tuning)
 
 add_library(ai_factory_longstaff_schwartz STATIC EXCLUDE_FROM_ALL
-    src/common/longstaff_schwartz/launch.cu
-    src/common/longstaff_schwartz/workspace.cu
+    src/longstaff_schwartz/launch.cu
+    src/longstaff_schwartz/workspace.cu
 )
 ai_factory_configure_cuda_library(ai_factory_longstaff_schwartz)
 target_link_libraries(

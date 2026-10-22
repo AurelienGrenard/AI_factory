@@ -1,8 +1,8 @@
 // Device-side schedule views shared by every European-swaption model.
 #pragma once
 
-#include "common/check_cuda.cuh"
-#include "common/fixed_income/cashflows.cuh"
+#include "cuda/check_cuda.cuh"
+#include "fixed_income/cashflows.cuh"
 #include "product/european_swaption/parameters.hpp"
 
 #include <cuda_runtime.h>
