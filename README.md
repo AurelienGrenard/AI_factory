@@ -2,8 +2,7 @@
 
 AI Factory is a C++20/CUDA workbench for quantitative model simulation,
 financial-product pricing, and reproducible dataset generation. It provides
-shared CUDA engines for Markovian, rough-volatility, closed-form, Monte Carlo,
-and early-exercise workloads.
+shared CUDA engines for Markovian, rough-volatility, closed-form, Monte Carlo, early-exercise and multi-asset workloads.
 
 The repository contains source code and versioned dataset recipes. Large JSON
 datasets are generated locally or downloaded separately; they are not stored
