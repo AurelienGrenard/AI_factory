@@ -1,10 +1,10 @@
 // Generated Public launcher for Vasicek European swaptions.
 #pragma once
 
-#include "common/price_construction.cuh"
-#include "common/closed_form/concepts.cuh"
+#include "pricing_rows/price_construction.cuh"
+#include "closed_form/concepts.cuh"
 
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/vasicek/parameters.hpp"
 #include "product/european_swaption/parameters.hpp"
 

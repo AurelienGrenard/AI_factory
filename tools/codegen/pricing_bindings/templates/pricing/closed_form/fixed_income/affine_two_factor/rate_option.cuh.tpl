@@ -1,9 +1,9 @@
 // Generated Public launcher for ${model_display} rate_option analytics.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
-#include "common/option_side.cuh"
+#include "payoff/option_side.cuh"
 #include "model/fixed_income/${model}/parameters.hpp"
 #include "product/rate_option/parameters.hpp"
 

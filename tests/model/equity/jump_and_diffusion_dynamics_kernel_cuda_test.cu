@@ -1,7 +1,7 @@
 // Verify preparation, transition and Philox replay for Merton, Kou, CEV and Schobel-Zhu.
-#include "common/check_cuda.cuh"
-#include "common/equity/handlers.cuh"
-#include "common/simulation/path_simulation.cuh"
+#include "cuda/check_cuda.cuh"
+#include "equity/handlers.cuh"
+#include "dynamics/path_simulation.cuh"
 #include "model/equity/markovian/cev/dynamics_impl.cuh"
 #include "model/equity/markovian/kou/dynamics_impl.cuh"
 #include "model/equity/markovian/merton/dynamics_impl.cuh"

@@ -1,6 +1,6 @@
 // CEV frozen-date replay oracle (including absorption) and fatal delta propagation.
 #include "tests/price_delta/cuda_test_support.cuh"
-#include "common/equity/price_delta/coupled_spot_paths.cuh"
+#include "equity/price_delta/coupled_spot_paths.cuh"
 #include "model/equity/markovian/cev/price_delta_dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"
 #include "product/american_option/price_delta_policy.cuh"

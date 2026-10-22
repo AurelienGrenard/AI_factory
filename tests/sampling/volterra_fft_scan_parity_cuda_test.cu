@@ -1,8 +1,8 @@
 // The FFT and path scan may be fused or separated without changing samples.
-#include "common/check_cuda.cuh"
-#include "common/sample.cuh"
-#include "common/volterra/fractional_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include <sample.cuh>
+#include "volterra/fractional_hybrid_kernel.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_bergomi/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>

@@ -1,7 +1,7 @@
 // Generated public Hull-White/Flat zero-coupon bond barrier launcher.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "curve/flat/parameters.hpp"
 #include "model/fixed_income/hull_white/parameters.hpp"
 #include "product/zero_coupon_bond_up_and_out/parameters.hpp"

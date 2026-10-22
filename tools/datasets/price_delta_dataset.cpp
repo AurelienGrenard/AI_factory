@@ -1,7 +1,7 @@
 // Validate paired outputs and write native JSON/YAML for staged publication.
 #include "tools/datasets/price_delta_dataset.hpp"
 #include "tools/datasets/artifact_io.hpp"
-#include "common/result_index.cuh"
+#include "pricing_rows/result_index.cuh"
 #include <cmath>
 #include <stdexcept>
 

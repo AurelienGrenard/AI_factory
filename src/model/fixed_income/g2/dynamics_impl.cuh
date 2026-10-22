@@ -4,7 +4,7 @@
 #include "model/fixed_income/g2/dynamics.cuh"
 
 // Reuse stable moments of each Gaussian mean-reverting factor.
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 
 #include <cuda_runtime.h>
 

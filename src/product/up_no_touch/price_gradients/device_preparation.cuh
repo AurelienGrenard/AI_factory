@@ -1,8 +1,8 @@
 // Up No Touch device adapter for continuous sensitivities.
 #pragma once
 
-#include "common/price_gradients/product_parameter_access.cuh"
-#include "common/simulation/calendar.hpp"
+#include "price_gradients/product_parameter_access.cuh"
+#include "schedule/calendar.hpp"
 #include "product/up_no_touch/parameters.hpp"
 
 #include <array>

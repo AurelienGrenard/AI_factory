@@ -1,10 +1,10 @@
 // CIR Bermudan LSM under the last-exercise bond numeraire, at exact exercise dates.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/longstaff_schwartz/launch.cuh"
+#include "fixed_income/swaption_side.cuh"
+#include "longstaff_schwartz/launch.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
 #include "product/bermudan_swaption/parameters.hpp"
 

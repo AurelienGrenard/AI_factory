@@ -11,7 +11,6 @@ int main() {
         datasets::price_gradients::Recipe recipe{
             "datasets/model/equity/markovian/kou/parameters/kou_01.json", "datasets/product/range_accrual/range_accruals_01.json", "datasets/model/equity/markovian/kou/price_gradients/range_accruals/kou_01__range_accruals_01__01_price_gradient.json", "catalog/model/equity/markovian/kou/price_gradients/range_accruals/kou_01__range_accruals_01__01_price_gradient/generation.yaml", "catalog/model/equity/markovian/kou/prices/range_accruals/kou_01__range_accruals_01__01/recipe.yaml",
             PriceConstruction::Aligned, {{
-        {"model.spot", {0.005, pg::BumpScale::relative}},
         {"model.volatility", {0.005, pg::BumpScale::relative}},
         {"model.jump_intensity", {0.05, pg::BumpScale::absolute}},
         {"model.up_probability", {0.002, pg::BumpScale::absolute}},
@@ -24,7 +23,7 @@ int main() {
         {"product.maturity_years", {0.001984126984126984, pg::BumpScale::absolute}}
             }}, {1.0f/504.0f, 2U}, true};
         recipe.exact_schedule_transition = true;
-        recipe.reconstructible_sensitivities = {{"product.coupon_rate", "(price - exp(-model.risk_free_rate * product.maturity / 252)) / product.coupon_rate", "standard_error / product.coupon_rate"}};
+        recipe.reconstructible_sensitivities = {{"model.spot", "0", "0"}, {"product.coupon_rate", "(price - exp(-model.risk_free_rate * product.maturity / 252)) / product.coupon_rate", "standard_error / product.coupon_rate"}};
         const auto models = model::equity::kou::load_models(recipe.model_input);
         const auto products = product::load_range_accruals(recipe.product_input);
         return offline::pricing::price_gradients::execute_dataset<true>(recipe,

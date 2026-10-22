@@ -1,11 +1,11 @@
 // Generated ${model_display}/${curve_display} Bermudan swaptions over the common LSM engine.
 #include "model/fixed_income/${model}/product/${curve}/bermudan_swaption.cuh"
 
-#include "common/fixed_income/scalar_rate_continuation_state.cuh"
-#include "common/longstaff_schwartz/basis/hermite.cuh"
-#include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "common/simulation/terminal_forward_exercise_schedule.cuh"
+#include "fixed_income/scalar_rate_continuation_state.cuh"
+#include "longstaff_schwartz/basis/hermite.cuh"
+#include "longstaff_schwartz/longstaff_schwartz_kernels.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
+#include "schedule/terminal_forward_exercise_schedule.cuh"
 #include "model/fixed_income/${forward_dynamics}/forward_measure_impl.cuh"
 #include "model/fixed_income/${model}/${curve}/analytics_impl.cuh"
 #include "product/bermudan_swaption/terminal_forward_pricing_policy.cuh"

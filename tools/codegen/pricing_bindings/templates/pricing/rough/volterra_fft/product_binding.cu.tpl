@@ -1,7 +1,7 @@
 // {model_display} {product_comment} composition over the Volterra FFT engine.
 #include "model/equity/rough/{model}/product/{product}.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/{model}/volterra_fft_pricing.cuh"
 #include "product/{product}/pricing_policy.cuh"
 

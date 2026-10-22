@@ -1,7 +1,7 @@
 // Rough-Bergomi up-and-out-option composition over the Volterra FFT engine.
 #include "model/equity/rough/rough_bergomi/product/up_and_out_option.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/up_and_out_option/pricing_policy.cuh"
 

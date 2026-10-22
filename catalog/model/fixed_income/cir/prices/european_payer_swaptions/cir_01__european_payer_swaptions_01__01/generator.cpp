@@ -1,5 +1,5 @@
 // Generated Generate CIR European payer-swaption prices.
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/cir/product/european_swaption.cuh"
 #include "model/fixed_income/cir/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"

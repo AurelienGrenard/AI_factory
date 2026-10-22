@@ -1,8 +1,8 @@
 // Public launcher for the Schobel-Zhu Phoenix-memory-autocall CUDA kernel.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/schobel_zhu/parameters.hpp"
 #include "product/phoenix_memory_autocall/parameters.hpp"
 

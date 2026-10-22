@@ -1,7 +1,7 @@
 // Log-modulated rough-Bergomi range-accrual composition over the Volterra FFT engine.
 #include "model/equity/rough/log_modulated_rough_bergomi/product/range_accrual.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/range_accrual/pricing_policy.cuh"
 

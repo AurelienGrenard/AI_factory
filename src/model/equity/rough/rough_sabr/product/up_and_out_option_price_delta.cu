@@ -1,7 +1,7 @@
 // Rough-SABR up-and-out-option legacy delta API backed by the rough graph.
 #include "model/equity/rough/rough_sabr/product/up_and_out_option_price_delta.cuh"
 #include "model/equity/rough/rough_sabr/product/up_and_out_option_price_gradients.cuh"
-#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
+#include "volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_sabr {
 

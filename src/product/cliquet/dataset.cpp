@@ -1,6 +1,6 @@
 // Convert Cliquet JSON rows into compact CUDA parameters.
 #include "product/cliquet/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

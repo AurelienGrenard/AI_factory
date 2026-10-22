@@ -1,6 +1,6 @@
 // Generate regular physical-settlement European swaptions.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cstdint>
 #include <filesystem>

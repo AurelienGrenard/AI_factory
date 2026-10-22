@@ -1,8 +1,8 @@
 // merton composes the common central LSM solver with frozen-exercise delta outputs.
 #include "model/equity/markovian/merton/product/american_option_price_delta.cuh"
-#include "common/equity/price_delta/coupled_spot_paths.cuh"
-#include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
+#include "equity/price_delta/coupled_spot_paths.cuh"
+#include "longstaff_schwartz/basis/laguerre.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
 #include "model/equity/markovian/merton/dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"
 #include "product/american_option/price_delta_policy.cuh"

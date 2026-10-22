@@ -1,7 +1,7 @@
 // Host implementation of constrained Ornstein-Uhlenbeck generation.
 #include "tools/sampling/parameters/ornstein_uhlenbeck_generation.hpp"
 
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 
 #include <cmath>
 #include <random>

@@ -1,7 +1,7 @@
 // Generated public OU zero-coupon bond up-and-out call launcher.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/fixed_income/cir/parameters.hpp"
 #include "product/zero_coupon_bond_up_and_out/parameters.hpp"
 #include <cstddef>

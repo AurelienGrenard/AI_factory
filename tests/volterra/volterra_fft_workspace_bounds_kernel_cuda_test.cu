@@ -1,5 +1,5 @@
 // Verify overflow-safe Volterra FFT workspace arithmetic before any CUDA allocation.
-#include "common/volterra/hybrid_fft_workspace.cuh"
+#include "volterra/hybrid_fft_workspace.cuh"
 
 #include <cstddef>
 #include <limits>

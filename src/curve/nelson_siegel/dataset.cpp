@@ -1,7 +1,7 @@
 // Host implementation of the Nelson-Siegel dataset loader.
 #include "curve/nelson_siegel/dataset.hpp"
 #include "curve/nelson_siegel/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

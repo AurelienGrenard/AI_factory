@@ -2,7 +2,7 @@
 #pragma once
 
 #include "model/equity/rough/rough_stein_stein/parameters.hpp"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
+#include "volterra/fractional_resolvent_hybrid_kernel.cuh"
 
 #include <cuda_runtime.h>
 #include <array>

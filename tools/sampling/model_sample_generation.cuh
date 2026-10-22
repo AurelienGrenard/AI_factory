@@ -1,8 +1,8 @@
 // Generic host orchestration for model-only CUDA sample recipes.
 #pragma once
 
-#include "common/check_cuda.cuh"
-#include "common/sample/validation.cuh"
+#include "cuda/check_cuda.cuh"
+#include "sample/validation.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/tuning_profile.hpp"
 #include "tools/datasets/sample_dataset.hpp"

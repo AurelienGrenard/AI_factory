@@ -1,8 +1,8 @@
 // Reusable CUDA interface for Bates paths simulated with Andersen QE-M.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox_domains.cuh"
+#include "equity/concepts.cuh"
+#include "philox/domains.cuh"
 #include "model/equity/markovian/bates/parameters.hpp"
 #include "model/equity/markovian/heston/dynamics.cuh"
 

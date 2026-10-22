@@ -1,7 +1,7 @@
 // Generated public CIR++/Svensson zero-coupon bond barrier launcher.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "curve/svensson/parameters.hpp"
 #include "model/fixed_income/cir_plus_plus/parameters.hpp"
 #include "product/zero_coupon_bond_up_and_out/parameters.hpp"

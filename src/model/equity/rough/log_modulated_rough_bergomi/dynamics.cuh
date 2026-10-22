@@ -1,8 +1,8 @@
 // Public path state and dynamics-policy declarations for log-modulated rough Bergomi.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/volterra/log_modulated_hybrid_kernel.cuh"
+#include "equity/concepts.cuh"
+#include "volterra/log_modulated_hybrid_kernel.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/parameters.hpp"
 
 #include <cuda_runtime.h>

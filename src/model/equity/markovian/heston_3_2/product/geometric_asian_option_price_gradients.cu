@@ -1,9 +1,9 @@
 // Generated heston_3_2 geometric_asian_option path sensitivities over the common device-prepared engine.
 #include "model/equity/markovian/heston_3_2/product/geometric_asian_option_price_gradients.cuh"
 
-#include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/path_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
+#include "equity/price_gradients/path_device_prepared_launcher.cuh"
+#include "equity/price_gradients/path_node_graph_launcher.cuh"
+#include "equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/heston_3_2/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/heston_3_2/product/geometric_asian_option.cuh"
 #include "product/geometric_asian_option/pricing_policy.cuh"

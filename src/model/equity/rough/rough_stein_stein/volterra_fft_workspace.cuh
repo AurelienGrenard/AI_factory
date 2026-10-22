@@ -1,7 +1,7 @@
 // Workspace sizing and ownership helpers for rough Stein--Stein FFT pricing.
 #pragma once
 
-#include "common/volterra/hybrid_fft_workspace.cuh"
+#include "volterra/hybrid_fft_workspace.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {
 

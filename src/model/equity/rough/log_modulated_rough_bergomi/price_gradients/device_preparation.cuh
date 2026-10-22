@@ -2,7 +2,7 @@
 #pragma once
 
 #include "model/equity/rough/log_modulated_rough_bergomi/parameters.hpp"
-#include "common/volterra/log_modulated_hybrid_kernel.cuh"
+#include "volterra/log_modulated_hybrid_kernel.cuh"
 
 #include <cuda_runtime.h>
 #include <array>

@@ -1,5 +1,5 @@
 #include "correlation/dataset.hpp"
-#include "common/simulation/rate_adjusted_equity_path.cuh"
+#include "multi_asset/rate_adjusted_model_group.cuh"
 #include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
 #include "model/equity/rough/rough_heston/causal_fft_dynamics.cuh"
 #include "model/fixed_income/vasicek/correlated_dynamics.cuh"

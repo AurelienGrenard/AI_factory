@@ -1,5 +1,5 @@
 // Compare OU Jamshidian swaption launchers with independent FP64 formulas.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/product/european_swaption.cuh"
 
 #include <cuda_runtime.h>

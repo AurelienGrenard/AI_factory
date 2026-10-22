@@ -1,14 +1,14 @@
 // Cooperative frozen replay of all American sensitivity graph nodes.
 #pragma once
 
-#include "common/equity/discount.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/launcher.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/value_policy.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/coupled_interval.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/row_preparation.cuh"
-#include "common/monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
-#include "common/monte_carlo/price_gradients/tuning.cuh"
-#include "common/payoff/vanilla_option.cuh"
+#include "equity/discount.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/launcher.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/value_policy.cuh"
+#include "monte_carlo/price_gradients/node_graph/coupled_interval.cuh"
+#include "monte_carlo/price_gradients/node_graph/row_preparation.cuh"
+#include "monte_carlo/price_gradients/terminal_node_graph/workspace.cuh"
+#include "monte_carlo/price_gradients/tuning.cuh"
+#include "payoff/vanilla_option.cuh"
 
 #include <cuda_runtime.h>
 

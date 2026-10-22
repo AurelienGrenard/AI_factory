@@ -1,8 +1,8 @@
 // Reusable CUDA interface for exact Kou jump-diffusion increments.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox_domains.cuh"
+#include "equity/concepts.cuh"
+#include "philox/domains.cuh"
 #include "model/equity/markovian/kou/parameters.hpp"
 
 #include <cuda_runtime.h>

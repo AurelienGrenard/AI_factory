@@ -1,12 +1,12 @@
 // ${model_display}${curve_display_suffix} European-swaption analytical sensitivities.
 #include "${unit_path}.cuh"
 
-#include "common/closed_form/price_gradients/device_prepared_cooperative_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_cooperative_mixed_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
-#include "common/fixed_income/price_gradients/closed_form_policy.cuh"
-#include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "closed_form/price_gradients/device_prepared_cooperative_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_cooperative_mixed_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
+#include "fixed_income/price_gradients/closed_form_policy.cuh"
+#include "price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/european_swaption/price_gradients/terminal_maturity.cuh"
 #include "product/european_swaption/pricing_policy.cuh"
 ${implementation_include}

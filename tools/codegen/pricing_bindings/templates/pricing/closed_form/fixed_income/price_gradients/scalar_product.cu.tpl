@@ -1,10 +1,10 @@
 // ${model_display}${curve_display_suffix} ${product} analytical sensitivities.
 #include "${unit_path}.cuh"
 
-#include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
-#include "common/fixed_income/price_gradients/closed_form_policy.cuh"
-#include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
+#include "fixed_income/price_gradients/closed_form_policy.cuh"
+#include "price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/${product}/pricing_policy.cuh"
 ${implementation_include}
 #include <stdexcept>

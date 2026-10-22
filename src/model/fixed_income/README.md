@@ -3,7 +3,7 @@
 This directory owns short-rate model parameters, dynamics, analytics, model
 sampling, and model-product composition. Shared financial-product contracts
 remain under `src/product`; reusable rate primitives remain under
-`src/common/fixed_income`.
+`src/fixed_income`.
 
 ## Find an implementation
 
@@ -58,7 +58,7 @@ coordinate of these fitted models.
 - [Dynamics contract](../../../project_journal/reference/cuda/model-dynamics-contract.md) and
   [analytics contract](../../../project_journal/reference/cuda/model-analytics-contract.md) define
   common model interfaces.
-- [Shared fixed-income rate identities](../../common/fixed_income/fixed-income-rate-identities-reference.md)
+- [Shared fixed-income rate identities](../../fixed_income/fixed-income-rate-identities-reference.md)
   define model-independent forward and swap quantities.
 - [Correlated multi-asset short rates](../../../project_journal/reference/cuda/cross-asset-stochastic-rate.md)
   explains the rate adapters and curve selection.

@@ -1,7 +1,7 @@
 // Assemble and publish offline analytical and Monte Carlo price artifacts.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
 #include <nlohmann/json.hpp>
 

@@ -1,8 +1,8 @@
 // Public Quadratic rough-Heston Up-and-out-option N-factor launcher.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dynamics.cuh"
 #include "product/up_and_out_option/parameters.hpp"
 

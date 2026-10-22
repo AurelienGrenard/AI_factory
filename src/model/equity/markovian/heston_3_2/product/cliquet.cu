@@ -1,8 +1,8 @@
 // Heston 3/2 cliquet composition over generic CUDA layers.
 #include "model/equity/markovian/heston_3_2/product/cliquet.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/heston_3_2/dynamics_impl.cuh"
 #include "product/cliquet/pricing_policy.cuh"
 

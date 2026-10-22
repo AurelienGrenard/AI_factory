@@ -3,7 +3,7 @@
 #include "model/fixed_income/hull_white/dynamics.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics_impl.cuh"
 #include "model/fixed_income/hull_white/flat/analytics_impl.cuh"
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
 #include "product/zero_coupon_bond_up_and_out/pricing_policy.cuh"
 
 namespace ai_factory::workbench::model::fixed_income::hull_white::flat {

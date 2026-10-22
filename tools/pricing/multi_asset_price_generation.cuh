@@ -1,9 +1,9 @@
 // Offline execution for static multi-asset model compositions.
 #pragma once
 
-#include "common/monte_carlo/multi_asset_kernel.cuh"
-#include "common/monte_carlo/pricing_moments_kernel.cuh"
-#include "common/row_index_plan.hpp"
+#include "multi_asset/markovian_price_kernel.cuh"
+#include "monte_carlo/pricing_moments_kernel.cuh"
+#include "pricing_rows/row_index_plan.hpp"
 #include "correlation/dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/pricing/equity_price_generation.cuh"

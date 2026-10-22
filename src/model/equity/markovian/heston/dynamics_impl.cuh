@@ -3,7 +3,7 @@
 
 #include "model/equity/markovian/heston/dynamics.cuh"
 
-#include "common/philox.cuh"
+#include "philox/distributions.cuh"
 
 #include <cuda_runtime.h>
 

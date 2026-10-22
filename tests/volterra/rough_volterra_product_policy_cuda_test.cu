@@ -1,6 +1,6 @@
 // Prove that dense path products plug into the shared rough FFT engine.
-#include "common/check_cuda.cuh"
-#include "common/volterra/hybrid_schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_bergomi/product/european_option.cuh"
 #include "model/equity/rough/rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/asian_option/pricing_policy.cuh"

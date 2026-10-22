@@ -1,8 +1,8 @@
 // Bates gap-option composition over generic CUDA layers.
 #include "model/equity/markovian/bates/product/gap_option.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/bates/dynamics_impl.cuh"
 #include "product/gap_option/pricing_policy.cuh"
 

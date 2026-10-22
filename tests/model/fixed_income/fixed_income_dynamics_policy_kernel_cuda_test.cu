@@ -1,5 +1,5 @@
 // Validate the market-neutral dynamics contracts on fixed-income models.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "tests/common/dynamics_contract.cuh"
 
 #include "model/fixed_income/cir/dynamics_impl.cuh"

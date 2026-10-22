@@ -1,13 +1,13 @@
 // Shared host pipeline for co-terminal Bermudan-swaption price datasets.
 #pragma once
 
-#include "common/longstaff_schwartz/launch.cuh"
+#include "longstaff_schwartz/launch.cuh"
 #include "product/bermudan_swaption/dataset.hpp"
 #include "tools/datasets/price_dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/generation_progress.hpp"
 #include "tools/cuda/pricing_launch_plan.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <algorithm>
 #include <cstddef>

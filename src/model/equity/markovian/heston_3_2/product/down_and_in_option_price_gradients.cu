@@ -1,9 +1,9 @@
 // Generated heston_3_2 down_and_in_option path sensitivities over the common device-prepared engine.
 #include "model/equity/markovian/heston_3_2/product/down_and_in_option_price_gradients.cuh"
 
-#include "common/equity/price_gradients/path_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/path_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/mixed_path_node_graph_launcher.cuh"
+#include "equity/price_gradients/path_device_prepared_launcher.cuh"
+#include "equity/price_gradients/path_node_graph_launcher.cuh"
+#include "equity/price_gradients/mixed_path_node_graph_launcher.cuh"
 #include "model/equity/markovian/heston_3_2/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/heston_3_2/product/down_and_in_option.cuh"
 #include "product/down_and_in_option/pricing_policy.cuh"

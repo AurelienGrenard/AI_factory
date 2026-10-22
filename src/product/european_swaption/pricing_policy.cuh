@@ -1,12 +1,12 @@
 // Product-owned closed-form European-swaption policies and launchers.
 #pragma once
 
-#include "common/closed_form/closed_form_kernels.cuh"
-#include "common/closed_form/cooperative_closed_form_kernels.cuh"
-#include "common/device_inputs.cuh"
-#include "common/fixed_income/jamshidian_cooperative.cuh"
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/time_configuration.cuh"
+#include "closed_form/closed_form_kernels.cuh"
+#include "closed_form/cooperative_closed_form_kernels.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "fixed_income/jamshidian_cooperative.cuh"
+#include "fixed_income/swaption_side.cuh"
+#include "schedule/time_configuration.cuh"
 #include "product/european_swaption/parameters.hpp"
 #include "product/european_swaption/schedule.cuh"
 #include "product/european_swaption/pricing_row.cuh"

@@ -1,10 +1,10 @@
 // Straddle payoff composed with a terminal equity schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/equity/path_product_monte_carlo_policy.cuh"
-#include "common/equity/path_product_policy.cuh"
-#include "common/simulation/schedule.cuh"
+#include "equity/concepts.cuh"
+#include "equity/path_product_monte_carlo_policy.cuh"
+#include "equity/path_product_policy.cuh"
+#include "schedule/schedule.cuh"
 #include "product/straddle/parameters.hpp"
 
 #include <cmath>

@@ -2,9 +2,9 @@
 #include "model/equity/rough/rough_sabr/sample.cuh"
 #include "model/equity/rough/rough_sabr/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/volterra/fractional_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_schedule.cuh"
+#include <sample.cuh>
+#include "volterra/fractional_hybrid_kernel.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_sabr/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_sabr {

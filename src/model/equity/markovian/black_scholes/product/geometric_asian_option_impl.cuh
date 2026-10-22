@@ -1,12 +1,12 @@
 // Shared Black-Scholes geometric_asian_option formula policy used by price and price-delta kernels.
 #pragma once
 
-#include "common/closed_form/concepts.cuh"
+#include "closed_form/concepts.cuh"
 
 #include "model/equity/markovian/black_scholes/product/geometric_asian_option.cuh"
 
-#include "common/device_inputs.cuh"
-#include "common/simulation/schedule.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/black_scholes/analytics_impl.cuh"
 
 #include <stdexcept>

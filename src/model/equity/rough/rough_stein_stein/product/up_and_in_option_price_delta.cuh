@@ -1,11 +1,11 @@
 // Public Rough Stein-Stein Up-and-in-option hybrid-FFT launcher.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/rough/rough_stein_stein/parameters.hpp"
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/volterra/hybrid_fft_price_delta_workspace.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "volterra/hybrid_fft_price_delta_workspace.cuh"
 #include "product/up_and_in_option/parameters.hpp"
 
 #include <cstddef>

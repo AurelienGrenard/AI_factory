@@ -1,5 +1,5 @@
 // CIR Jamshidian sensitivities: compact preparation, scalar/cooperative parity.
-#include "common/fixed_income/price_gradients/terminal_maturity.cuh"
+#include "fixed_income/price_gradients/terminal_maturity.cuh"
 #include "product/european_swaption/schedule.cuh"
 #include "model/fixed_income/cir/product/european_swaption.cuh"
 #include "model/fixed_income/cir/product/european_swaption_price_gradients.cuh"

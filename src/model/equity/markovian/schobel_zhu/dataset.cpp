@@ -1,6 +1,6 @@
 // Host implementation of the Schobel-Zhu dataset loader.
 #include "model/equity/markovian/schobel_zhu/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "model/equity/markovian/schobel_zhu/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

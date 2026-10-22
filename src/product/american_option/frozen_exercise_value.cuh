@@ -1,10 +1,10 @@
 // Shared FP32 payoff order for centered frozen-exercise sensitivities.
 #pragma once
 
-#include "common/longstaff_schwartz/frozen_exercise_trace.cuh"
-#include "common/option_side.cuh"
-#include "common/payoff/vanilla_option.cuh"
-#include "common/philox.cuh"
+#include "longstaff_schwartz/frozen_exercise_trace.cuh"
+#include "payoff/option_side.cuh"
+#include "payoff/vanilla_option.cuh"
+#include "philox/distributions.cuh"
 
 #include <cstddef>
 #include <cstdint>

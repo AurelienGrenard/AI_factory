@@ -2,9 +2,9 @@
 #include "model/$source_folder/sample.cuh"
 #include "model/$source_folder/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
+#include <sample.cuh>
 #include "$kernel_header"
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/$source_folder/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::$namespace {

@@ -3,8 +3,8 @@
 
 #include "model/equity/markovian/bates/price_gradients/coupled_dynamics.cuh"
 
-#include "common/compound_poisson.cuh"
-#include "common/monte_carlo/price_gradients/coupled_poisson_events.cuh"
+#include "philox/compound_poisson.cuh"
+#include "monte_carlo/price_gradients/coupled_poisson_events.cuh"
 #include "model/equity/markovian/bates/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::bates::price_gradients {

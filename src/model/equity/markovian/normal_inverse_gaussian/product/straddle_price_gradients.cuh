@@ -1,11 +1,11 @@
 // Generated normal_inverse_gaussian straddle sensitivities with row-local device preparation.
 #pragma once
 
-#include "common/equity/price_gradients/terminal_device_prepared_plan.hpp"
-#include "common/option_side.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "equity/price_gradients/terminal_device_prepared_plan.hpp"
+#include "payoff/option_side.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/price_gradients/device_preparation.cuh"
 #include "product/straddle/price_gradients/device_preparation.cuh"
 

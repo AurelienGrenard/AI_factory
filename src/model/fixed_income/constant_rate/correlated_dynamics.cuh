@@ -1,8 +1,8 @@
 // Zero-factor short-rate policy: same path contract as stochastic rates.
 #pragma once
 
-#include "common/fixed_income/no_curve.hpp"
-#include "common/philox.cuh"
+#include "fixed_income/no_curve.hpp"
+#include "philox/distributions.cuh"
 #include "model/fixed_income/constant_rate/parameters.hpp"
 
 #include <cuda_runtime.h>

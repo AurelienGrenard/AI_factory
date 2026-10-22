@@ -1,8 +1,8 @@
 // SABR range-accrual composition over generic CUDA layers.
 #include "model/equity/markovian/sabr/product/range_accrual.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/sabr/dynamics_impl.cuh"
 #include "product/range_accrual/pricing_policy.cuh"
 

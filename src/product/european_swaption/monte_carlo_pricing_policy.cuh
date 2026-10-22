@@ -2,9 +2,9 @@
 // Standalone and curve-fitted models share the calendar, payoff and MC kernel.
 #pragma once
 
-#include "common/device_inputs.cuh"
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/simulation/schedule.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "fixed_income/swaption_side.cuh"
+#include "schedule/schedule.cuh"
 #include "product/european_swaption/pricing_row.cuh"
 
 #include <cmath>

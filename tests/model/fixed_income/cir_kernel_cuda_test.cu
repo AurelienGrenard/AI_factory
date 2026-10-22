@@ -1,6 +1,6 @@
 // Validate exact CIR transitions and affine fixed-income identities.
-#include "common/check_cuda.cuh"
-#include "common/simulation/path_simulation.cuh"
+#include "cuda/check_cuda.cuh"
+#include "dynamics/path_simulation.cuh"
 
 // Include the implementation exactly as future product kernels will.
 #include "model/fixed_income/cir/analytics_impl.cuh"

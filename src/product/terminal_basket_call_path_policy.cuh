@@ -1,7 +1,7 @@
 // Shared terminal call contract for an initial-spot-normalized basket.
 #pragma once
 
-#include "common/equity/multi_asset_path_product_policy.cuh"
+#include "multi_asset/equity_basket_observation.cuh"
 
 #include <cuda_runtime.h>
 

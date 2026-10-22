@@ -1,8 +1,8 @@
 // Reuse one convolution workspace across constructed rough price-delta rows.
 #pragma once
 #include "tools/pricing/equity_price_delta_generation.cuh"
-#include "common/volterra/hybrid_fft_price_delta_workspace.cuh"
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_fft_price_delta_workspace.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include <algorithm>
 
 namespace ai_factory::workbench::offline::pricing {

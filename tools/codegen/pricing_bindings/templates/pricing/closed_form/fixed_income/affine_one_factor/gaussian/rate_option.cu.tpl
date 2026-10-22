@@ -1,10 +1,10 @@
 // Generated Closed-form rate-option composition under the ${model_display} short-rate model.
 #include "model/fixed_income/${model}/product/rate_option.cuh"
 
-#include "common/closed_form/closed_form_kernels.cuh"
-#include "common/device_inputs.cuh"
+#include "closed_form/closed_form_kernels.cuh"
+#include "pricing_rows/device_inputs.cuh"
 #include "product/rate_option/pricing_policy.cuh"
-#include "common/time_configuration.cuh"
+#include "schedule/time_configuration.cuh"
 
 // Keep the model-specific analytical primitives visible for device inlining.
 #include "model/fixed_income/${model}/analytics_impl.cuh"

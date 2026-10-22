@@ -1,10 +1,10 @@
 // CEV American-option composition over shared LSM kernels.
 #include "model/equity/markovian/cev/product/american_option.cuh"
 
-#include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
-#include "common/simulation/early_exercise_schedule.cuh"
+#include "longstaff_schwartz/basis/laguerre.cuh"
+#include "longstaff_schwartz/longstaff_schwartz_kernels.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
+#include "schedule/early_exercise_schedule.cuh"
 #include "model/equity/markovian/cev/dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"
 #include "product/american_option/pricing_policy.cuh"

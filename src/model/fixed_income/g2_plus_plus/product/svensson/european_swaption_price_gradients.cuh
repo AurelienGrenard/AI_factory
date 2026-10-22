@@ -1,11 +1,11 @@
 // G2++/Svensson European-swaption MC sensitivities.
 #pragma once
 
-#include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "fixed_income/price_gradients/device_prepared_plan.hpp"
+#include "fixed_income/swaption_side.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/g2_plus_plus/price_gradients/device_preparation.cuh"
 #include "product/european_swaption/price_gradients/device_preparation.cuh"
 #include "curve/svensson/price_gradients/device_preparation.cuh"

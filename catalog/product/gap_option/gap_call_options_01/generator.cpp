@@ -1,6 +1,6 @@
 // Generate non-negative gap calls on the standard equity grid.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cmath>
 #include <filesystem>

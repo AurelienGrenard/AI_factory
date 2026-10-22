@@ -1,9 +1,9 @@
 // Public state, N-factor preparation and dynamics-policy declarations for quadratic rough Heston.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
-#include "common/volterra/exponential_kernel.cuh"
+#include "equity/concepts.cuh"
+#include "philox/distributions.cuh"
+#include "volterra/exponential_kernel.cuh"
 #include "model/equity/rough/quadratic_rough_heston/parameters.hpp"
 
 #include <cuda_runtime.h>

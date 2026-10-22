@@ -1,7 +1,7 @@
 // Rough-SABR up-one-touch legacy delta API backed by the rough graph.
 #include "model/equity/rough/rough_sabr/product/up_one_touch_price_delta.cuh"
 #include "model/equity/rough/rough_sabr/product/up_one_touch_price_gradients.cuh"
-#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
+#include "volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_sabr {
 

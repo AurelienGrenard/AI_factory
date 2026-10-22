@@ -3,11 +3,11 @@
 
 #include "model/fixed_income/ornstein_uhlenbeck/analytics.cuh"
 
-#include "common/fixed_income/analytics_concepts.cuh"
-#include "common/fixed_income/cashflows.cuh"
-#include "common/fixed_income/gaussian_bond_option.cuh"
-#include "common/fixed_income/jamshidian.cuh"
-#include "common/fixed_income/one_factor_affine.cuh"
+#include "fixed_income/analytics_concepts.cuh"
+#include "fixed_income/cashflows.cuh"
+#include "fixed_income/gaussian_bond_option.cuh"
+#include "fixed_income/jamshidian.cuh"
+#include "fixed_income/one_factor_affine.cuh"
 
 // Include exact OU moments and transitions used by the analytics below.
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics_impl.cuh"

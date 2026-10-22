@@ -1,7 +1,7 @@
 // Host implementation of the Svensson dataset loader.
 #include "curve/svensson/dataset.hpp"
 #include "curve/svensson/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

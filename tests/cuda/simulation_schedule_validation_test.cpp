@@ -1,7 +1,7 @@
 // Host-side boundary tests for calendar and fixed-step launch validation.
-#include "common/simulation/early_exercise_schedule.cuh"
-#include "common/simulation/schedule.cuh"
-#include "common/sample/sources.cuh"
+#include "schedule/early_exercise_schedule.cuh"
+#include "schedule/schedule.cuh"
+#include "sample/sources.cuh"
 
 #include <cstdint>
 #include <iostream>

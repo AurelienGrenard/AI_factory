@@ -1,6 +1,6 @@
 #include "tools/datasets/multi_asset_price_dataset.hpp"
 
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "tools/datasets/artifact_io.hpp"
 
 #include <cmath>

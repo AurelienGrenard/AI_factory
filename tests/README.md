@@ -19,7 +19,7 @@ contains this guide, not test sources. Use this map before adding a test:
 | `volterra/` | Shared kernel/path policies, observation schedules and FFT workspace contracts |
 | `numerical/` | Random-number contracts, distributions, reductions and numerical primitives |
 | `cuda/` | Launch planning, schedule guards, runner, resource diagnostics and policy budgets |
-| `common/` | Helpers genuinely shared across test domains; no test entry points |
+| `` | Helpers genuinely shared across test domains; no test entry points |
 
 A test spanning several models stays with its shared contract: for example,
 `longstaff_schwartz/equity_composition_cuda_test.cpp` covers Black-Scholes,

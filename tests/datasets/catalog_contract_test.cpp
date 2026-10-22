@@ -1,6 +1,6 @@
 // Validate split catalogue metadata and construction invariants.
-#include "common/result_index.cuh"
-#include "common/time_configuration.cuh"
+#include "pricing_rows/result_index.cuh"
+#include "schedule/time_configuration.cuh"
 
 #include <cmath>
 #include <filesystem>

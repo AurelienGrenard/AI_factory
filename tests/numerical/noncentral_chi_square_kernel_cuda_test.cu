@@ -1,6 +1,6 @@
 // Compare device Gamma and non-central chi-square tails with SciPy references.
-#include "common/check_cuda.cuh"
-#include "common/noncentral_chi_square.cuh"
+#include "cuda/check_cuda.cuh"
+#include "probability/noncentral_chi_square.cuh"
 
 #include <cuda_runtime.h>
 

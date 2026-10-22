@@ -1,10 +1,10 @@
 // Shared NormalInverseGaussian American-option Longstaff-Schwartz launcher.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
-#include "common/longstaff_schwartz/launch.cuh"
-#include "common/option_side.cuh"
+#include "longstaff_schwartz/launch.cuh"
+#include "payoff/option_side.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/parameters.hpp"
 #include "product/american_option/parameters.hpp"
 

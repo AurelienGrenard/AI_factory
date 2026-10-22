@@ -1,7 +1,7 @@
 // Compile-time coverage of the canonical fixed-income analytics surface.
-#include "common/check_cuda.cuh"
-#include "common/fixed_income/analytics_concepts.cuh"
-#include "common/fixed_income/cashflows.cuh"
+#include "cuda/check_cuda.cuh"
+#include "fixed_income/analytics_concepts.cuh"
+#include "fixed_income/cashflows.cuh"
 #include "curve/flat/term_structure_impl.cuh"
 #include "curve/nelson_siegel/term_structure_impl.cuh"
 #include "curve/svensson/term_structure_impl.cuh"

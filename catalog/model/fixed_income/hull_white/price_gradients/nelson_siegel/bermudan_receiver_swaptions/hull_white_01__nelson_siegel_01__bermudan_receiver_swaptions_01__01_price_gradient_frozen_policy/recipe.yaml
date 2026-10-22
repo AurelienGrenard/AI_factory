@@ -63,6 +63,14 @@
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/fixed_income/hull_white/prices/nelson_siegel/bermudan_receiver_swaptions/hull_white_01__nelson_siegel_01__bermudan_receiver_swaptions_01__01/recipe.yaml"
   },
+  "quote_convention": {
+    "strike": {
+      "mode": "additive_to_initial_first_exercise_par_swap_rate",
+      "unit": "annualized_decimal_rate",
+      "effective_level": "strike = initial_first_exercise_par_swap_rate + strike_spread"
+    },
+    "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
+  },
   "option_side": "receiver",
   "numerical_method": {
     "engine": "fixed_income_lsm",
@@ -85,13 +93,5 @@
     "steps_per_year": 504,
     "simulation_steps_per_day": 2,
     "delta_t": "1 / 504"
-  },
-  "quote_convention": {
-    "strike": {
-      "mode": "additive_to_initial_first_exercise_par_swap_rate",
-      "unit": "annualized_decimal_rate",
-      "effective_level": "strike = initial_first_exercise_par_swap_rate + strike_spread"
-    },
-    "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
   }
 }

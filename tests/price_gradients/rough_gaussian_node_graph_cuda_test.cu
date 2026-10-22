@@ -1,6 +1,6 @@
 // Gaussian rough FFT graph: shared spectra, CRN and central pricing parity.
-#include "common/check_cuda.cuh"
-#include "common/volterra/hybrid_fft_workspace.cuh"
+#include "cuda/check_cuda.cuh"
+#include "volterra/hybrid_fft_workspace.cuh"
 #include "tools/pricing/price_gradients/rough_generation.cuh"
 #ifndef ROUGH_GAUSSIAN_TEST_MODEL
 #define ROUGH_GAUSSIAN_TEST_MODEL 0

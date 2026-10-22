@@ -1,12 +1,12 @@
 // Geometric-average payoff composed with a dense equity schedule.
 #pragma once
 
-#include "common/compensated_sum.cuh"
-#include "common/equity/concepts.cuh"
-#include "common/equity/path_product_monte_carlo_policy.cuh"
-#include "common/equity/path_product_policy.cuh"
-#include "common/simulation/schedule.cuh"
-#include "common/payoff/vanilla_option.cuh"
+#include "compensated_sum.cuh"
+#include "equity/concepts.cuh"
+#include "equity/path_product_monte_carlo_policy.cuh"
+#include "equity/path_product_policy.cuh"
+#include "schedule/schedule.cuh"
+#include "payoff/vanilla_option.cuh"
 #include "product/geometric_asian_option/parameters.hpp"
 
 #include <cstdint>

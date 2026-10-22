@@ -1,11 +1,11 @@
 // Curve-agnostic Hull-White analytics built from the standalone OU process.
 #pragma once
 
-#include "common/fixed_income/analytics_concepts.cuh"
-#include "common/fixed_income/cashflows.cuh"
-#include "common/fixed_income/gaussian_bond_option.cuh"
-#include "common/fixed_income/jamshidian.cuh"
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/analytics_concepts.cuh"
+#include "fixed_income/cashflows.cuh"
+#include "fixed_income/gaussian_bond_option.cuh"
+#include "fixed_income/jamshidian.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 #include "model/fixed_income/hull_white/parameters.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/analytics.cuh"
 

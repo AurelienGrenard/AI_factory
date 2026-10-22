@@ -1,6 +1,6 @@
 // Host implementation of the rough-Heston dataset loader.
 #include "model/equity/rough/rough_heston/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

@@ -206,11 +206,11 @@ def _render_sample_binding(model: SampleModelSpec, suffix: str) -> str:
 def _volterra_kernel_header(kernel: str) -> str:
     return {
         "volterra::FractionalHybridKernelPolicy":
-            "common/volterra/fractional_hybrid_kernel.cuh",
+            "volterra/fractional_hybrid_kernel.cuh",
         "volterra::LogModulatedHybridKernelPolicy":
-            "common/volterra/log_modulated_hybrid_kernel.cuh",
+            "volterra/log_modulated_hybrid_kernel.cuh",
         "volterra::FractionalResolventHybridKernelPolicy":
-            "common/volterra/fractional_resolvent_hybrid_kernel.cuh",
+            "volterra/fractional_resolvent_hybrid_kernel.cuh",
     }[kernel]
 
 
@@ -2051,14 +2051,9 @@ def _repository_inventory_diagnostics(reference_root: Path) -> list[str]:
             _relative_files(reference_root, "src/model/**/product/**/*.cu")
             | _relative_files(reference_root, "src/model/**/product/**/*.cuh"),
         ),
-        (
-            "catalog recipe",
-            {layout_relative(dataset.generator_path) for dataset in AVAILABLE_DATASET_SPECS
-             if (reference_root / layout_relative(dataset.generator_path)).is_file()
-             or not layout_relative(dataset.generator_path).startswith("work/catalog/")},
-            _relative_files(reference_root, "catalog/**/generator.cpp")
-            | _relative_files(reference_root, "work/catalog/**/generator.cpp"),
-        ),
+        # The public catalogue also has handwritten model, product, factor and
+        # correlation generators. compare() checks every codegen-owned output;
+        # scanning all generator.cpp files would misclassify these as extras.
         (
             "sample binding",
             {
@@ -2114,6 +2109,7 @@ def _expected_generated_paths() -> set[str]:
         paths.update({
             f"src/{model.source_prefix}/sample.cuh",
             f"src/{model.source_prefix}/sample.cu",
+            f"src/{model.source_prefix}/sample_parameter_sampler.cuh",
             f"tools/sampling/generated/{model.name}_sample_generation.cuh",
         })
     paths.update({
@@ -2152,8 +2148,9 @@ def compare(
         mismatch_count += len(diagnostics)
     for generated_path in generated:
         relative_path = generated_path.relative_to(output_root)
-        if (relative_path.parts[:2] == ("work", "catalog")
-                and not (reference_root / "work" / "catalog").exists()):
+        # work/catalog is local campaign scratch, never part of the public
+        # checkout or its reproducibility gate.
+        if relative_path.parts[:2] == ("work", "catalog"):
             continue
         reference_path = reference_root / relative_path
         if not reference_path.is_file():

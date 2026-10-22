@@ -1,7 +1,7 @@
 // Host implementation of the G2 dataset loader.
 #include "model/fixed_income/g2/dataset.hpp"
 #include "model/fixed_income/g2/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

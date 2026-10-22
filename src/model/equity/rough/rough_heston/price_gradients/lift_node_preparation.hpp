@@ -1,7 +1,7 @@
 // Host preparation policy for cached rough_heston sensitivity nodes.
 #pragma once
 
-#include "common/volterra/price_gradients/prepared_lift_node_cache.hpp"
+#include "volterra/price_gradients/prepared_lift_node_cache.hpp"
 #include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 
 #include <cstddef>

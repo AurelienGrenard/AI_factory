@@ -1,5 +1,5 @@
 // Asian path graph must preserve the existing prepared-lift price and CRN moments.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/rough/rough_heston/product/asian_option.cuh"
 #include "model/equity/rough/rough_heston/product/asian_option_price_gradients.cuh"
 #include "model/equity/rough/rough_heston/product/cliquet_price_gradients.cuh"

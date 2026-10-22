@@ -1,7 +1,7 @@
 // Public closed-form analytics declarations used by standalone G2 pricing bindings.
 #pragma once
 
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 #include "model/fixed_income/g2/dynamics.cuh"
 #include "model/fixed_income/g2/state.hpp"
 

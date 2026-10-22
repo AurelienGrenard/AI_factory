@@ -1,9 +1,9 @@
 // Shared execution and parity checks for device-prepared American sensitivities.
 #pragma once
 
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/longstaff_schwartz/launch.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "longstaff_schwartz/launch.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include "product/american_option/parameters.hpp"
 #include "tests/price_gradients/cuda_test_support.cuh"
 

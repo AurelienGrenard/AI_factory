@@ -1,13 +1,13 @@
 // Generated ${model} American sensitivities with row-local device preparation.
 #pragma once
 
-#include "common/longstaff_schwartz/launch.cuh"
-#include "common/longstaff_schwartz/price_gradients/exercise_replay.cuh"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_plan.hpp"
-#include "common/option_side.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "longstaff_schwartz/launch.cuh"
+#include "longstaff_schwartz/price_gradients/exercise_replay.cuh"
+#include "longstaff_schwartz/price_gradients/device_prepared_plan.hpp"
+#include "payoff/option_side.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/${model}/price_gradients/device_preparation.cuh"
 #include "product/american_option/price_gradients/device_preparation.cuh"
 

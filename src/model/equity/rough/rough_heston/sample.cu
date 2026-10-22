@@ -1,8 +1,8 @@
 // Generated Rough-Heston composition over the prepared Markovian N-factor sample engine.
 #include "model/equity/rough/rough_heston/sample.cuh"
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/rough_heston/dynamics_impl.cuh"
 #include "model/equity/rough/rough_heston/sample_device_preparation.cuh"
 

@@ -1,7 +1,7 @@
 // Generate ordered 90/10 rough-SABR parameter rows.
 #include "model/equity/rough/rough_sabr/dataset.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cstdint>
 #include <filesystem>

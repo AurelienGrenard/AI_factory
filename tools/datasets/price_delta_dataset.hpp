@@ -1,7 +1,7 @@
 // Price-delta artifact contract; CUDA execution and certification are separate.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
 #include <nlohmann/json.hpp>
 #include <filesystem>

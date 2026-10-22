@@ -1,7 +1,7 @@
 // Host implementation of the Black-Scholes dataset loader.
 #include "model/equity/markovian/black_scholes/dataset.hpp"
 #include "model/equity/markovian/black_scholes/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

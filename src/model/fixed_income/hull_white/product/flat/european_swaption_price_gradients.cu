@@ -1,12 +1,12 @@
 // Hull-White/Flat European-swaption analytical sensitivities.
 #include "model/fixed_income/hull_white/product/flat/european_swaption_price_gradients.cuh"
 
-#include "common/closed_form/price_gradients/device_prepared_cooperative_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_cooperative_mixed_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_kernel.cuh"
-#include "common/closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
-#include "common/fixed_income/price_gradients/closed_form_policy.cuh"
-#include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "closed_form/price_gradients/device_prepared_cooperative_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_cooperative_mixed_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_kernel.cuh"
+#include "closed_form/price_gradients/device_prepared_mixed_kernel.cuh"
+#include "fixed_income/price_gradients/closed_form_policy.cuh"
+#include "price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/european_swaption/price_gradients/terminal_maturity.cuh"
 #include "product/european_swaption/pricing_policy.cuh"
 #include "model/fixed_income/hull_white/flat/analytics_impl.cuh"

@@ -1,5 +1,5 @@
 // Replay eight Kou regression rows across launch geometries at 2^20 paths.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/markovian/kou/product/american_option.cuh"
 #include "tests/longstaff_schwartz/fixtures/kou_ill_conditioned_rows.hpp"
 

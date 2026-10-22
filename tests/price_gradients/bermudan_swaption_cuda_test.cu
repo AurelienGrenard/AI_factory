@@ -1,5 +1,5 @@
 // Frozen-policy Bermudan sensitivities across fixed-income pricing paths.
-#include "common/longstaff_schwartz/launch.cuh"
+#include "longstaff_schwartz/launch.cuh"
 #include "model/fixed_income/cir/product/bermudan_swaption.cuh"
 #include "model/fixed_income/cir/product/bermudan_swaption_price_gradients.cuh"
 #include "model/fixed_income/cir_plus_plus/product/flat/bermudan_swaption.cuh"

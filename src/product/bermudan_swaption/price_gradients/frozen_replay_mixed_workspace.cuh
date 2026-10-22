@@ -1,8 +1,8 @@
 // Persistent row preparation for mixed Bermudan frozen replay.
 #pragma once
 
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/value_policy.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/mixed_workspace.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/value_policy.cuh"
+#include "monte_carlo/price_gradients/node_graph/mixed_workspace.cuh"
 
 #include <cstddef>
 #include <cstdint>

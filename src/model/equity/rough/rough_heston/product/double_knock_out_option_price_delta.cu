@@ -1,7 +1,7 @@
 // Rough-Heston double-knock-out-option legacy delta API backed by the rough lift graph.
 #include "model/equity/rough/rough_heston/product/double_knock_out_option_price_delta.cuh"
 #include "model/equity/rough/rough_heston/product/double_knock_out_option_price_gradients.cuh"
-#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
+#include "volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_heston {
 

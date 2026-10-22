@@ -1,8 +1,8 @@
 // Host candidate geometry for selected gradients; native kernels validate compiled resources.
 #pragma once
 #include "tools/cuda/pricing_launch_plan.hpp"
-#include "src/common/price_gradients/execution_geometry.hpp"
-#include "src/common/price_gradients/sensitivity_graph_plan.hpp"
+#include "src/price_gradients/execution_geometry.hpp"
+#include "src/price_gradients/sensitivity_graph_plan.hpp"
 
 namespace ai_factory::workbench::offline::cuda_tuning {
 namespace pg = ::ai_factory::workbench::price_gradients;

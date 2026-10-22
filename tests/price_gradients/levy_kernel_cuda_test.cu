@@ -317,7 +317,7 @@ void check_variance_gamma(std::size_t paths) {
         {1.0f, -0.01f, 0.0f, 0.35f, 0.5f, -0.2f},
     };
     const std::vector<product::EuropeanOptionParameters> products{
-        {1.0f, 126U}, {1.1f, 504U},
+        {1.0f, 126U, true}, {1.1f, 504U, true},
     };
     const pg::Sensitivity spot{"model.spot", {0.005f}};
     const pg::PriceGradientConfiguration full{{
@@ -422,7 +422,7 @@ void check_nig(std::size_t paths) {
         {1.0f, -0.01f, 0.0f, 15.0f, -5.0f, 1.0f},
     };
     const std::vector<product::EuropeanOptionParameters> products{
-        {1.0f, 126U}, {1.1f, 504U},
+        {1.0f, 126U, true}, {1.1f, 504U, true},
     };
     const pg::Sensitivity spot{"model.spot", {0.005f}};
     const pg::PriceGradientConfiguration full{{

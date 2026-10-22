@@ -2,8 +2,8 @@
 #pragma once
 
 #include "tools/pricing/price_gradients/generation.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
-#include "common/price_gradients/mixed_sensitivity_stencil_outputs.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/mixed_sensitivity_stencil_outputs.cuh"
 
 #include <algorithm>
 #include <iostream>

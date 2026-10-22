@@ -1,11 +1,11 @@
 // Double-knock-out payoff composed with a dense equity schedule.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/equity/path_product_monte_carlo_policy.cuh"
-#include "common/equity/path_product_policy.cuh"
-#include "common/simulation/schedule.cuh"
-#include "common/payoff/vanilla_option.cuh"
+#include "equity/concepts.cuh"
+#include "equity/path_product_monte_carlo_policy.cuh"
+#include "equity/path_product_policy.cuh"
+#include "schedule/schedule.cuh"
+#include "payoff/vanilla_option.cuh"
 #include "product/double_knock_out_option/parameters.hpp"
 
 #include <cstdint>

@@ -1,8 +1,8 @@
 // Generated exact joint-transition MC launcher for ${model_display} European swaptions.
 #pragma once
 
-#include "common/price_construction.cuh"
-#include "common/fixed_income/swaption_side.cuh"
+#include "pricing_rows/price_construction.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/${model}/parameters.hpp"
 #include "product/european_swaption/parameters.hpp"
 #include <cstddef>

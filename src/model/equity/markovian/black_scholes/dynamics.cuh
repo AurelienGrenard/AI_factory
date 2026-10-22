@@ -1,8 +1,8 @@
 // Reusable CUDA interface for exact Black-Scholes transitions.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "equity/concepts.cuh"
+#include "philox/distributions.cuh"
 #include "model/equity/markovian/black_scholes/parameters.hpp"
 
 #include <cuda_runtime.h>

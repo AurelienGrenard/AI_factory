@@ -1,5 +1,5 @@
 // The sample kernels fit each sampled H on the device, using the CPU L2 rule.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/rough/rough_heston/markovian_n_factor_preparation.hpp"
 #include "model/equity/rough/rough_heston/sample_device_preparation.cuh"
 #include "model/equity/rough/quadratic_rough_heston/markovian_n_factor_preparation.hpp"

@@ -1,7 +1,7 @@
 // Up-and-in option policy specialization.
 #pragma once
 
-#include "common/equity/barrier_pricing_policy.cuh"
+#include "equity/barrier_pricing_policy.cuh"
 #include "product/up_and_in_option/parameters.hpp"
 
 namespace ai_factory::workbench::product {

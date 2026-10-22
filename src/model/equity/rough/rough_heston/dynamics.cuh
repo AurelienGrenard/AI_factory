@@ -1,9 +1,9 @@
 // Fixed-factor Markovian lift and weak rough-Heston CUDA contract.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
-#include "common/volterra/exponential_kernel.cuh"
+#include "equity/concepts.cuh"
+#include "philox/distributions.cuh"
+#include "volterra/exponential_kernel.cuh"
 #include "model/equity/rough/rough_heston/parameters.hpp"
 
 #include <cuda_runtime.h>

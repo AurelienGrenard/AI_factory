@@ -103,14 +103,14 @@
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
     "source_price_recipe": "catalog/model/equity/rough/rough_heston/prices/cliquets/rough_heston_01__cliquets_01__01/recipe.yaml",
-    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios.",
     "reconstructible_from_price": [
       {
         "parameter": "model.spot",
         "formula": "0",
         "standard_error": "0"
       }
-    ]
+    ],
+    "spot_contract_rule": "Spot bumps keep absolute strikes and barriers resolved at the central spot fixed; product gradients use quoted ratios."
   },
   "sensitivity_strategy": "node_graph",
   "standard_error_scope": "paired Monte Carlo sampling error; excludes bump and discretization bias",

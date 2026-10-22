@@ -3,7 +3,7 @@
 
 #include "model/$source_folder/dynamics.cuh"
 #include "model/$source_folder/sample_parameter_sampler.cuh"
-#include "common/volterra/exponential_kernel.cuh"
+#include "volterra/exponential_kernel.cuh"
 
 #include <cstddef>
 #include <cstdint>

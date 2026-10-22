@@ -1,6 +1,6 @@
 // Convert Forward-start-option JSON rows into compact CUDA parameters.
 #include "product/forward_start_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

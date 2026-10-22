@@ -1,9 +1,9 @@
 // Public Quadratic rough-Heston Range-accrual N-factor price/spot-delta launcher.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/equity/price_delta/spot_bump.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "equity/price_delta/spot_bump.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dynamics.cuh"
 #include "product/range_accrual/parameters.hpp"
 

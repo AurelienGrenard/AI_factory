@@ -3,9 +3,9 @@
 
 #include "model/equity/markovian/kou/price_gradients/coupled_dynamics.cuh"
 
-#include "common/compound_poisson.cuh"
-#include "common/monte_carlo/price_gradients/coupled_brownian_endpoints.cuh"
-#include "common/monte_carlo/price_gradients/coupled_poisson_events.cuh"
+#include "philox/compound_poisson.cuh"
+#include "monte_carlo/price_gradients/coupled_brownian_endpoints.cuh"
+#include "monte_carlo/price_gradients/coupled_poisson_events.cuh"
 #include "model/equity/markovian/kou/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::kou::price_gradients {

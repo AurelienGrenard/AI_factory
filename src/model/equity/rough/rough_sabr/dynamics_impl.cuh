@@ -1,7 +1,7 @@
 // Included device definitions mapping the normalized Volterra process to rough-SABR state.
 #pragma once
 
-#include "common/equity/absorbing_lamperti.cuh"
+#include "equity/absorbing_lamperti.cuh"
 #include "model/equity/rough/rough_sabr/dynamics.cuh"
 
 #include <cmath>

@@ -1,7 +1,7 @@
 // JSON loading and validation for Heston 3/2 parameter datasets.
 #include "model/equity/markovian/heston_3_2/dataset.hpp"
 
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "model/equity/markovian/heston_3_2/parameter_domain.hpp"
 
 #include <nlohmann/json.hpp>

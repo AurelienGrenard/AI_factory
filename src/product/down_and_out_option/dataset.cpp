@@ -1,6 +1,6 @@
 // Convert Down-and-out-option JSON rows into compact CUDA parameters.
 #include "product/down_and_out_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

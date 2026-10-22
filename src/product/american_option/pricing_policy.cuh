@@ -1,12 +1,12 @@
 // Generic American-option Longstaff-Schwartz pricing policy.
 #pragma once
 
-#include "common/check_cuda.cuh"
-#include "common/device_inputs.cuh"
-#include "common/equity/discount.cuh"
-#include "common/option_side.cuh"
-#include "common/payoff/vanilla_option.cuh"
-#include "common/simulation/early_exercise_schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "equity/discount.cuh"
+#include "payoff/option_side.cuh"
+#include "payoff/vanilla_option.cuh"
+#include "schedule/early_exercise_schedule.cuh"
 #include "product/american_option/parameters.hpp"
 
 #include <cuda_runtime.h>

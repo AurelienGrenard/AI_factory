@@ -1,5 +1,5 @@
 // Exercise Bates terminal-payoff launchers and payoff identities.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/markovian/bates/product/asian_option.cuh"
 #include "model/equity/markovian/bates/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/bates/product/digital_option.cuh"

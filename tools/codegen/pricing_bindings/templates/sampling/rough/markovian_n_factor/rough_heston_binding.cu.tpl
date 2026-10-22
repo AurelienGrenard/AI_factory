@@ -1,8 +1,8 @@
 // Generated $display composition over the prepared Markovian N-factor sample engine.
 #include "model/$source_folder/sample.cuh"
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "model/$source_folder/dynamics_impl.cuh"
 #include "model/$source_folder/sample_device_preparation.cuh"
 

@@ -1,19 +1,20 @@
 // Independent polynomial, domain, selection and Brownian covariance checks for host plans.
 #include "model/equity/markovian/black_scholes/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/black_scholes/product/double_knock_out_option_price_gradients.cuh"
+#include "model/equity/markovian/black_scholes/product/range_accrual_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/cev/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/merton/product/european_option_price_gradients.cuh"
 #include "model/equity/markovian/heston/product/american_option_price_gradients.cuh"
 #include "model/fixed_income/cir/product/european_swaption_price_gradients.cuh"
-#include "common/price_gradients/result.cuh"
-#include "common/price_gradients/reconstruction.cuh"
-#include "common/equity/spot_relative_product.hpp"
+#include "price_gradients/result.cuh"
+#include "price_gradients/reconstruction.cuh"
+#include "equity/spot_relative_product.hpp"
 #include "product/double_knock_out_option/parameters.hpp"
 #include "product/up_one_touch/parameters.hpp"
 #include "product/range_accrual/parameters.hpp"
 #include "product/athena_autocall/parameters.hpp"
-#include "common/price_gradients/row_mapping.cuh"
+#include "price_gradients/row_mapping.cuh"
 #include <iostream>
 
 namespace {
@@ -532,6 +533,21 @@ void spot_relative_contract() {
     );
     require(range.lower_barrier == .9f && range.upper_barrier == 1.1f,
         "Already-relative range accrual was scaled twice.");
+    const std::array<product::RangeAccrualParameters, 1> range_quotes{{
+        {252U, 21U, .9f, 1.1f, .05f}
+    }};
+    const auto range_plan =
+        bs::prepare_black_scholes_range_accrual_price_gradients(
+            models, range_quotes, PriceConstruction::Aligned, {},
+            {{{"model.spot", {.005f}}}}
+        );
+    const auto range_spot = first_order_task(range_plan, 0U, 0U);
+    require(!range_plan.relative_quotes
+            && range_spot.nodes[1U].product.lower_barrier == .9f
+            && range_spot.nodes[2U].product.lower_barrier == .9f
+            && range_spot.nodes[1U].product.upper_barrier == 1.1f
+            && range_spot.nodes[2U].product.upper_barrier == 1.1f,
+        "Spot bump changed intrinsic normalized range bounds.");
     const auto autocall = quotes::resolve_product(
         product::AthenaAutocallParameters{252U, 21U, 1.f, .7f, .06f, 1.0f},
         3.f

@@ -1,6 +1,6 @@
 // Generate ordered 90/10 Schobel-Zhu stochastic-volatility parameter rows.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cstdint>
 #include <filesystem>

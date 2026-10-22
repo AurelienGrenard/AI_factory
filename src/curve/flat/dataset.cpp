@@ -1,7 +1,7 @@
 // Host implementation of the flat-curve dataset loader.
 #include "curve/flat/dataset.hpp"
 #include "curve/flat/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

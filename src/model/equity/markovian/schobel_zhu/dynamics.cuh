@@ -1,8 +1,8 @@
 // Reusable CUDA interface for Schobel-Zhu stochastic-volatility paths.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "equity/concepts.cuh"
+#include "philox/distributions.cuh"
 #include "model/equity/markovian/schobel_zhu/parameters.hpp"
 
 #include <cuda_runtime.h>

@@ -1,7 +1,7 @@
 // Joint rough/Markov payoff versus the same correlated marginal paths.
-#include "common/check_cuda.cuh"
-#include "common/monte_carlo/multi_asset_heterogeneous_rough_kernel.cuh"
-#include "common/volterra/causal_fft_volatility_kernel.cuh"
+#include "cuda/check_cuda.cuh"
+#include "multi_asset/rough_price_kernel.cuh"
+#include "volterra/causal_fft_volatility_kernel.cuh"
 #include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
 #include "model/equity/rough/rough_heston/causal_fft_dynamics.cuh"
 #include "product/worst_of_call/pricing_policy.cuh"

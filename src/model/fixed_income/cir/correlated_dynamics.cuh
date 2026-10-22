@@ -1,7 +1,7 @@
 // Brownian-driven, positivity-preserving CIR step for cross-asset coupling.
 #pragma once
-#include "common/fixed_income/no_curve.hpp"
-#include "common/philox_domains.cuh"
+#include "fixed_income/no_curve.hpp"
+#include "philox/domains.cuh"
 #include "model/fixed_income/cir/parameter_domain.hpp"
 #include <cuda_runtime.h>
 

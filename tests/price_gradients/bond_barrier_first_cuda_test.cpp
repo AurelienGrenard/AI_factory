@@ -134,6 +134,29 @@ int main() {
     near_mc(unknocked.gradient[2],u_reference,
             unknocked.gradient_error[2],3e-3,"Bond maturity derivative");
 
+    // Quote K against the initial forward bond and B against P(0,U). The
+    // resolved absolute contract is frozen when U is bumped.
+    Product relative = product;
+    const float initial_forward = static_cast<float>(p0u / p0t);
+    relative.strike = product.strike / initial_forward;
+    relative.barrier = product.barrier / static_cast<float>(p0u);
+    relative.quote_is_relative = true;
+    const auto quoted = evaluate(model, relative);
+    near_mc(quoted.price[0], unknocked.price[0],
+            quoted.price_error[0] + unknocked.price_error[0], 2e-4,
+            "Relative bond strike/barrier changed the central contract");
+    near_mc(quoted.gradient[0], initial_forward * unknocked.gradient[0],
+            quoted.gradient_error[0]
+                + initial_forward * unknocked.gradient_error[0], 2e-3,
+            "Bond strike gradient is not in quoted-ratio units");
+    near_mc(quoted.gradient[2], unknocked.gradient[2],
+            quoted.gradient_error[2] + unknocked.gradient_error[2], 5e-3,
+            "Bond U bump moved the resolved K or B");
+    const double quoted_price_only = price_only(model, relative);
+    near_mc(quoted_price_only, quoted.price[0],
+            quoted.price_error[0], 2e-4,
+            "Relative bond price-only and gradient paths disagree");
+
     product.barrier=0.5f;
     const auto knocked=evaluate(model,product);
     price_gradient_test::require(

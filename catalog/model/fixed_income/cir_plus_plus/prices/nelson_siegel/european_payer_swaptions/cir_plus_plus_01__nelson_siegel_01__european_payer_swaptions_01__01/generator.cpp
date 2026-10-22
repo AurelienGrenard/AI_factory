@@ -1,5 +1,5 @@
 // Generated Generate CIR++/Nelson-Siegel European payer-swaption prices.
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/cir_plus_plus/product/nelson_siegel/european_swaption.cuh"
 #include "curve/nelson_siegel/dataset.hpp"
 #include "model/fixed_income/cir_plus_plus/dataset.hpp"

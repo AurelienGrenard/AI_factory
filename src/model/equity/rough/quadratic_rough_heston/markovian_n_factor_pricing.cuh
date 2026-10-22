@@ -1,7 +1,7 @@
 // Shared prepared N-factor Monte Carlo composition used by quadratic rough Heston products.
 #pragma once
 
-#include "common/equity/prepared_path_product_pricing.cuh"
+#include "equity/prepared_path_product_pricing.cuh"
 #include "model/equity/rough/quadratic_rough_heston/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::quadratic_rough_heston {

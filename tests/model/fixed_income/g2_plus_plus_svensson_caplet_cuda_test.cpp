@@ -1,5 +1,5 @@
 // Compare Svensson-fitted G2++ caplets with an FP64 CPU formula.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/g2_plus_plus/product/svensson/rate_option.cuh"
 
 #include <cuda_runtime.h>

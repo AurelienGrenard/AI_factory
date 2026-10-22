@@ -1,7 +1,7 @@
 // Offline runner for correlated equity baskets under one short-rate policy.
 #pragma once
 
-#include "common/monte_carlo/cross_asset_kernel.cuh"
+#include "multi_asset/equity_rate_price_kernel.cuh"
 #include "tools/pricing/heterogeneous_rough_price_generation.cuh"
 
 #include <algorithm>

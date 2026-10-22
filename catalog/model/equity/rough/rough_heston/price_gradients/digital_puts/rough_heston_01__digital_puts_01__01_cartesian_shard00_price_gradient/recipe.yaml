@@ -53,10 +53,6 @@ sensitivity:
     displacement: 0.005
     scale: relative
     boundary: central_then_one_sided_order2
-  - parameter: product.cash_payoff
-    displacement: 0.005
-    scale: relative
-    boundary: central_then_one_sided_order2
   - parameter: product.maturity_years
     displacement: 0.001984126984126984
     scale: absolute
@@ -64,6 +60,10 @@ sensitivity:
   bump_rule: h = displacement (absolute) or displacement * abs(x) (relative); centered
     when valid, otherwise second-order one-sided.
   source_price_recipe: catalog/model/equity/rough/rough_heston/prices/digital_puts/rough_heston_01__digital_puts_01__01_cartesian_shard00/recipe.yaml
+  reconstructible_from_price:
+  - parameter: product.cash_payoff
+    formula: price / product.cash_payoff
+    standard_error: standard_error / product.cash_payoff
   spot_contract_rule: Spot bumps keep absolute strikes and barriers resolved at the
     central spot fixed; product gradients use quoted ratios.
 option_side: put

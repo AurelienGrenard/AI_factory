@@ -1,5 +1,5 @@
 // Generated Generate Vasicek European payer-swaption prices.
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/vasicek/product/european_swaption.cuh"
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "product/european_swaption/dataset.hpp"

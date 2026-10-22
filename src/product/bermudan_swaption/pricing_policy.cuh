@@ -1,11 +1,11 @@
 // Shared Longstaff-Schwartz policy for co-terminal Bermudan swaptions.
 #pragma once
 
-#include "common/check_cuda.cuh"
-#include "common/device_inputs.cuh"
-#include "common/fixed_income/swaption_side.cuh"
-#include "common/longstaff_schwartz/workspace.cuh"
-#include "common/simulation/early_exercise_schedule.cuh"
+#include "cuda/check_cuda.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "fixed_income/swaption_side.cuh"
+#include "longstaff_schwartz/workspace.cuh"
+#include "schedule/early_exercise_schedule.cuh"
 #include "product/bermudan_swaption/parameters.hpp"
 #include "product/bermudan_swaption/schedule.cuh"
 

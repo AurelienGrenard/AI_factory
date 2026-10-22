@@ -2,8 +2,8 @@
 #include "model/fixed_income/cir/sample.cuh"
 #include "model/fixed_income/cir/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "model/fixed_income/cir/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::fixed_income::cir {

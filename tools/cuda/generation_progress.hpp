@@ -3,7 +3,7 @@
 
 #include <cuda_runtime.h>
 
-#include "common/longstaff_schwartz/host_progress.cuh"
+#include "longstaff_schwartz/host_progress.cuh"
 
 #include <algorithm>
 #include <atomic>

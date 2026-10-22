@@ -1,7 +1,7 @@
 // Show that the in-sample LSM cashflow SE can be zero while the fit changes by seed.
-#include "common/check_cuda.cuh"
-#include "common/longstaff_schwartz/host_progress.cuh"
-#include "common/longstaff_schwartz/price_gradients/execution_plan.cuh"
+#include "cuda/check_cuda.cuh"
+#include "longstaff_schwartz/host_progress.cuh"
+#include "longstaff_schwartz/price_gradients/execution_plan.cuh"
 #include "model/equity/markovian/black_scholes/product/american_option.cuh"
 
 #include <cuda_runtime.h>

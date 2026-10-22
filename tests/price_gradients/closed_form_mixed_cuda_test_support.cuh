@@ -2,7 +2,7 @@
 #pragma once
 
 #include "diagonal_cuda_test_support.cuh"
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
 
 #include <algorithm>
 #include <cmath>

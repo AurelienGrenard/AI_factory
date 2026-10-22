@@ -1,10 +1,10 @@
 // G2++/Nelson-Siegel European-swaption mono/node-graph MC sensitivities.
 #include "model/fixed_income/g2_plus_plus/product/nelson_siegel/european_swaption_price_gradients.cuh"
 
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
-#include "common/monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
+#include "equity/price_gradients/terminal_node_graph_launcher.cuh"
+#include "monte_carlo/price_gradients/device_prepared_terminal_price_kernel.cuh"
 #include "product/european_swaption/price_gradients/monte_carlo_policy.cuh"
 #include "model/fixed_income/g2_plus_plus/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics_impl.cuh"

@@ -85,13 +85,8 @@
       }
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
-    "source_price_recipe": "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/recipe.yaml"
-  },
-  "option_side": "put",
-  "time_representation": {
-    "kind": "exact_terminal_transition",
-    "contractual_days_per_year": 252,
-    "maturity_bump_steps_per_year": 504
+    "source_price_recipe": "catalog/model/fixed_income/g2_plus_plus/prices/nelson_siegel/zero_coupon_bond_puts/g2_plus_plus_01__nelson_siegel_01__zero_coupon_bond_puts_01__01/recipe.yaml",
+    "maturity_coordinate": "Underlying bond maturity U; option expiry T and the central absolute strike stay fixed."
   },
   "quote_convention": {
     "strike": {
@@ -100,5 +95,11 @@
       "effective_level": "strike = strike_ratio * P(0,U)/P(0,T)"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
+  },
+  "option_side": "put",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
   }
 }

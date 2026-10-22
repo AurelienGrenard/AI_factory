@@ -26,5 +26,6 @@
       "effective_level": "strike = initial_par_swap_rate + strike_spread"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
-  }
+  },
+  "option_side": "payer"
 }

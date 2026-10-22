@@ -1,7 +1,7 @@
 // Rough-Bergomi cliquet composition over the Volterra FFT engine.
 #include "model/equity/rough/rough_bergomi/product/cliquet.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/cliquet/pricing_policy.cuh"
 

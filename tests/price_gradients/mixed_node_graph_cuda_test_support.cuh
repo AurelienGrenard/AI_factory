@@ -1,7 +1,7 @@
 // Shared public-API fixture for selected mixed-Hessian CUDA tests.
 #pragma once
 
-#include "common/price_gradients/mixed_sensitivity_outputs.cuh"
+#include "price_gradients/mixed_sensitivity_outputs.cuh"
 #include "diagonal_cuda_test_support.cuh"
 
 #include <algorithm>

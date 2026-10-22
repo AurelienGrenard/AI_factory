@@ -1,7 +1,7 @@
 // Generate issuance terms for locally and globally capped Cliquets.
 #include "tools/sampling/parameters/cliquet_generation.hpp"
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <cstddef>
 #include <cstdint>

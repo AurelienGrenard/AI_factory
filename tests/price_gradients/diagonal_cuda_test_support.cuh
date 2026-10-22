@@ -2,7 +2,7 @@
 #pragma once
 
 #include "cuda_test_support.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 
 #include <bit>
 #include <cstdint>

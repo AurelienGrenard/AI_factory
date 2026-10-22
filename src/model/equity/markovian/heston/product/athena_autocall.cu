@@ -1,8 +1,8 @@
 // Heston athena-autocall composition over generic CUDA layers.
 #include "model/equity/markovian/heston/product/athena_autocall.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/heston/dynamics_impl.cuh"
 #include "product/athena_autocall/pricing_policy.cuh"
 

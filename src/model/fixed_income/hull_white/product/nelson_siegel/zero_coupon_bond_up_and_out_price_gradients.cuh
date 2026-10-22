@@ -1,9 +1,9 @@
 // Hull-White/Nelson-Siegel bond-barrier first-order CRN sensitivities.
 #pragma once
 
-#include "common/fixed_income/price_gradients/device_prepared_plan.hpp"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "fixed_income/price_gradients/device_prepared_plan.hpp"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/sensitivity_outputs.cuh"
 #include "model/fixed_income/hull_white/price_gradients/device_preparation.cuh"
 #include "product/zero_coupon_bond_up_and_out/price_gradients/device_preparation.cuh"
 #include "curve/nelson_siegel/price_gradients/device_preparation.cuh"

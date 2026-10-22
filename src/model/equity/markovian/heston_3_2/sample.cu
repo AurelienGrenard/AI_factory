@@ -2,8 +2,8 @@
 #include "model/equity/markovian/heston_3_2/sample.cuh"
 #include "model/equity/markovian/heston_3_2/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/heston_3_2/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::heston_3_2 {

@@ -1,8 +1,8 @@
 // Public launcher for the Kou Up-and-out-option CUDA kernel.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/markovian/kou/parameters.hpp"
 #include "product/up_and_out_option/parameters.hpp"
 

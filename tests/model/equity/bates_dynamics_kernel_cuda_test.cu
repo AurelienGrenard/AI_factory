@@ -1,7 +1,7 @@
 // Verify Bates preparation and the explicit one-step jump composition.
-#include "common/check_cuda.cuh"
-#include "common/equity/handlers.cuh"
-#include "common/simulation/path_simulation.cuh"
+#include "cuda/check_cuda.cuh"
+#include "equity/handlers.cuh"
+#include "dynamics/path_simulation.cuh"
 #include "model/equity/markovian/bates/dynamics_impl.cuh"
 
 #include <cuda_runtime.h>

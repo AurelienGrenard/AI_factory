@@ -1,6 +1,6 @@
 // Qualify Monte Carlo moment formation and finalization precision on CUDA.
-#include "common/check_cuda.cuh"
-#include "common/reductions.cuh"
+#include "cuda/check_cuda.cuh"
+#include "monte_carlo/reductions.cuh"
 
 #include <cuda_runtime.h>
 

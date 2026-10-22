@@ -1,9 +1,9 @@
 // Shared Volterra FFT pricing composition used by rough Stein--Stein products.
 #pragma once
 
-#include "common/price_construction.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
-#include "common/volterra/hybrid_fft_pricer_kernel.cuh"
+#include "pricing_rows/price_construction.cuh"
+#include "volterra/fractional_resolvent_hybrid_kernel.cuh"
+#include "volterra/hybrid_fft_pricer_kernel.cuh"
 #include "model/equity/rough/rough_stein_stein/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {

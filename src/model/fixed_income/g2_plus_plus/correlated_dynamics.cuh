@@ -1,6 +1,6 @@
 // G2++ curve fitting around the correlated two-factor G2 process.
 #pragma once
-#include "common/fixed_income/fitted_correlated_rate.cuh"
+#include "fixed_income/fitted_correlated_rate.cuh"
 #include "model/fixed_income/g2/correlated_dynamics.cuh"
 #include "model/fixed_income/g2_plus_plus/fitted_analytics.cuh"
 #include "model/fixed_income/g2/analytics_impl.cuh"

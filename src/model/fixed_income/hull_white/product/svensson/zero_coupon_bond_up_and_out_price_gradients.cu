@@ -1,10 +1,10 @@
 // Hull-White/Svensson bond-barrier first-order CRN sensitivities.
 #include "model/fixed_income/hull_white/product/svensson/zero_coupon_bond_up_and_out_price_gradients.cuh"
 
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/fixed_income/price_gradients/bond_barrier_first_policy.cuh"
-#include "common/monte_carlo/price_gradients/device_prepared_first_sensitivity_kernel.cuh"
-#include "common/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "fixed_income/price_gradients/bond_barrier_first_policy.cuh"
+#include "monte_carlo/price_gradients/device_prepared_first_sensitivity_kernel.cuh"
+#include "price_gradients/device_prepared_stencil_launcher.cuh"
 #include "product/zero_coupon_bond_up_and_out/pricing_policy.cuh"
 #include "model/fixed_income/hull_white/dynamics.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/dynamics_impl.cuh"

@@ -1,8 +1,8 @@
 // Reusable CUDA interfaces for exact Ornstein-Uhlenbeck simulations.
 #pragma once
 
-#include "common/philox.cuh"
-#include "common/simulation/concepts.cuh"
+#include "philox/distributions.cuh"
+#include "dynamics/concepts.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/parameters.hpp"
 
 #include <cuda_runtime.h>

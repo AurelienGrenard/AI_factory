@@ -1,10 +1,10 @@
 // Compile and inspect representative policies at every static size budget.
-#include "common/closed_form/concepts.cuh"
-#include "common/cuda_kernel_diagnostics.cuh"
-#include "common/longstaff_schwartz/longstaff_schwartz_kernels.cuh"
-#include "common/monte_carlo/concepts.cuh"
-#include "common/sample/sample_kernels.cuh"
-#include "common/simulation/concepts.cuh"
+#include "closed_form/concepts.cuh"
+#include "cuda/cuda_kernel_diagnostics.cuh"
+#include "longstaff_schwartz/longstaff_schwartz_kernels.cuh"
+#include "monte_carlo/concepts.cuh"
+#include "sample/sample_kernels.cuh"
+#include "dynamics/concepts.cuh"
 
 #include <nlohmann/json.hpp>
 

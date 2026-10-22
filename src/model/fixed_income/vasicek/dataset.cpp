@@ -1,7 +1,7 @@
 // Host implementation of the Vasicek dataset loader.
 #include "model/fixed_income/vasicek/dataset.hpp"
 #include "model/fixed_income/vasicek/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

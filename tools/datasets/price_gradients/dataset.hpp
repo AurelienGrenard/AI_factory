@@ -1,14 +1,14 @@
 // Price-gradient artifact contract, including selected coordinates and represented stencils.
 #pragma once
-#include "common/longstaff_schwartz/price_gradients/exercise_replay_strategy.hpp"
-#include "common/price_construction.cuh"
-#include "common/price_gradients/stencil.hpp"
-#include "common/price_gradients/mixed_sensitivity_stencil.cuh"
-#include "common/price_gradients/sensitivity_request.hpp"
-#include "common/price_gradients/sensitivity_graph_plan.hpp"
-#include "common/price_gradients/sensitivity_stencil.cuh"
-#include "common/price_gradients/time_configuration.hpp"
-#include "common/price_gradients/sensitivity_strategy.hpp"
+#include "longstaff_schwartz/price_gradients/exercise_replay_strategy.hpp"
+#include "pricing_rows/price_construction.cuh"
+#include "price_gradients/stencil.hpp"
+#include "price_gradients/mixed_sensitivity_stencil.cuh"
+#include "price_gradients/sensitivity_request.hpp"
+#include "price_gradients/sensitivity_graph_plan.hpp"
+#include "price_gradients/sensitivity_stencil.cuh"
+#include "price_gradients/time_configuration.hpp"
+#include "price_gradients/sensitivity_strategy.hpp"
 #include <nlohmann/json.hpp>
 #include <filesystem>
 #include <optional>

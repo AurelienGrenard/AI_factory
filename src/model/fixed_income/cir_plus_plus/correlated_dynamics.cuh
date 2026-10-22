@@ -1,6 +1,6 @@
 // CIR++ curve fitting around the Brownian-driven CIR factor.
 #pragma once
-#include "common/fixed_income/fitted_correlated_rate.cuh"
+#include "fixed_income/fitted_correlated_rate.cuh"
 #include "model/fixed_income/cir/correlated_dynamics.cuh"
 #include "model/fixed_income/cir_plus_plus/fitted_analytics_impl.cuh"
 

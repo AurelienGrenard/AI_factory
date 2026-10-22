@@ -1,6 +1,6 @@
 // Causal FFT versus the same model cells evaluated by direct convolution.
-#include "common/check_cuda.cuh"
-#include "common/volterra/causal_fft_pricer_kernel.cuh"
+#include "cuda/check_cuda.cuh"
+#include "volterra/causal_fft_pricer_kernel.cuh"
 #include "model/equity/rough/rough_heston/causal_fft_pricing.cuh"
 #include "model/equity/rough/quadratic_rough_heston/causal_fft_pricing.cuh"
 #include "product/asian_option/pricing_policy.cuh"

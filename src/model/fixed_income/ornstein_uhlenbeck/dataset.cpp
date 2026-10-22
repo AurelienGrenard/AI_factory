@@ -1,7 +1,7 @@
 // Host implementation of the Ornstein-Uhlenbeck dataset loader.
 #include "model/fixed_income/ornstein_uhlenbeck/dataset.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/parameter_domain.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

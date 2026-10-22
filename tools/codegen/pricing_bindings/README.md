@@ -24,9 +24,11 @@ python3 tools/codegen/pricing_bindings/generate.py \
   --compare-root .
 ```
 
-CTest exposes the same zero-diff check as `pricing_binding_codegen`.
-Regeneration preserves the timestamps of unchanged outputs, avoiding needless
-CUDA rebuilds.
+The comparison covers generated files in the public checkout. Campaign
+recipes under `work/catalog` are local scratch and are excluded even when that
+directory exists. Handwritten parameter, factor, product and correlation
+generators are outside this codegen inventory. Regeneration preserves the
+timestamps of unchanged outputs, avoiding needless CUDA rebuilds.
 
 ## Find the source of truth
 

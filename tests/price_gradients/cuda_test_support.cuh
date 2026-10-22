@@ -1,8 +1,8 @@
 // Shared public-API fixtures for selected-gradient CUDA contract tests.
 #pragma once
-#include "common/equity/price_gradients/device_preparation.cuh"
-#include "common/price_gradients/launch.cuh"
-#include "common/price_gradients/row_mapping.cuh"
+#include "equity/price_gradients/device_preparation.cuh"
+#include "price_gradients/launch.cuh"
+#include "price_gradients/row_mapping.cuh"
 #include <bit>
 #include <cmath>
 #include <iostream>

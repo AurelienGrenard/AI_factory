@@ -1,9 +1,9 @@
 // Generated public launcher for closed-form Black-Scholes asset-or-nothing pricing.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
-#include "common/option_side.cuh"
+#include "payoff/option_side.cuh"
 #include "model/equity/markovian/black_scholes/parameters.hpp"
 #include "product/asset_or_nothing_option/parameters.hpp"
 

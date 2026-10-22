@@ -1,7 +1,7 @@
 // Two-factor G2 short rate driven by two entries of the global correlation matrix.
 #pragma once
-#include "common/fixed_income/correlated_two_factor_gaussian_rate.cuh"
-#include "common/fixed_income/no_curve.hpp"
+#include "fixed_income/correlated_two_factor_gaussian_rate.cuh"
+#include "fixed_income/no_curve.hpp"
 #include "model/fixed_income/g2/parameter_domain.hpp"
 
 namespace ai_factory::workbench::model::fixed_income::g2 {

@@ -1,5 +1,5 @@
 // Compare three OU rate-option launchers with independent FP64 formulas.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/product/rate_option.cuh"
 #include "model/fixed_income/ornstein_uhlenbeck/product/zero_coupon_bond_option.cuh"
 

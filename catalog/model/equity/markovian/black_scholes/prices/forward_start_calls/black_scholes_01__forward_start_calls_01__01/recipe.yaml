@@ -18,5 +18,6 @@
   "outputs": [
     "price"
   ],
-  "paths_per_price": 0
+  "paths_per_price": 0,
+  "option_side": "call"
 }

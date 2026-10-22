@@ -1,7 +1,7 @@
 // Streaming sample-result assembly; CUDA execution and model laws live elsewhere.
 #include "tools/datasets/sample_dataset.hpp"
 
-#include "common/sample/validation.cuh"
+#include "sample/validation.cuh"
 #include "tools/datasets/artifact_io.hpp"
 #include "tools/datasets/sampling.hpp"
 

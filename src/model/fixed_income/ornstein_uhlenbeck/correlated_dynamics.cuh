@@ -1,7 +1,7 @@
 // OU short rate conditional on the shared Brownian increment.
 #pragma once
-#include "common/fixed_income/correlated_gaussian_rate.cuh"
-#include "common/fixed_income/no_curve.hpp"
+#include "fixed_income/correlated_gaussian_rate.cuh"
+#include "fixed_income/no_curve.hpp"
 #include "model/fixed_income/ornstein_uhlenbeck/parameter_domain.hpp"
 
 namespace ai_factory::workbench::model::fixed_income::ornstein_uhlenbeck {

@@ -1,7 +1,7 @@
 // G2++ stochastic-factor adapters over the shared G2 dynamics.
 #pragma once
 
-#include "common/simulation/adapted_dynamics.cuh"
+#include "dynamics/adapted_dynamics.cuh"
 #include "model/fixed_income/g2/dynamics.cuh"
 #include "model/fixed_income/g2_plus_plus/parameters.hpp"
 

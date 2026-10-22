@@ -3,11 +3,11 @@
 
 #include "model/fixed_income/cir/analytics.cuh"
 
-#include "common/fixed_income/analytics_concepts.cuh"
-#include "common/fixed_income/cashflows.cuh"
-#include "common/fixed_income/jamshidian.cuh"
-#include "common/fixed_income/one_factor_affine.cuh"
-#include "common/noncentral_chi_square.cuh"
+#include "fixed_income/analytics_concepts.cuh"
+#include "fixed_income/cashflows.cuh"
+#include "fixed_income/jamshidian.cuh"
+#include "fixed_income/one_factor_affine.cuh"
+#include "probability/noncentral_chi_square.cuh"
 
 #include <cuda_runtime.h>
 

@@ -1,7 +1,7 @@
 // Gap-option parameter access for device-prepared sensitivities.
 #pragma once
 
-#include "common/price_gradients/product_parameter_access.cuh"
+#include "price_gradients/product_parameter_access.cuh"
 #include "product/gap_option/parameters.hpp"
 
 #include <cuda_runtime.h>

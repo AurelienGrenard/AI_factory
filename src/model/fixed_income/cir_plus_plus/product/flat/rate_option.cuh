@@ -1,10 +1,10 @@
 // Generated Public launcher for CIR++ Flat rate_option analytics.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
 #include "curve/flat/parameters.hpp"
-#include "common/option_side.cuh"
+#include "payoff/option_side.cuh"
 #include "model/fixed_income/cir_plus_plus/parameters.hpp"
 #include "product/rate_option/parameters.hpp"
 

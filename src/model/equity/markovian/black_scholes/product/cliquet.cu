@@ -1,8 +1,8 @@
 // Black-Scholes cliquet composition over generic CUDA layers.
 #include "model/equity/markovian/black_scholes/product/cliquet.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/black_scholes/dynamics_impl.cuh"
 #include "product/cliquet/pricing_policy.cuh"
 

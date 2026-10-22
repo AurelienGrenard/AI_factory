@@ -1,8 +1,8 @@
 // Public Rough-SABR Down-and-in-option hybrid-FFT launcher.
 #pragma once
 
-#include "common/option_side.cuh"
-#include "common/price_construction.cuh"
+#include "payoff/option_side.cuh"
+#include "pricing_rows/price_construction.cuh"
 #include "model/equity/rough/rough_sabr/parameters.hpp"
 #include "model/equity/rough/rough_sabr/volterra_fft_workspace.cuh"
 #include "product/down_and_in_option/parameters.hpp"

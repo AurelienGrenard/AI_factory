@@ -1,8 +1,9 @@
 // Reusable CUDA interface for exact Variance-Gamma increments.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox_domains.cuh"
+#include "equity/concepts.cuh"
+#include "multi_asset/concepts.cuh"
+#include "philox/domains.cuh"
 #include "model/equity/markovian/variance_gamma/parameters.hpp"
 
 #include <cuda_runtime.h>

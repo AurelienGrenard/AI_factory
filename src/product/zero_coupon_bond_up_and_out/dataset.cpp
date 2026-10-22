@@ -1,5 +1,5 @@
 #include "product/zero_coupon_bond_up_and_out/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -11,9 +11,12 @@ namespace ai_factory::workbench::product {
 std::vector<ZeroCouponBondUpAndOutParameters> load_zero_coupon_bond_up_and_outs(
     const std::filesystem::path& dataset_path
 ) {
-    const bool quoted = datasets::read_parameter_dataset(
-        dataset_path, datasets::ParameterDatasetFamily::Product,
-        "Fixed-income product").contains("quote_convention");
+    const bool quoted = datasets::fixed_income_relative_quote(
+        datasets::read_parameter_dataset(
+            dataset_path, datasets::ParameterDatasetFamily::Product,
+            "Fixed-income product"),
+        "ratio_to_initial_forward_bond_price", "dimensionless",
+        "ratio_to_initial_bond_price");
     return datasets::load_parameter_rows<ZeroCouponBondUpAndOutParameters>(
         dataset_path,
         datasets::ParameterDatasetFamily::Product,

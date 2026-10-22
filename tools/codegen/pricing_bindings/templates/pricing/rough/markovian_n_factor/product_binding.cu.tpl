@@ -1,7 +1,7 @@
 // {model_display} {product_comment} composition over a prepared N-factor lift.
 #include "model/equity/rough/{model}/product/{product}.cuh"
 
-#include "common/simulation/schedule.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/rough/{model}/markovian_n_factor_pricing.cuh"
 #include "product/{product}/pricing_policy.cuh"
 

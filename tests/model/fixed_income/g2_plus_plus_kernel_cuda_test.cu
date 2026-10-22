@@ -1,5 +1,5 @@
 // Validate G2++ curve fitting and affine analytics on CUDA.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 
 // Include the implementation exactly as product kernels do.
 #include "model/fixed_income/g2_plus_plus/nelson_siegel/analytics_impl.cuh"

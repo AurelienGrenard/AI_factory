@@ -1,5 +1,5 @@
 // Generated Generate ${model_display}/${curve_display} European ${swaption_side}-swaption prices.
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "model/fixed_income/${model}/product/${curve}/european_swaption.cuh"
 #include "curve/${curve}/dataset.hpp"
 #include "model/fixed_income/${model}/dataset.hpp"

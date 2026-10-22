@@ -1,8 +1,8 @@
 // Specific five-equity/CIR composition; simulation remains in the shared engine.
 #pragma once
 
-#include "common/row_index_plan.hpp"
-#include "common/simulation/rate_adjusted_equity_path.cuh"
+#include "pricing_rows/row_index_plan.hpp"
+#include "multi_asset/rate_adjusted_model_group.cuh"
 #include "correlation/dataset.hpp"
 #include "model/equity/markovian/heston/dataset.hpp"
 #include "model/equity/markovian/heston/dynamics_impl.cuh"

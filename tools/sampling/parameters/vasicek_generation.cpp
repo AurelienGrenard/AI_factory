@@ -1,7 +1,7 @@
 // Host implementation of constrained Vasicek generation.
 #include "tools/sampling/parameters/vasicek_generation.hpp"
 
-#include "common/fixed_income/mean_reverting_gaussian.cuh"
+#include "fixed_income/mean_reverting_gaussian.cuh"
 
 #include <cmath>
 #include <random>

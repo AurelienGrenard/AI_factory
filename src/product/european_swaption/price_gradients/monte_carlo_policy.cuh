@@ -1,9 +1,9 @@
 // European-swaption terminal node policies shared by mono and node-graph MC.
 #pragma once
 
-#include "common/fixed_income/swaption_side.cuh"
+#include "fixed_income/swaption_side.cuh"
 #include "product/european_swaption/price_gradients/terminal_maturity.cuh"
-#include "common/price_gradients/time_configuration.hpp"
+#include "price_gradients/time_configuration.hpp"
 #include "product/european_swaption/pricing_row.cuh"
 #include "product/european_swaption/schedule.cuh"
 

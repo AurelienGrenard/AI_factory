@@ -1,7 +1,7 @@
 // Qualify the production fractional resolvent against high-precision references.
-#include "common/check_cuda.cuh"
-#include "common/compensated_sum.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
+#include "cuda/check_cuda.cuh"
+#include "compensated_sum.cuh"
+#include "volterra/fractional_resolvent_hybrid_kernel.cuh"
 
 #include <cuda_runtime.h>
 

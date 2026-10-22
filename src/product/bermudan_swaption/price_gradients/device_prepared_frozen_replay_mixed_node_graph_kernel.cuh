@@ -1,11 +1,11 @@
 // Cooperative Bermudan frozen replay on graph nodes.
 #pragma once
 
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_launcher.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_preparation.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/kernel_shared_memory.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/path_team.cuh"
-#include "common/monte_carlo/price_gradients/tuning.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_launcher.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_preparation.cuh"
+#include "monte_carlo/price_gradients/node_graph/kernel_shared_memory.cuh"
+#include "monte_carlo/price_gradients/node_graph/path_team.cuh"
+#include "monte_carlo/price_gradients/tuning.cuh"
 #include "product/bermudan_swaption/price_gradients/device_prepared_pricing_policy.cuh"
 #include "product/bermudan_swaption/price_gradients/frozen_replay_mixed_workspace.cuh"
 

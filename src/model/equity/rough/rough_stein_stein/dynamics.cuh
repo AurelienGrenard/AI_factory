@@ -1,8 +1,8 @@
 // Public path state and dynamics-policy declarations for rough Stein--Stein.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/volterra/fractional_resolvent_hybrid_kernel.cuh"
+#include "equity/concepts.cuh"
+#include "volterra/fractional_resolvent_hybrid_kernel.cuh"
 #include "model/equity/rough/rough_stein_stein/parameters.hpp"
 
 #include <cuda_runtime.h>

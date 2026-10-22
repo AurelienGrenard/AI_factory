@@ -1,5 +1,5 @@
 // Symmetric model-only FFT sampling checks for rough Bergomi and rough SABR.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/rough/rough_bergomi/sample.cuh"
 #include "model/equity/rough/rough_sabr/sample.cuh"
 

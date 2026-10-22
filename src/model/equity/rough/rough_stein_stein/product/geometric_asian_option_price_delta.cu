@@ -1,7 +1,7 @@
 // Rough Stein-Stein geometric-asian-option legacy delta API backed by the rough graph.
 #include "model/equity/rough/rough_stein_stein/product/geometric_asian_option_price_delta.cuh"
 #include "model/equity/rough/rough_stein_stein/product/geometric_asian_option_price_gradients.cuh"
-#include "common/volterra/price_gradients/legacy_spot_delta_graph.cuh"
+#include "volterra/price_gradients/legacy_spot_delta_graph.cuh"
 
 namespace ai_factory::workbench::model::equity::rough_stein_stein {
 

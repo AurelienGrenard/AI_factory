@@ -3,7 +3,7 @@
 
 #include "model/equity/rough/quadratic_rough_heston/dynamics.cuh"
 #include "model/equity/rough/quadratic_rough_heston/sample_parameter_sampler.cuh"
-#include "common/volterra/exponential_kernel.cuh"
+#include "volterra/exponential_kernel.cuh"
 
 #include <cstddef>
 #include <cstdint>

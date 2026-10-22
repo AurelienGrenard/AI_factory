@@ -622,7 +622,7 @@ def render_bindings(output_root, specifications, template_root, write_generated)
             "product": spec.pricing.product,
             "product_type": product_metadata.get("product_type", ""),
             "mixed_output_include": (
-                '#include "common/price_gradients/'
+                '#include "price_gradients/'
                 'mixed_sensitivity_outputs.cuh"\n'
                 if spec.preparation_strategy in {
                     "device_prepared_step_terminal",
@@ -1414,15 +1414,41 @@ def render_recipes(
         }
         if spec.asset_class == "fixed_income":
             metadata["quote_convention"] = quote_convention(spec.product)
+            if any(item["parameter"] == "product.maturity_years"
+                   for item in selected):
+                metadata["sensitivity"]["maturity_coordinate"] = {
+                    "rate_option": (
+                        "Payment time T2; fixing T1 and the contractual "
+                        "accrual period stay fixed."
+                    ),
+                    "zero_coupon_bond_option": (
+                        "Underlying bond maturity U; option expiry T and "
+                        "the central absolute strike stay fixed."
+                    ),
+                    "zero_coupon_bond_up_and_out": (
+                        "Underlying bond maturity U; option expiry T, "
+                        "monitoring grid, and central absolute K and B stay fixed."
+                    ),
+                    "european_swaption": (
+                        "Last fixed-leg payment date; earlier payment dates "
+                        "stay fixed and the last accrual adjusts to the new date."
+                    ),
+                }[spec.product]
         if reconstructed:
             metadata["sensitivity"]["reconstructible_from_price"] = reconstructed
         if option_side is not None:
             metadata["option_side"] = option_side
         if spec.asset_class == "equity":
-            metadata["sensitivity"]["spot_contract_rule"] = (
-                "Spot bumps keep absolute strikes and barriers resolved "
-                "at the central spot fixed; product gradients use quoted ratios."
-            )
+            if spec.product == "range_accrual":
+                metadata["sensitivity"]["spot_contract_rule"] = (
+                    "The fixed bounds apply directly to S(t_i)/S0; "
+                    "spot bumps keep both bounds unchanged."
+                )
+            else:
+                metadata["sensitivity"]["spot_contract_rule"] = (
+                    "Spot bumps keep absolute strikes and barriers resolved "
+                    "at the central spot fixed; product gradients use quoted ratios."
+                )
         if spec.construction == "cartesian" and fitted:
             metadata["curve_assignment"] = CURVE_ASSIGNMENT
         if strategy_decision is not None:

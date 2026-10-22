@@ -1,6 +1,6 @@
 // Check the shared fractional kernel and the two Gaussian-Volterra path maps.
-#include "common/check_cuda.cuh"
-#include "common/volterra/fractional_hybrid_kernel.cuh"
+#include "cuda/check_cuda.cuh"
+#include "volterra/fractional_hybrid_kernel.cuh"
 #include "model/equity/markovian/sabr/dynamics_impl.cuh"
 #include "model/equity/rough/rough_bergomi/dynamics_impl.cuh"
 #include "model/equity/rough/rough_sabr/dynamics_impl.cuh"

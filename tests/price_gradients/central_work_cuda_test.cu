@@ -1,7 +1,7 @@
 // Count the work performed by the compact (row, sensitivity) terminal kernel.
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/terminal_device_prepared_plan.hpp"
-#include "common/equity/path_product_policy.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "equity/price_gradients/terminal_device_prepared_plan.hpp"
+#include "equity/path_product_policy.cuh"
 #include "tests/price_gradients/cuda_test_support.cuh"
 
 #include <array>

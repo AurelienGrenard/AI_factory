@@ -1,7 +1,7 @@
 // Log-modulated rough-Bergomi athena-autocall composition over the Volterra FFT engine.
 #include "model/equity/rough/log_modulated_rough_bergomi/product/athena_autocall.cuh"
 
-#include "common/volterra/hybrid_schedule.cuh"
+#include "volterra/hybrid_schedule.cuh"
 #include "model/equity/rough/log_modulated_rough_bergomi/volterra_fft_pricing.cuh"
 #include "product/athena_autocall/pricing_policy.cuh"
 

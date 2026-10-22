@@ -1,7 +1,7 @@
 // Generated Black-Scholes GeometricAsianOption composition over shared closed-form bumping.
 #include "model/equity/markovian/black_scholes/product/geometric_asian_option_price_delta.cuh"
 
-#include "common/closed_form/closed_form_price_delta_kernels.cuh"
+#include "closed_form/closed_form_price_delta_kernels.cuh"
 #include "model/equity/markovian/black_scholes/product/geometric_asian_option_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::black_scholes {

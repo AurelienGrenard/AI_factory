@@ -1,5 +1,5 @@
 // Exercise the offline CUDA runner independently of a catalog recipe.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/generation_progress.hpp"
 #include "tools/cuda/monte_carlo_generation_checkpoint.cuh"

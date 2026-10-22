@@ -1,6 +1,6 @@
 // Generate 900 core and 100 stress unit-bond up-and-out call contracts.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "product/zero_coupon_bond_up_and_out/dataset.hpp"
 
 #include <cstdint>

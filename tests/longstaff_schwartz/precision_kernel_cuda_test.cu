@@ -1,9 +1,9 @@
 // Compare LSM products, solves and decisions against higher-precision references.
-#include "common/check_cuda.cuh"
-#include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/exercise_decision.cuh"
-#include "common/longstaff_schwartz/linear_solver.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
+#include "cuda/check_cuda.cuh"
+#include "longstaff_schwartz/basis/laguerre.cuh"
+#include "longstaff_schwartz/exercise_decision.cuh"
+#include "longstaff_schwartz/linear_solver.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
 
 #include <cuda_runtime.h>
 

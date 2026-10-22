@@ -1,11 +1,11 @@
 // Generated ${model} composition over central LSM and frozen-exercise replay.
 #include "model/equity/markovian/${model}/product/american_option_price_gradients.cuh"
 
-#include "common/equity/price_gradients/device_prepared_stencil_launcher.cuh"
-#include "common/longstaff_schwartz/basis/laguerre.cuh"
-#include "common/longstaff_schwartz/price_gradients/${lsm_replay_header}"
-#include "common/longstaff_schwartz/price_gradients/device_prepared_launcher.cuh"
-#include "common/longstaff_schwartz/small_linear_regressor.cuh"
+#include "equity/price_gradients/device_prepared_stencil_launcher.cuh"
+#include "longstaff_schwartz/basis/laguerre.cuh"
+#include "longstaff_schwartz/price_gradients/${lsm_replay_header}"
+#include "longstaff_schwartz/price_gradients/device_prepared_launcher.cuh"
+#include "longstaff_schwartz/small_linear_regressor.cuh"
 #include "model/equity/markovian/${model}/dynamics_impl.cuh"
 #include "model/equity/markovian/${model}/price_gradients/coupled_dynamics_impl.cuh"
 #include "product/american_option/continuation_state.cuh"

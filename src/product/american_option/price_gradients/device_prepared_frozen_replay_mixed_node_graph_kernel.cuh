@@ -1,15 +1,15 @@
 // Cooperative frozen replay of selected mixed American graph nodes.
 #pragma once
 
-#include "common/equity/discount.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_launcher.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_preparation.cuh"
-#include "common/longstaff_schwartz/price_gradients/frozen_replay_node_graph/value_policy.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/coupled_interval.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/kernel_shared_memory.cuh"
-#include "common/monte_carlo/price_gradients/node_graph/path_team.cuh"
-#include "common/monte_carlo/price_gradients/tuning.cuh"
-#include "common/payoff/vanilla_option.cuh"
+#include "equity/discount.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_launcher.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/mixed_preparation.cuh"
+#include "longstaff_schwartz/price_gradients/frozen_replay_node_graph/value_policy.cuh"
+#include "monte_carlo/price_gradients/node_graph/coupled_interval.cuh"
+#include "monte_carlo/price_gradients/node_graph/kernel_shared_memory.cuh"
+#include "monte_carlo/price_gradients/node_graph/path_team.cuh"
+#include "monte_carlo/price_gradients/tuning.cuh"
+#include "payoff/vanilla_option.cuh"
 #include "product/american_option/price_gradients/frozen_replay_mixed_workspace.cuh"
 
 #include <cuda_runtime.h>

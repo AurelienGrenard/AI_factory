@@ -1,10 +1,10 @@
 // Generated normal_inverse_gaussian exact-terminal asset_or_nothing_option sensitivities over the common device-prepared engine.
 #include "model/equity/markovian/normal_inverse_gaussian/product/asset_or_nothing_option_price_gradients.cuh"
 
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
+#include "equity/price_gradients/terminal_node_graph_launcher.cuh"
+#include "equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/normal_inverse_gaussian/product/asset_or_nothing_option.cuh"
 #include "product/asset_or_nothing_option/pricing_policy.cuh"

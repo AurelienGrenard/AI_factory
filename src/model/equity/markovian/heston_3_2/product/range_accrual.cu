@@ -1,8 +1,8 @@
 // Heston 3/2 range-accrual composition over generic CUDA layers.
 #include "model/equity/markovian/heston_3_2/product/range_accrual.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/heston_3_2/dynamics_impl.cuh"
 #include "product/range_accrual/pricing_policy.cuh"
 

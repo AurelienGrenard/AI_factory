@@ -1,8 +1,8 @@
 // Reusable CUDA interface for Heston paths simulated with Andersen QE-M.
 #pragma once
 
-#include "common/equity/concepts.cuh"
-#include "common/philox.cuh"
+#include "equity/concepts.cuh"
+#include "philox/distributions.cuh"
 #include "model/equity/markovian/heston/parameters.hpp"
 
 #include <cuda_runtime.h>

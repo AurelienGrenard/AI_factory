@@ -2,7 +2,7 @@
 #include "model/fixed_income/g2/product/european_swaption.cuh"
 #include "model/fixed_income/g2/dynamics.cuh"
 #include "model/fixed_income/g2/analytics_impl.cuh"
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
 #include "product/european_swaption/monte_carlo_pricing_policy.cuh"
 
 namespace ai_factory::workbench::model::fixed_income::g2 {

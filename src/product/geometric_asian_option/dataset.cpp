@@ -1,6 +1,6 @@
 // Convert Geometric-Asian-option JSON rows into compact CUDA parameters.
 #include "product/geometric_asian_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 

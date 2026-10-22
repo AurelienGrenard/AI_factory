@@ -1,10 +1,10 @@
 // Generated ${model} ${product} sensitivities with row-local device preparation.
 #pragma once
 
-#include "common/equity/price_gradients/path_device_prepared_plan.hpp"
-#include "common/option_side.cuh"
-#include "common/price_gradients/launch.cuh"
-${mixed_output_include}#include "common/price_gradients/sensitivity_outputs.cuh"
+#include "equity/price_gradients/path_device_prepared_plan.hpp"
+#include "payoff/option_side.cuh"
+#include "price_gradients/launch.cuh"
+${mixed_output_include}#include "price_gradients/sensitivity_outputs.cuh"
 #include "model/equity/markovian/${model}/price_gradients/device_preparation.cuh"
 #include "product/${product}/price_gradients/device_preparation.cuh"
 

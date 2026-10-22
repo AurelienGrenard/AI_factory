@@ -83,7 +83,7 @@ D(0,t)
 =\exp\!\left(-I_t-\int_0^t\phi(u)\,\mathrm du\right).
 ```
 
-Shared rate and swap identities: [fixed-income rate reference](../../../common/fixed_income/fixed-income-rate-identities-reference.md).
+Shared rate and swap identities: [fixed-income rate reference](../../../fixed_income/fixed-income-rate-identities-reference.md).
 
 ## Related contracts
 

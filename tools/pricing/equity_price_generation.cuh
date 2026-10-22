@@ -1,10 +1,10 @@
 // Generic offline assembly for generated equity price recipes.
 #pragma once
 
-#include "common/dataset_validation.hpp"
-#include "common/equity/spot_relative_product.hpp"
-#include "common/price_construction.cuh"
-#include "common/result_index.cuh"
+#include "datasets/validation.hpp"
+#include "equity/spot_relative_product.hpp"
+#include "pricing_rows/price_construction.cuh"
+#include "pricing_rows/result_index.cuh"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/pricing_launch_plan.hpp"
 #include "tools/cuda/monte_carlo_generation_checkpoint.cuh"

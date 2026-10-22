@@ -91,13 +91,8 @@
       }
     ],
     "bump_rule": "h = displacement (absolute) or displacement * abs(x) (relative); centered when valid, otherwise second-order one-sided.",
-    "source_price_recipe": "catalog/model/fixed_income/cir_plus_plus/prices/svensson/european_receiver_swaptions/cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/recipe.yaml"
-  },
-  "option_side": "receiver",
-  "time_representation": {
-    "kind": "exact_terminal_transition",
-    "contractual_days_per_year": 252,
-    "maturity_bump_steps_per_year": 504
+    "source_price_recipe": "catalog/model/fixed_income/cir_plus_plus/prices/svensson/european_receiver_swaptions/cir_plus_plus_01__svensson_01__european_receiver_swaptions_01__01/recipe.yaml",
+    "maturity_coordinate": "Last fixed-leg payment date; earlier payment dates stay fixed and the last accrual adjusts to the new date."
   },
   "quote_convention": {
     "strike": {
@@ -106,5 +101,11 @@
       "effective_level": "strike = initial_par_swap_rate + strike_spread"
     },
     "reference_policy": "Resolved at the unbumped model and initial curve; absolute contract levels stay fixed for model and curve bumps."
+  },
+  "option_side": "receiver",
+  "time_representation": {
+    "kind": "exact_terminal_transition",
+    "contractual_days_per_year": 252,
+    "maturity_bump_steps_per_year": 504
   }
 }

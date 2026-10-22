@@ -1,6 +1,6 @@
 // Convert forward-rate-option JSON rows into compact CUDA parameters.
 #include "product/rate_option/dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -13,9 +13,12 @@ namespace ai_factory::workbench::product {
 std::vector<RateOptionParameters> load_rate_options(
     const std::filesystem::path& dataset_path
 ) {
-    const bool quoted = datasets::read_parameter_dataset(
-        dataset_path, datasets::ParameterDatasetFamily::Product,
-        "Fixed-income product").contains("quote_convention");
+    const bool quoted = datasets::fixed_income_relative_quote(
+        datasets::read_parameter_dataset(
+            dataset_path, datasets::ParameterDatasetFamily::Product,
+            "Fixed-income product"),
+        "additive_to_initial_simple_forward_rate",
+        "annualized_decimal_rate");
     return datasets::load_parameter_rows<RateOptionParameters>(
         dataset_path,
         datasets::ParameterDatasetFamily::Product,

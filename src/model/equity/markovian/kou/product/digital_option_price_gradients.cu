@@ -1,10 +1,10 @@
 // Generated kou exact-terminal digital_option sensitivities over the common device-prepared engine.
 #include "model/equity/markovian/kou/product/digital_option_price_gradients.cuh"
 
-#include "common/equity/price_gradients/terminal_device_prepared_launcher.cuh"
-#include "common/equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/terminal_node_graph_launcher.cuh"
-#include "common/equity/price_gradients/terminal_product_sensitivity_policy.cuh"
+#include "equity/price_gradients/terminal_device_prepared_launcher.cuh"
+#include "equity/price_gradients/mixed_terminal_node_graph_launcher.cuh"
+#include "equity/price_gradients/terminal_node_graph_launcher.cuh"
+#include "equity/price_gradients/terminal_product_sensitivity_policy.cuh"
 #include "model/equity/markovian/kou/price_gradients/coupled_dynamics_impl.cuh"
 #include "model/equity/markovian/kou/product/digital_option.cuh"
 #include "product/digital_option/pricing_policy.cuh"

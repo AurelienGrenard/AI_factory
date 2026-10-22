@@ -1,9 +1,9 @@
 // Generated Public launcher for Vasicek zero-coupon bond options.
 #pragma once
 
-#include "common/price_construction.cuh"
+#include "pricing_rows/price_construction.cuh"
 
-#include "common/option_side.cuh"
+#include "payoff/option_side.cuh"
 #include "model/fixed_income/vasicek/parameters.hpp"
 #include "product/zero_coupon_bond_option/parameters.hpp"
 

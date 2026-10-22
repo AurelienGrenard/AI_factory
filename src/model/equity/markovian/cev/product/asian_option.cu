@@ -1,8 +1,8 @@
 // CEV asian-option composition over generic CUDA layers.
 #include "model/equity/markovian/cev/product/asian_option.cuh"
 
-#include "common/monte_carlo/monte_carlo_kernel.cuh"
-#include "common/simulation/schedule.cuh"
+#include "monte_carlo/monte_carlo_kernel.cuh"
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/cev/dynamics_impl.cuh"
 #include "product/asian_option/pricing_policy.cuh"
 

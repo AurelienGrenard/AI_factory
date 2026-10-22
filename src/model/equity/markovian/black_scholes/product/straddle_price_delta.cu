@@ -1,7 +1,7 @@
 // Generated Black-Scholes Straddle composition over shared closed-form bumping.
 #include "model/equity/markovian/black_scholes/product/straddle_price_delta.cuh"
 
-#include "common/closed_form/closed_form_price_delta_kernels.cuh"
+#include "closed_form/closed_form_price_delta_kernels.cuh"
 #include "model/equity/markovian/black_scholes/product/straddle_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::black_scholes {

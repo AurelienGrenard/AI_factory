@@ -24,7 +24,7 @@ K_H(t)\simeq\sum_{i=1}^{N}w_i e^{-x_i t},
 
 and the Volterra equation becomes a Markovian lift with `N` memory factors.
 Those factors are not Gaussian: their common stochastic increment contains
-`sqrt(V)`. `common/volterra/exponential_kernel.cuh` is generic; the weak
+`sqrt(V)`. `volterra/exponential_kernel.cuh` is generic; the weak
 variance update in `dynamics_impl.cuh` remains rough-Heston-specific.
 
 `fit_positive_fractional_kernel_l2<N>` starts from positive geometric cells in

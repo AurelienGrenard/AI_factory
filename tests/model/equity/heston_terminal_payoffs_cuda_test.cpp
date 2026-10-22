@@ -1,5 +1,5 @@
 // Exercise Heston terminal-payoff launchers and exact pathwise identities.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/equity/markovian/heston/product/asian_option.cuh"
 #include "model/equity/markovian/heston/product/asset_or_nothing_option.cuh"
 #include "model/equity/markovian/heston/product/digital_option.cuh"

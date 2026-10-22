@@ -1,7 +1,7 @@
 // Shared host pipeline for American-option price datasets.
 #pragma once
 
-#include "common/longstaff_schwartz/launch.cuh"
+#include "longstaff_schwartz/launch.cuh"
 #include "product/american_option/dataset.hpp"
 #include "tools/cuda/pricing_runner.cuh"
 #include "tools/cuda/generation_progress.hpp"

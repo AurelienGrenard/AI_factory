@@ -1,5 +1,5 @@
 // Compare the G2 caplet CUDA launcher with an FP64 formula.
-#include "common/check_cuda.cuh"
+#include "cuda/check_cuda.cuh"
 #include "model/fixed_income/g2/product/rate_option.cuh"
 
 #include <cuda_runtime.h>

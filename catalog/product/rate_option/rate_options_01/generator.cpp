@@ -1,6 +1,6 @@
 // Generate normalized rate_options with central strikes and sparse tail cases.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 
 #include <filesystem>
 #include <string>

@@ -1,6 +1,6 @@
 // Generate reproducible curve-independent G2++ parameters.
 #include "tools/datasets/parameter_dataset.hpp"
-#include "common/dataset_validation.hpp"
+#include "datasets/validation.hpp"
 #include "tools/sampling/parameters/g2_generation.hpp"
 
 #include <cstdint>

@@ -1,9 +1,9 @@
 // Zero-coupon-bond-option policies assembled from model analytics.
 #pragma once
 
-#include "common/device_inputs.cuh"
-#include "common/option_side.cuh"
-#include "common/time_configuration.cuh"
+#include "pricing_rows/device_inputs.cuh"
+#include "payoff/option_side.cuh"
+#include "schedule/time_configuration.cuh"
 #include "product/zero_coupon_bond_option/parameters.hpp"
 
 #include <cuda_runtime.h>

@@ -1,7 +1,7 @@
 // Down-and-out option policy specialization.
 #pragma once
 
-#include "common/equity/barrier_pricing_policy.cuh"
+#include "equity/barrier_pricing_policy.cuh"
 #include "product/down_and_out_option/parameters.hpp"
 
 namespace ai_factory::workbench::product {

@@ -43,7 +43,7 @@ target_compile_features(inspect_pricing_launch_plan PRIVATE cxx_std_20)
 
 # Host-only JSON validation shared by runtime loaders and offline tools.
 add_library(ai_factory_dataset_validation STATIC
-    src/common/dataset_validation.cpp
+    src/datasets/validation.cpp
 )
 target_include_directories(ai_factory_dataset_validation PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

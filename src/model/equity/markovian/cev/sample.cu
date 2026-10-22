@@ -2,8 +2,8 @@
 #include "model/equity/markovian/cev/sample.cuh"
 #include "model/equity/markovian/cev/sample_parameter_sampler.cuh"
 
-#include "common/sample.cuh"
-#include "common/simulation/schedule.cuh"
+#include <sample.cuh>
+#include "schedule/schedule.cuh"
 #include "model/equity/markovian/cev/dynamics_impl.cuh"
 
 namespace ai_factory::workbench::model::equity::cev {
